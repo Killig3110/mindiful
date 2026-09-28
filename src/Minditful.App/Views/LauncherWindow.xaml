@@ -43,10 +43,10 @@
             <Button Style="{StaticResource EnvCard}" Margin="0,0,8,0" Click="Demo_Click">
                 <StackPanel>
                     <TextBlock Style="{StaticResource Eyebrow}" Text="1 · DEMO" Foreground="{StaticResource Amber}" />
-                    <TextBlock Text="Kịch bản ngày mẫu" FontSize="17" FontWeight="Bold" Foreground="{StaticResource Cream}" Margin="0,6,0,0" />
+                    <TextBlock Text="App thật · dữ liệu kịch bản" FontSize="17" FontWeight="Bold" Foreground="{StaticResource Cream}" Margin="0,6,0,0" />
                     <TextBlock TextWrapping="Wrap" Foreground="{StaticResource Soft}" Margin="0,8,0,0"
-                               Text="Thứ Năm 24/9 chạy tua nhanh y như prototype: 17 mốc để nhảy tới, người dùng mẫu tự trả lời, bảng &quot;Bạn thử làm&quot; để bẻ kịch bản. Không cần tài khoản." />
-                    <TextBlock Style="{StaticResource Hint}" Margin="0,12,0,0" Text="Không kết nối mạng" />
+                               Text="Milo sống trên desktop như Sandbox/Production, nhưng giờ, lịch, email, task và thao tác người dùng lấy từ ngày mẫu Thứ Năm 24/9 để chạy đủ mọi case của prototype. Có bảng điều khiển để tua, nhảy mốc, bật từng case." />
+                    <TextBlock Style="{StaticResource Hint}" Margin="0,12,0,0" Text="Không cần tài khoản, không kết nối mạng" />
                 </StackPanel>
             </Button>
             <Button Style="{StaticResource EnvCard}" Margin="4,0" Click="Sandbox_Click">

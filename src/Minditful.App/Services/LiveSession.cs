@@ -18,7 +18,7 @@ namespace Minditful.App.Services;
 /// Một ngày làm việc thật (Sandbox hoặc Production): đồng hồ thật, tín hiệu Windows,
 /// dữ liệu Graph/Azure Boards làm mới định kỳ, hành động của Milo đi ra Teams/Outlook.
 /// </summary>
-internal sealed class LiveSession : IDisposable
+internal sealed class LiveSession : IMiloSession
 {
     private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(30) };
 
@@ -283,6 +283,10 @@ internal sealed class LiveSession : IDisposable
     }
 
     public bool HasPat => _secrets.Read() is not null || Environment.GetEnvironmentVariable(Conn.AzureDevOps.PatEnvVar) is not null;
+
+    public bool ContentProtection => Conn.ContentProtection;
+
+    public void Pump(double realDt) => Engine.AdvanceTo(DateTime.Now.TimeOfDay.TotalSeconds);
 
     public void Dispose()
     {

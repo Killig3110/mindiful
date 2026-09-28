@@ -4,5 +4,8 @@ obj/
 *.user
 .DS_Store
 TestResults/
-# ClientId/Tenant/PAT riêng của từng người — không commit
+# ClientId/Tenant/PAT/API key riêng của từng người — không commit
+.env
+.env.*
+!.env.sample
 src/Minditful.App/appsettings.local.json

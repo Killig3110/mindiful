@@ -7,14 +7,19 @@ using Minditful.App.Services;
 
 namespace Minditful.App.Views;
 
-/// <summary>Cửa sổ overlay trong suốt ở góc phải dưới, ngay trên taskbar — nơi Milo sống trên desktop thật.</summary>
+/// <summary>
+/// Cửa sổ overlay trong suốt ở góc màn hình, ngay trên taskbar — nơi Milo sống trên desktop thật.
+/// Dùng chung cho cả 3 môi trường; Demo chỉ khác ở chỗ thời gian và dữ liệu đến từ kịch bản.
+/// </summary>
 public partial class CompanionWindow : Window
 {
-    private readonly LiveSession _session;
+    private readonly IMiloSession _session;
+    private readonly System.Diagnostics.Stopwatch _clock = System.Diagnostics.Stopwatch.StartNew();
+    private double _lastPump;
     private bool _animating;
     private Rect? _area;
 
-    internal CompanionWindow(LiveSession session)
+    internal CompanionWindow(IMiloSession session)
     {
         InitializeComponent();
         _session = session;
@@ -39,6 +44,7 @@ public partial class CompanionWindow : Window
         var timer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
         timer.Tick += (_, _) =>
         {
+            Pump();
             Animate(_session.Engine.Busy);
             if (!_animating) Layer.Render();
         };
@@ -99,7 +105,7 @@ public partial class CompanionWindow : Window
         ex = (ex | Native.WS_EX_TOOLWINDOW) & ~Native.WS_EX_APPWINDOW;
         Native.SetWindowLongPtr(hwnd, Native.GWL_EXSTYLE, (IntPtr)ex);
         // Share màn hình không thấy Milo hay chấm chờ (mục 3)
-        if (_session.Conn.ContentProtection) Native.SetWindowDisplayAffinity(hwnd, Native.WDA_EXCLUDEFROMCAPTURE);
+        if (_session.ContentProtection) Native.SetWindowDisplayAffinity(hwnd, Native.WDA_EXCLUDEFROMCAPTURE);
     }
 
     /// <summary>Chỉ vẽ 60fps khi Milo đang hiện; lúc ẩn chỉ cập nhật 4 lần/giây cho nhẹ máy.</summary>
@@ -113,7 +119,23 @@ public partial class CompanionWindow : Window
 
     private void OnFrame(object? sender, EventArgs e)
     {
-        _session.Engine.AdvanceTo(DateTime.Now.TimeOfDay.TotalSeconds);
+        Pump();
+        Layer.Render();
+    }
+
+    /// <summary>Đẩy thời gian của phiên theo giây thật đã trôi kể từ lần trước (timer và khung hình dùng chung).</summary>
+    private void Pump()
+    {
+        var now = _clock.Elapsed.TotalSeconds;
+        var dt = Math.Min(0.5, now - _lastPump);
+        _lastPump = now;
+        if (dt > 0) _session.Pump(dt);
+    }
+
+    /// <summary>Vẽ lại ngay (sau khi bảng điều khiển đổi trạng thái).</summary>
+    public void Refresh()
+    {
+        Animate(_session.Engine.Busy);
         Layer.Render();
     }
 

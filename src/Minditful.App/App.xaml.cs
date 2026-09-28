@@ -14,9 +14,9 @@ namespace Minditful.App;
 
 public partial class App : Application
 {
-    private LiveSession? _session;
+    private IMiloSession? _session;
     private WinForms.NotifyIcon? _tray;
-    private ControlCenterWindow? _control;
+    private Window? _control;
     private Mutex? _single;
 
     internal CompanionWindow? Companion { get; private set; }
@@ -50,6 +50,8 @@ public partial class App : Application
     private static MinditfulOptions LoadOptions(string[] args)
     {
         var baseDir = AppContext.BaseDirectory;
+        // .env (không commit) → biến môi trường, trước khi đọc cấu hình. Mẫu: .env.sample ở gốc repo.
+        DotEnv.Load(DotEnv.DefaultCandidates(baseDir, AppPaths.Root));
         var cfg = new ConfigurationBuilder()
             .SetBasePath(baseDir)
             .AddJsonFile("appsettings.json", optional: true)
@@ -77,23 +79,33 @@ public partial class App : Application
         return env;
     }
 
+    /// <summary>
+    /// Demo cũng là app thật: Milo trên desktop + khay hệ thống, chỉ khác đồng hồ/dữ liệu chạy theo kịch bản ngày mẫu.
+    /// Bảng điều khiển kịch bản mở sẵn để nhảy mốc và bật từng case.
+    /// </summary>
     private void StartDemo(MinditfulOptions opt)
     {
-        var w = new SimulatorWindow(opt);
-        MainWindow = w;
-        w.Closed += (_, _) => Shutdown();
-        w.Show();
+        _session = new DemoSession(opt);
+        ShowMilo();
+        CreateTray(AppEnvironment.Demo);
+        ShowControlCenter();
     }
 
     private async Task StartLiveAsync(AppEnvironment env, MinditfulOptions opt)
     {
-        _session = new LiveSession(env, opt);
-        Companion = new CompanionWindow(_session);
+        var live = new LiveSession(env, opt);
+        _session = live;
+        ShowMilo();
+        CreateTray(env);
+        if (live.Conn.ShowControlCenter || !live.Auth.IsConfigured) ShowControlCenter();
+        await live.StartAsync();
+    }
+
+    private void ShowMilo()
+    {
+        Companion = new CompanionWindow(_session!);
         MainWindow = Companion;
         Companion.Show();
-        CreateTray(env);
-        if (_session.Conn.ShowControlCenter || !_session.Auth.IsConfigured) ShowControlCenter();
-        await _session.StartAsync();
     }
 
     private void ShowControlCenter()
@@ -104,17 +116,35 @@ public partial class App : Application
             _control.Activate();
             return;
         }
-        _control = new ControlCenterWindow(_session);
-        _control.Show();
+        _control = _session switch
+        {
+            DemoSession demo => new DemoControlWindow(demo),
+            LiveSession live => new ControlCenterWindow(live),
+            _ => null,
+        };
+        _control?.Show();
     }
 
     private void CreateTray(AppEnvironment env)
     {
         var menu = new WinForms.ContextMenuStrip();
         menu.Items.Add("Mở dashboard của Milo", null, (_, _) => Companion?.OpenDashboard());
-        menu.Items.Add("Bảng điều khiển · Bộ não Milo", null, (_, _) => ShowControlCenter());
-        menu.Items.Add("Đăng nhập Microsoft", null, async (_, _) => await _session!.SignInAsync(true));
-        menu.Items.Add("Làm mới dữ liệu", null, async (_, _) => await _session!.RefreshAsync());
+        if (_session is DemoSession demo)
+        {
+            menu.Items.Add("Điều khiển kịch bản · Bộ não Milo", null, (_, _) => ShowControlCenter());
+            menu.Items.Add("Phát / tạm dừng ngày mẫu", null, (_, _) => demo.TogglePlay());
+            menu.Items.Add("Làm lại ngày mẫu từ 08:50", null, (_, _) =>
+            {
+                demo.Restart();
+                Companion?.Refresh();
+            });
+        }
+        else if (_session is LiveSession live)
+        {
+            menu.Items.Add("Bảng điều khiển · Bộ não Milo", null, (_, _) => ShowControlCenter());
+            menu.Items.Add("Đăng nhập Microsoft", null, async (_, _) => await live.SignInAsync(true));
+            menu.Items.Add("Làm mới dữ liệu", null, async (_, _) => await live.RefreshAsync());
+        }
         menu.Items.Add(new WinForms.ToolStripSeparator());
         menu.Items.Add("Thoát Milo", null, (_, _) => Shutdown());
         _tray = new WinForms.NotifyIcon

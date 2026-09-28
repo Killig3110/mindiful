@@ -3,12 +3,12 @@
 Ứng dụng desktop hiện thực hoá prototype **"Milo sống"** và tài liệu [Kịch bản hành vi Milo](docs/Kịch%20bản%20hành%20vi%20Milo.md).
 Milo là chú cáo ẩn ở góc phải dưới màn hình (chỉ chừa chóp đuôi). Milo chỉ ló ra vào đúng lúc: không chen vào cuộc họp, và tối đa 1 lời nhắc chủ động mỗi 15 phút.
 
-Một bộ não duy nhất (Rule Engine → Điều phối → Mood Engine) chạy ở **3 môi trường**:
+Cả **3 môi trường đều là cùng một app**: Milo sống trên desktop Windows (overlay trong suốt ở góc màn hình, ngay trên taskbar), có biểu tượng ở khay hệ thống, dashboard, thẻ nhắc… Một bộ não duy nhất (Rule Engine → Điều phối → Mood Engine) chạy bên dưới. Ba môi trường chỉ khác **nguồn thời gian, dữ liệu và tín hiệu**:
 
 | Môi trường | Dữ liệu | Milo hiện ở đâu | Dùng để |
 | --- | --- | --- | --- |
-| **Demo** | Ngày mẫu Thứ Năm 24/9 (y hệt prototype) | Cửa sổ mô phỏng 3 cột: điều khiển · màn hình giả · bộ não | Trình diễn kịch bản, nhảy 17 mốc, tua 60×/120×/300×, "Bạn thử làm", "Xem từng case" (bật ngay 1 trong 16 episode) |
-| **Sandbox** | Microsoft account cá nhân + Azure DevOps org cá nhân (API thật) | Desktop thật (overlay trong suốt) + Bảng điều khiển | Thử tích hợp thật mà không đụng tenant công ty: tạo dữ liệu mẫu, giả lập tín hiệu, ép chạy từng case |
+| **Demo** | Ngày mẫu Thứ Năm 24/9 của prototype: giờ, lịch, email, task và thao tác người dùng theo kịch bản | **Desktop thật** (overlay trong suốt ở góc màn hình) + khay hệ thống + bảng điều khiển kịch bản | Chạy đủ 16 case của prototype trên app thật: tua 60×/120×/300×, nhảy 17 mốc, bật từng case, "Bạn thử làm" để bẻ kịch bản |
+| **Sandbox** | Microsoft account cá nhân + Azure DevOps org cá nhân (API thật) | Desktop thật (overlay trong suốt) + khay hệ thống + Bảng điều khiển | Thử tích hợp thật mà không đụng tenant công ty: tạo dữ liệu mẫu, giả lập tín hiệu, ép chạy từng case |
 | **Production** | Tenant Bosch: Teams presence, Outlook, Azure Boards | Desktop thật, ẩn khỏi share màn hình | Dùng hằng ngày |
 
 ## Chạy nhanh
@@ -16,7 +16,7 @@ Một bộ não duy nhất (Rule Engine → Điều phối → Mood Engine) ch�
 Yêu cầu: Windows 10 1809+ / Windows 11, [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) (hoặc Visual Studio 2022 17.8+).
 
 ```powershell
-dotnet test                                                # 61 test (chạy được cả trên macOS/Linux)
+dotnet test                                                # 64 test (chạy được cả trên macOS/Linux)
 dotnet run --project src/Minditful.App                     # mở màn hình chọn môi trường
 dotnet run --project src/Minditful.App -- --env Demo       # vào thẳng Demo (không cần tài khoản)
 dotnet run --project src/Minditful.App -- --env Sandbox
@@ -30,25 +30,28 @@ Sandbox/Production chạy nền và có biểu tượng chóp đuôi ở khay h�
 
 ## Cấu hình
 
-`src/Minditful.App/appsettings.json` là cấu hình mặc định. Giá trị riêng của bạn (ClientId, tenant, organization) để trong **`appsettings.local.json`** cạnh file exe; file này đã nằm trong `.gitignore`. Cũng có thể đặt file ở `%LOCALAPPDATA%\Minditful\appsettings.json` hoặc dùng biến môi trường `MINDITFUL__Minditful__...`.
+Bí mật và giá trị riêng của từng người (ClientId, tenant, organization, PAT, API key Claude) nằm trong file **`.env`** ở gốc repo:
 
-```jsonc
-// src/Minditful.App/appsettings.local.json
-{
-  "Minditful": {
-    "Sandbox": {
-      "Graph": { "ClientId": "00000000-0000-0000-0000-000000000000" },
-      "AzureDevOps": { "Organization": "ten-org-ca-nhan", "Project": "Minditful-Sandbox" }
-    },
-    "Production": {
-      "Graph": { "ClientId": "…", "TenantId": "…" },
-      "AzureDevOps": { "Organization": "…", "Project": "…", "Team": "…" }
-    }
-  }
-}
+```powershell
+copy .env.sample .env    # rồi điền giá trị
 ```
 
-Khung giờ làm (`WorkDay.Start/End`), ngưỡng rời máy, ngưỡng phân mảnh và nhịp làm mới dữ liệu nằm trong mục `WorkDay`.
+- `.env` đã nằm trong `.gitignore`, **không commit**. `.env.sample` là bản mẫu được commit, liệt kê đủ các biến.
+- App tìm `.env` ở cạnh file exe, rồi đi ngược lên các thư mục cha (khi chạy `dotnet run` từ repo), cuối cùng ở `%LOCALAPPDATA%\Minditful\.env`.
+- Biến môi trường thật của máy luôn được ưu tiên hơn `.env`. Dòng để trống giá trị thì dùng mặc định trong appsettings.json.
+- Cú pháp `MINDITFUL__Minditful__Sandbox__Graph__ClientId` tương ứng khoá `Minditful:Sandbox:Graph:ClientId` trong appsettings.json.
+
+| Biến | Dùng cho |
+| --- | --- |
+| `ANTHROPIC_API_KEY` | Claude viết lời thoại. Để trống thì dùng câu mẫu |
+| `MINDITFUL_SANDBOX_ADO_PAT` | PAT Azure DevOps của org cá nhân |
+| `MINDITFUL_PROD_ADO_PAT` | PAT Azure DevOps của Bosch |
+| `MINDITFUL__Minditful__Sandbox__…` / `…Production__…` | ClientId, TenantId, Organization, Project, Team |
+| `MINDITFUL__Minditful__Environment` | Mở thẳng Demo / Sandbox / Production |
+
+PAT và API key cũng có thể nhập trong Bảng điều khiển; khi đó chúng được lưu mã hoá DPAPI trên máy.
+
+`src/Minditful.App/appsettings.json` giữ các giá trị mặc định không bí mật. Khung giờ làm (`WorkDay.Start/End`), ngưỡng rời máy, ngưỡng phân mảnh và nhịp làm mới dữ liệu nằm trong mục `WorkDay`.
 
 ### Sandbox bằng tài khoản cá nhân
 
@@ -56,10 +59,10 @@ Khung giờ làm (`WorkDay.Start/End`), ngưỡng rời máy, ngưỡng phân m�
    - *Supported account types*: **Personal Microsoft accounts only**
    - *Platform*: **Mobile and desktop applications**, redirect URI `http://localhost`
    - *API permissions* (Delegated, Microsoft Graph): `User.Read`, `Calendars.ReadWrite`, `Mail.Read`, `Mail.Send`
-   - Chép *Application (client) ID* vào `Sandbox.Graph.ClientId`. `TenantId` giữ là `consumers`.
+   - Chép *Application (client) ID* vào `.env`: `MINDITFUL__Minditful__Sandbox__Graph__ClientId=…`. `TenantId` giữ là `consumers`.
 2. **Azure DevOps**: tạo org miễn phí tại [dev.azure.com](https://dev.azure.com), tạo project `Minditful-Sandbox` (process **Agile**; nếu dùng Scrum thì đặt `SeedState` là `In Progress`, Basic thì `Doing`).
    Tạo **PAT** với scope *Work Items (Read & write)* và *Project and Team (Read)*.
-3. Chạy `--env Sandbox`. Trong **Bảng điều khiển**, làm lần lượt: *Đăng nhập Microsoft* → dán PAT vào ô rồi bấm *Lưu PAT* (PAT được mã hoá DPAPI trên máy) → *Tạo dữ liệu mẫu*.
+3. Điền org, project và `MINDITFUL_SANDBOX_ADO_PAT` vào `.env` (hoặc dán PAT vào ô *Lưu PAT* trong Bảng điều khiển). Chạy `--env Sandbox`, rồi trong **Bảng điều khiển** bấm *Đăng nhập Microsoft* → *Tạo dữ liệu mẫu*.
    Seeder dựng lại ngày mẫu và lệch theo giờ hiện tại:
    - 1 cuộc họp sau 7 phút, nên Sắp họp sẽ bật sau khoảng 2 phút
    - chuỗi 3 cuộc họp liền (Lịch kín → Họp liên tục)
@@ -101,7 +104,9 @@ src/Minditful.Core            Bộ não, không phụ thuộc UI/Windows — tes
   Presentation/               Nội dung thẻ/dashboard/chú thích + keyframes hoạt ảnh (chép từ CSS prototype)
 src/Minditful.Integrations    MSAL, Graph (calendarView, messages, presence, events), Azure Boards (WIQL, iteration),
                               LiveWorkDataProvider, LiveActionSink, SandboxSeeder, lịch sử quả nho local
-src/Minditful.App             WPF: Launcher · SimulatorWindow (Demo) · CompanionWindow (overlay) · ControlCenterWindow
+src/Minditful.App             WPF: Launcher · CompanionWindow (overlay Milo trên desktop, chung cho cả 3 môi trường)
+                              DemoSession (đồng hồ + dữ liệu kịch bản) / LiveSession (đồng hồ thật + Graph/Azure Boards)
+                              DemoControlWindow (điều khiển kịch bản) · ControlCenterWindow (kết nối, công cụ Sandbox)
                               MiloLayer (Milo, chóp đuôi, thì thầm, thẻ, dashboard, chấm chờ, hiệu ứng) · BrainPanel
                               WindowsActivityMonitor (khoá máy, idle, gõ phím, toàn màn hình, chuyển app) · LiveSession
 tests/Minditful.Core.Tests    Ngày mẫu khớp mục 13 (08:58 chào sáng … 18:31 về thôi, 54 điểm), im lặng suốt họp, render mọi khung;
@@ -135,7 +140,7 @@ Khi một case vào hàng đợi, Milo gọi Claude ngay lúc đó để viết 
 - **Cấu hình:** mục `Llm` trong appsettings.json.
   - Mặc định `claude-opus-5`, `effort: low`. Muốn nhanh hơn có thể đổi `Model` sang `claude-haiku-4-5`.
   - Bật sẵn *server-side refusal fallback* (`fallbacks: "default"`). Tắt bằng `RefusalFallback: false`.
-- **API key:** nhập trong Bảng điều khiển (lưu mã hoá DPAPI) hoặc đặt biến `ANTHROPIC_API_KEY`.
+- **API key:** đặt `ANTHROPIC_API_KEY` trong `.env`, hoặc nhập trong Bảng điều khiển (lưu mã hoá DPAPI).
 - **Demo:** mặc định dùng câu mẫu để giống prototype từng chữ. Đặt `Llm.UseInDemo: true` để bật Claude trong Demo.
 
 ## Clip hoạt ảnh (§12)
@@ -165,7 +170,7 @@ Kéo chóp đuôi rồi thả ở đâu thì Milo neo vào **góc gần nhất**
 
 - Góc trái: Milo được lật ngang.
 - Góc trên: Milo thò xuống từ mép trên; thẻ và dashboard mọc xuống dưới.
-- Góc neo lưu riêng từng môi trường. Bảng điều khiển có 4 nút chọn góc; Demo cũng kéo được trong màn hình giả.
+- Góc neo lưu riêng từng môi trường. Bảng điều khiển Sandbox/Production có 4 nút chọn góc; ở cả 3 môi trường đều kéo chóp đuôi được.
 
 ## Cá nhân hoá 7 ngày (§14)
 
