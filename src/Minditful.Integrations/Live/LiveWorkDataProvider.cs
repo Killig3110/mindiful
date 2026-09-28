@@ -16,92 +16,129 @@ public sealed class LiveWorkDataProvider(
     private readonly Dictionary<string, string?> _attachmentCache = [];
     private string? _me;
 
-    public async Task<WorkSnapshot> LoadAsync(DateTime now, CancellationToken ct = default)
+    // Mỗi nguồn có chu kỳ riêng (lịch 2', mail 5', Boards 3' — docs/KET-NOI-SANDBOX.md); giữa 2 lần đọc dùng lại kết quả cũ.
+    private DateTime _calAt = DateTime.MinValue, _mailAt = DateTime.MinValue, _boardsAt = DateTime.MinValue;
+    private List<CalendarEvent> _calendar = [];
+    private TomorrowInfo? _tomorrow;
+    private string? _calNote, _mailNote, _boardsNote;
+    private List<MailItem> _mails = [];
+    private int _unread;
+    private bool _mailOk;
+    private List<WorkTask> _tasks = [];
+    private List<CompletedTask> _completed = [];
+    private SprintInfo? _sprint;
+    private bool _boardsOk;
+
+    /// <param name="force">Đọc lại tất cả ngay (mở khoá máy, đăng nhập, bấm Làm mới).</param>
+    public async Task<WorkSnapshot> LoadAsync(DateTime now, bool force = false, CancellationToken ct = default)
     {
         var today = DateOnly.FromDateTime(now);
-        var notes = new List<string>();
-        var calendar = new List<CalendarEvent>();
-        TomorrowInfo? tomorrow = null;
-        var mails = new List<MailItem>();
-        var unread = 0;
-        var mailOk = false;
-        var tasks = new List<WorkTask>();
-        var completed = new List<CompletedTask>();
-        SprintInfo? sprint = null;
-        var boardsOk = false;
+        var poll = conn.Polling;
+        bool Due(DateTime at, int seconds) => force || (now - at).TotalSeconds >= seconds || at.Date != now.Date;
 
         if (graph is not null && auth.IsConfigured)
         {
-            try
+            if (Due(_calAt, poll.CalendarSeconds))
             {
-                _me ??= (await graph.MeAsync(ct)).Mail;
-                var dayStart = now.Date;
-                var events = await graph.CalendarViewAsync(dayStart, dayStart.AddDays(2), ct);
-                foreach (var e in events.Where(Relevant))
-                {
-                    if (e.Start.Date == dayStart) calendar.Add(await MapEventAsync(e, dayStart, ct));
-                    else if (tomorrow is null && e.Start.Date == dayStart.AddDays(1)) tomorrow = new TomorrowInfo(e.Start.ToString("H:mm"), e.Subject);
-                }
-            }
-            catch (Exception ex) when (ex is not OperationCanceledException)
-            {
-                notes.Add("Lịch: " + Describe(ex));
-            }
-
-            if (auth.Has("Mail.Read"))
-            {
+                _calAt = now;
                 try
                 {
-                    (mails, unread) = await LoadMailAsync(now, ct);
-                    mailOk = true;
+                    _me ??= (await graph.MeAsync(ct)).Mail;
+                    var dayStart = now.Date;
+                    var calendar = new List<CalendarEvent>();
+                    TomorrowInfo? tomorrow = null;
+                    foreach (var e in (await graph.CalendarViewAsync(dayStart, dayStart.AddDays(2), ct)).Where(Relevant))
+                    {
+                        if (e.Start.Date == dayStart) calendar.Add(await MapEventAsync(e, dayStart, ct));
+                        else if (tomorrow is null && e.Start.Date == dayStart.AddDays(1)) tomorrow = new TomorrowInfo(e.Start.ToString("H:mm"), e.Subject);
+                    }
+                    (_calendar, _tomorrow, _calNote) = (calendar, tomorrow, null);
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
-                    notes.Add("Email: " + Describe(ex));
+                    _calNote = "Lịch: " + Describe(ex);
                 }
             }
-            else if (auth.GrantedScopes.Count > 0) notes.Add("Chưa có quyền Mail.Read → tắt Email chờ");
-        }
-        else notes.Add("Chưa đăng nhập Microsoft → chưa có lịch và email");
 
-        if (boards is { IsConfigured: true })
+            if (!auth.Has("Mail.Read"))
+            {
+                _mailOk = false;
+                _mailNote = auth.GrantedScopes.Count > 0 ? "Chưa có quyền Mail.Read → tắt Email chờ" : null;
+            }
+            else if (Due(_mailAt, poll.MailSeconds))
+            {
+                _mailAt = now;
+                try
+                {
+                    (_mails, _unread) = await LoadMailAsync(now, ct);
+                    (_mailOk, _mailNote) = (true, null);
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    _mailNote = "Email: " + Describe(ex);
+                }
+            }
+        }
+        else
         {
+            (_calendar, _tomorrow, _mails, _mailOk) = ([], null, [], false);
+            _calNote = "Chưa đăng nhập Microsoft → chưa có lịch và email";
+            _mailNote = null;
+        }
+
+        if (boards is not { IsConfigured: true })
+        {
+            (_tasks, _completed, _sprint, _boardsOk) = ([], [], null, false);
+            _boardsNote = "Chưa kết nối Azure Boards";
+        }
+        else if (Due(_boardsAt, poll.BoardsSeconds))
+        {
+            _boardsAt = now;
             try
             {
                 var active = await boards.MyActiveAsync(ct);
-                tasks = active.Select(b => new WorkTask
+                _tasks = active.Select(b => new WorkTask
                 {
                     Id = b.Id.ToString(), Title = b.Title, Url = b.Url,
                     Days = b.StateChanged is { } sc ? BusinessDays.Between(sc, now) : 0,
                 }).ToList();
-                completed = (await boards.MyCompletedTodayAsync(ct)).Select(b => new CompletedTask(b.Id.ToString(), b.Title)).ToList();
+                _completed = (await boards.MyCompletedTodayAsync(ct)).Select(b => new CompletedTask(b.Id.ToString(), b.Title)).ToList();
+                _sprint = null;
                 if (await boards.CurrentIterationAsync(ct) is { } it)
                 {
                     var (done, total) = await boards.IterationProgressAsync(it, ct);
-                    sprint = new SprintInfo(it.Name, done, total, it.Finish is { } f ? BusinessDays.Between(now, f.ToLocalTime()) : 0);
+                    _sprint = new SprintInfo(it.Name, done, total, it.Finish is { } f ? BusinessDays.Between(now, f.ToLocalTime()) : 0);
                 }
-                boardsOk = true;
+                (_boardsOk, _boardsNote) = (true, null);
+            }
+            catch (InvalidOperationException)
+            {
+                (_tasks, _completed, _sprint, _boardsOk) = ([], [], null, false);
+                _boardsNote = "Chưa kết nối Azure Boards (chưa có PAT)";
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                notes.Add("Azure Boards: " + Describe(ex));
+                _boardsOk = false;
+                _boardsNote = "Azure Boards: " + Describe(ex);
             }
         }
 
+        var notes = new[] { _calNote, _mailNote, _boardsNote }.Where(n => n is not null).ToList();
         return new WorkSnapshot
         {
-            Calendar = calendar,
-            Tomorrow = tomorrow,
-            Emails = mails,
-            Unread = unread,
-            Tasks = tasks,
-            CompletedToday = completed,
-            Sprint = sprint,
-            AvgInProgress = history.AvgInProgress(today) ?? workDay.AvgInProgressBaseline,
+            Calendar = _calendar,
+            Tomorrow = _tomorrow,
+            Emails = _mails,
+            Unread = _unread,
+            Tasks = _tasks,
+            CompletedToday = _completed,
+            Sprint = _sprint,
+            AvgInProgress = history.AvgInProgress(today) ?? conn.AvgInProgressFallback ?? workDay.AvgInProgressBaseline,
             Week = history.Week(today),
             YesterdayScore = history.Yesterday(today),
-            MailAvailable = mailOk,
-            BoardsAvailable = boardsOk,
+            MailAvailable = _mailOk,
+            CanWriteCalendar = graph is null || auth.GrantedScopes.Count == 0 || auth.Has("Calendars.ReadWrite"),
+            BoardsAvailable = _boardsOk,
             StatusNote = notes.Count > 0 ? string.Join(" · ", notes) : null,
         };
     }
@@ -187,6 +224,11 @@ public sealed class LiveWorkDataProvider(
     public static string Describe(Exception ex) => ex switch
     {
         MsalUiRequiredException => "cần đăng nhập lại",
+        MsalServiceException { Message: var m } when m.Contains("AADSTS65001") || m.Contains("AADSTS90094") || m.Contains("AADSTS90095")
+            => "tenant yêu cầu admin duyệt quyền của Milo (Grant admin consent trong Entra → API permissions)",
+        MsalServiceException { Message: var m } when m.Contains("AADSTS50020") => "tài khoản không thuộc tenant này — đăng xuất rồi chọn đúng tài khoản",
+        MsalServiceException { Message: var m } when m.Contains("AADSTS50011") => "redirect URI chưa khai http://localhost (loại Mobile and desktop)",
+        MsalServiceException { Message: var m } when m.Contains("AADSTS7000218") => "chưa bật Allow public client flows",
         HttpRequestException { Message: var m } => m,
         GraphException { Status: System.Net.HttpStatusCode.Forbidden } => "thiếu quyền (chờ admin consent?)",
         _ => ex.Message,

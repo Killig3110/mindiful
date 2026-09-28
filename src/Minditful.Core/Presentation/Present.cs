@@ -180,7 +180,8 @@ public static class Present
                     if (i == 1 && ep.Held) rows.Add(new("Nghỉ 10' · Milo giữ chỗ", true));
                 }
                 b.Add(new ScheduleBlock(Hm(ch[0].Start), Hm(ch[^1].End), rows));
-                if (!ep.Held) b.Add(new ButtonsBlock([new("accept", "Giữ chỗ trong lịch", ButtonStyle.Dark), new("dismiss", "Thôi", ButtonStyle.Ghost)]));
+                var hold = e.Snap.CanWriteCalendar ? "Giữ chỗ trong lịch" : "Nhắc tôi lúc đó";
+                if (!ep.Held) b.Add(new ButtonsBlock([new("accept", hold, ButtonStyle.Dark), new("dismiss", "Thôi", ButtonStyle.Ghost)]));
                 break;
             }
             case CaseId.EmailWaiting:
@@ -258,7 +259,7 @@ public static class Present
             case CaseId.LunchMissed:
                 label = "Chưa nghỉ trưa";
                 acceptL = "Đi ăn thôi";
-                extra = new("lunchLock", "Khoá 30' trong lịch", ButtonStyle.Ghost);
+                if (e.Snap.CanWriteCalendar) extra = new("lunchLock", "Khoá 30' trong lịch", ButtonStyle.Ghost);
                 break;
             case CaseId.NoBreak:
                 label = "Làm liền · " + Dur(d.Min);

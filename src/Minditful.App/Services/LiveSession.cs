@@ -31,6 +31,9 @@ internal sealed class LiveSession : IMiloSession
     private readonly SecretStore _claudeKey;
     private readonly PresenceWatcher? _presenceWatcher;
     private DateTime _lastPoll;
+    private string? _lastNote;
+    private DateTime? _offlineSince;
+    private DateTime? _offlineLogged;
     private bool _refreshing;
 
     public AppEnvironment Env { get; }
@@ -60,6 +63,8 @@ internal sealed class LiveSession : IMiloSession
         Env = env;
         Conn = opt.For(env);
         _day = opt.WorkDay;
+        var ov = Conn.BehaviorOverrides;
+        if (ov?.EmailMinBusinessDaysWaiting is { } mailDays) Conn.MailMinWaitDays = mailDays;
         _secrets = new SecretStore(env);
         _claudeKey = new SecretStore(env, "claude-api-key");
         Llm = opt.Llm;
@@ -85,10 +90,20 @@ internal sealed class LiveSession : IMiloSession
             _presenceWatcher = new PresenceWatcher(Graph, Auth);
 
         var now = DateTime.Now;
+        var std = new EngineConfig();
         var cfg = new EngineConfig
         {
             Start = Tm.T(_day.Start), End = Tm.T(_day.End), FragThreshold = _day.FragmentationPerHour,
             MorningHelloUntil = Tm.T("12:00"), Scripted = false, Seed = (uint)now.Ticks,
+            // Sandbox: ngưỡng rút gọn (docs/KET-NOI-SANDBOX.md mục 3.2); Prod không có khối này → ngưỡng chuẩn
+            StuckMinDays = ov?.StuckTaskMinBusinessDays ?? std.StuckMinDays,
+            EmailNotBefore = ov?.EmailNotBefore is { } nb ? Tm.T(nb) : std.EmailNotBefore,
+            NoBreakMin = ov?.NoBreakStreakMin ?? std.NoBreakMin,
+            OverloadMinChain = ov?.OverloadMinChainCount ?? std.OverloadMinChain,
+            GapBudget = ov?.BudgetGapMin is { } gap ? gap * 60 : std.GapBudget,
+            VisitMinMinutes = ov?.VisitEveryMin is [var vmin, _] ? vmin : std.VisitMinMinutes,
+            VisitMaxMinutes = ov?.VisitEveryMin is [_, var vmax] ? vmax : std.VisitMaxMinutes,
+            ParkTtl = ov?.ParkedReminderTtlMin is { } park ? park * 60 : std.ParkTtl,
         };
         Engine = new MiloEngine(cfg, new WorkSnapshot(), null, DateOnly.FromDateTime(now), now.TimeOfDay.TotalSeconds);
         Engine.SetAuto(false);
@@ -96,6 +111,7 @@ internal sealed class LiveSession : IMiloSession
         Engine.OutcomeRecorded += (c, o) => Outcomes.Append(new OutcomeEvent(Engine.Day, Engine.S.T, c, o, Engine.S.Score));
         LlmBridge.Attach(Engine, Writer, Application.Current.Dispatcher);
         ApplyTuning();
+        if (ov is not null) Engine.LogExternal("Ngưỡng rút gọn cho Sandbox: " + ov.Describe(), LogKind.Sig);
 
         Monitor = new WindowsActivityMonitor(_day);
         Monitor.LockChanged += locked =>
@@ -107,9 +123,10 @@ internal sealed class LiveSession : IMiloSession
         Monitor.AppSwitched += () => Engine.RecordSwitch();
 
         _tick.Tick += (_, _) => Tick();
-        _refresh.Interval = TimeSpan.FromMinutes(Math.Max(1, _day.RefreshMinutes));
-        _refresh.Tick += (_, _) => _ = RefreshAsync();
-        _presence.Interval = TimeSpan.FromSeconds(Math.Max(10, _day.PresencePollSeconds));
+        // Mỗi 30 giây hỏi provider; provider tự quyết nguồn nào đã tới hạn đọc lại (lịch 2', mail 5', Boards 3')
+        _refresh.Interval = TimeSpan.FromSeconds(30);
+        _refresh.Tick += (_, _) => _ = RefreshAsync(force: false);
+        _presence.Interval = TimeSpan.FromSeconds(Math.Max(10, Conn.Polling.PresenceSeconds));
         _presence.Tick += (_, _) => _ = PollPresenceAsync();
     }
 
@@ -125,7 +142,9 @@ internal sealed class LiveSession : IMiloSession
         _tick.Start();
         _refresh.Start();
         _presence.Start();
-        await SignInAsync(interactive: false);
+        // Lần đầu trên máy này (chưa có tài khoản trong cache): mở trình duyệt đăng nhập + màn hình xin quyền.
+        // Các lần sau lấy token im lặng; hết hạn thì chỉ báo trong dashboard, không tự bật trình duyệt giữa giờ làm.
+        await SignInAsync(interactive: !await Auth.HasCachedAccountAsync());
     }
 
     private void LogOnUi(string text, LogKind kind) =>
@@ -190,7 +209,8 @@ internal sealed class LiveSession : IMiloSession
         try
         {
             await Auth.GraphTokenAsync(interactive);
-            GraphStatus = $"Đã đăng nhập {Auth.UserName} · quyền: {string.Join(", ", Auth.GrantedScopes.Where(s => s is not ("openid" or "profile" or "offline_access" or "email")))}";
+            GraphStatus = $"Đã đăng nhập {Auth.UserName} · quyền: {string.Join(", ", Auth.GrantedScopes.Where(s => s is not ("openid" or "profile" or "offline_access" or "email")))}"
+                + (Auth.MissingScopes.Count > 0 ? $" · THIẾU: {string.Join(", ", Auth.MissingScopes)} (tính năng liên quan tự tắt; cần admin consent)" : "");
             await RefreshAsync();
             await PollPresenceAsync();
         }
@@ -213,19 +233,21 @@ internal sealed class LiveSession : IMiloSession
         await RefreshAsync();
     }
 
-    public async Task RefreshAsync()
+    /// <param name="force">Đọc lại mọi nguồn ngay (mở khoá, đăng nhập, bấm Làm mới); false = chỉ nguồn đã tới chu kỳ.</param>
+    public async Task RefreshAsync(bool force = true)
     {
         if (_refreshing) return;
         _refreshing = true;
         try
         {
-            var snap = await Provider.LoadAsync(DateTime.Now);
+            var snap = await Provider.LoadAsync(DateTime.Now, force);
             Engine.ApplySnapshot(snap);
             LastRefresh = DateTime.Now;
             BoardsStatus = Boards is null ? "Chưa cấu hình (appsettings.json)"
                 : snap.BoardsAvailable ? $"{snap.Tasks.Count} work item đang làm" + (snap.Sprint is { } sp ? $" · {sp.Name} {sp.Done:0.#}/{sp.Total:0.#}" : "")
                 : "Lỗi — xem dòng trạng thái";
-            if (snap.StatusNote is { } note) Engine.LogExternal("Dữ liệu: " + note, LogKind.Error);
+            if (snap.StatusNote is { } note && note != _lastNote) Engine.LogExternal("Dữ liệu: " + note, LogKind.Error);
+            _lastNote = snap.StatusNote;
         }
         finally
         {
@@ -240,19 +262,63 @@ internal sealed class LiveSession : IMiloSession
         try
         {
             var p = await _presenceWatcher.PollAsync();
-            if (p is not { } v)
+            Engine.SetInCallOverride(p.InCall);
+            if (p.InCall is null) NoteOffline(p.Activity);
+            else
             {
-                Engine.SetInCallOverride(null);
-                return;
+                _offlineSince = null;
+                if (!_pinned.Contains("dnd")) Engine.SetUserDnd(p.Dnd && !Sink.OwnsDnd);
             }
-            Engine.SetInCallOverride(v.InCall);
-            if (!_pinned.Contains("dnd")) Engine.SetUserDnd(v.Dnd && !Sink.OwnsDnd);
         }
         catch (Exception ex) when (ex is GraphException or HttpRequestException or MsalException)
         {
             Engine.SetInCallOverride(null); // mất presence → cổng họp suy ra từ lịch (mục 14)
+            NoteOffline("lỗi");
         }
     }
+
+    /// <summary>Presence Offline suốt 10 phút trong giờ làm → ghi 1 dòng log (docs/KET-NOI-SANDBOX.md mục 5.2).</summary>
+    private void NoteOffline(string activity)
+    {
+        var now = DateTime.Now;
+        _offlineSince ??= now;
+        var t = now.TimeOfDay.TotalSeconds;
+        if ((now - _offlineSince.Value).TotalMinutes < 10 || t < Engine.Cfg.Start || t > Engine.Cfg.End || _offlineLogged == now.Date) return;
+        _offlineLogged = now.Date;
+        Engine.LogExternal($"Teams chưa đăng nhập (presence: {(activity.Length > 0 ? activity : "không có")}), đang dùng lịch để đoán cuộc họp", LogKind.Sig);
+    }
+
+    // ---------- công cụ test (bảng điều khiển) ----------
+    /// <summary>Bắt đầu lại ngày như vừa mở máy lần đầu → chạy lại Chào sáng (checklist #1).</summary>
+    public void ResetDay()
+    {
+        var now = DateTime.Now;
+        Engine.StartNewDay(DateOnly.FromDateTime(now), now.TimeOfDay.TotalSeconds, Engine.Snap);
+        ApplyTuning();
+        Engine.SetLocked(false);
+        Engine.LogExternal("Reset ngày → như vừa mở máy lần đầu", LogKind.User);
+        _ = RefreshAsync();
+        Changed?.Invoke();
+    }
+
+    /// <summary>Đổi giờ kết thúc khung làm việc lúc đang chạy (checklist #12: bây giờ + 2 phút để test Tan tầm).</summary>
+    public bool SetWorkEnd(string hhmm)
+    {
+        if (!TimeOnly.TryParse(hhmm, out var t)) return false;
+        Engine.Cfg.End = t.ToTimeSpan().TotalSeconds;
+        Engine.LogExternal($"Giờ kết thúc khung làm việc → {Tm.Hm(Engine.Cfg.End)}", LogKind.User);
+        Changed?.Invoke();
+        return true;
+    }
+
+    public void ClearPat()
+    {
+        _secrets.Write(null);
+        Engine.LogExternal("Đã xoá PAT đã lưu trên máy", LogKind.User);
+        _ = RefreshAsync();
+    }
+
+    public string? OverridesText => Conn.BehaviorOverrides?.Describe();
 
     // ---------- Sandbox: giả lập tín hiệu đè lên tín hiệu thật ----------
     public bool IsPinned(string signal) => _pinned.Contains(signal);

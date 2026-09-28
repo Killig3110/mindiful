@@ -44,7 +44,10 @@
                         </Grid.ColumnDefinitions>
                         <PasswordBox x:Name="PatBox" Height="32" Padding="10,6" Background="{StaticResource Panel2}" Foreground="{StaticResource Cream}"
                                      BorderBrush="{StaticResource Line}" ToolTip="Personal Access Token (Work Items: Read &amp; Write). Lưu mã hoá DPAPI trên máy này." />
-                        <Button Grid.Column="1" Style="{StaticResource Round}" Content="Lưu PAT" Margin="6,0,0,0" Click="SavePat_Click" />
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <Button Style="{StaticResource Round}" Content="Lưu PAT" Margin="6,0,0,0" Click="SavePat_Click" />
+                            <Button Style="{StaticResource Round}" Content="Xoá PAT" Margin="6,0,0,0" Click="ClearPat_Click" />
+                        </StackPanel>
                     </Grid>
                     <TextBlock x:Name="PatHint" Style="{StaticResource Hint}" Margin="0,4,0,0" />
 
@@ -77,8 +80,19 @@
 
                     <!-- ============ công cụ sandbox ============ -->
                     <StackPanel x:Name="SandboxTools">
+                        <TextBlock Style="{StaticResource Eyebrow}" Text="SANDBOX · TEST NHANH" Margin="0,18,0,6" />
+                        <TextBlock x:Name="OverridesText" Style="{StaticResource Hint}" />
+                        <WrapPanel Margin="0,8,0,0">
+                            <Button Style="{StaticResource Primary}" Content="Reset ngày (chào sáng lại)" Margin="0,0,6,6" Click="ResetDay_Click" />
+                            <TextBox x:Name="WorkEndBox" Width="64" Height="32" Margin="0,0,6,6" VerticalContentAlignment="Center" Padding="8,0"
+                                     Background="{StaticResource Panel2}" Foreground="{StaticResource Cream}" BorderBrush="{StaticResource Line}"
+                                     ToolTip="Giờ kết thúc khung làm việc (HH:mm)" />
+                            <Button Style="{StaticResource Round}" Content="Đặt giờ về" Margin="0,0,6,6" Click="WorkEnd_Click" />
+                            <Button Style="{StaticResource Round}" Content="Giờ về = bây giờ + 2'" Margin="0,0,6,6" Click="WorkEndSoon_Click" />
+                        </WrapPanel>
+
                         <TextBlock Style="{StaticResource Eyebrow}" Text="SANDBOX · DỮ LIỆU MẪU" Margin="0,18,0,6" />
-                        <TextBlock Style="{StaticResource Hint}" Text="Tạo lại ngày mẫu của prototype trên tài khoản cá nhân, lệch theo giờ hiện tại: 1 cuộc họp sau 7 phút, chuỗi 3 cuộc họp liền, 6 work item (có 2 task kẹt), 3 email có dấu hỏi." />
+                        <TextBlock Style="{StaticResource Hint}" Text="Tự tạo dữ liệu thay cho đồng nghiệp (xem checklist ở docs/KET-NOI-SANDBOX.md mục 7): 1 Teams meeting sau 7 phút, chuỗi 3 cuộc họp liền, 6 work item giao cho bạn. Email mẫu nên do đồng nghiệp gửi (app không cần Mail.Send)." />
                         <Button x:Name="SeedBtn" Style="{StaticResource Primary}" Content="Tạo dữ liệu mẫu" HorizontalAlignment="Left" Margin="0,8,0,0" Click="Seed_Click" />
                         <TextBlock x:Name="SeedLog" Style="{StaticResource Hint}" Margin="0,6,0,0" />
 

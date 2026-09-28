@@ -64,6 +64,8 @@ public sealed class WorkSnapshot
     public string? StatusNote { get; init; }
     public bool MailAvailable { get; init; } = true;
     public bool BoardsAvailable { get; init; } = true;
+    /// <summary>Có Calendars.ReadWrite. Không có thì "Giữ chỗ" chỉ là lời hẹn nhắc, không ghi vào lịch (§14).</summary>
+    public bool CanWriteCalendar { get; init; } = true;
 }
 
 public sealed class CaseData

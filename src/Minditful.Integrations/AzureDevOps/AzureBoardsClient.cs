@@ -74,7 +74,8 @@ public sealed class AzureBoardsClient(AzureDevOpsOptions opt, HttpClient http, F
             foreach (var w in n["value"]!.AsArray())
             {
                 if (w?["fields"] is not { } f) continue;
-                var changed = f["Microsoft.VSTS.Common.StateChangeDate"] ?? f["Microsoft.VSTS.Common.ActivatedDate"];
+                // Task kẹt tính từ lúc chuyển Active; thiếu thì dùng lần đổi trạng thái gần nhất
+                var changed = f["Microsoft.VSTS.Common.ActivatedDate"] ?? f["Microsoft.VSTS.Common.StateChangeDate"];
                 var pts = f["Microsoft.VSTS.Scheduling.StoryPoints"] ?? f["Microsoft.VSTS.Scheduling.Effort"];
                 var id = w!["id"]!.GetValue<int>();
                 list.Add(new BoardItem(id, f["System.Title"]?.GetValue<string>() ?? "", f["System.State"]?.GetValue<string>() ?? "",
@@ -97,7 +98,7 @@ public sealed class AzureBoardsClient(AzureDevOpsOptions opt, HttpClient http, F
     public async Task<IReadOnlyList<BoardItem>> MyCompletedTodayAsync(CancellationToken ct = default)
     {
         var q = $"SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = @project AND [System.AssignedTo] = @Me " +
-                $"AND [System.State] IN {InList(opt.DoneStates)} AND [System.ChangedDate] >= @Today";
+                $"AND [System.State] IN {InList(opt.DoneStates)} AND [Microsoft.VSTS.Common.StateChangeDate] >= @Today";
         return await ItemsAsync(await WiqlAsync(q, ct), ct);
     }
 

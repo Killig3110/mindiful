@@ -10,6 +10,18 @@ public enum AppEnvironment
     Production,
 }
 
+public static class AppEnvironments
+{
+    /// <summary>Nhận cả tên trong docs/KET-NOI-SANDBOX.md: Scenario (= Demo), Sandbox, Prod (= Production).</summary>
+    public static AppEnvironment? Parse(string? s) => s?.Trim().ToLowerInvariant() switch
+    {
+        "demo" or "scenario" => AppEnvironment.Demo,
+        "sandbox" => AppEnvironment.Sandbox,
+        "production" or "prod" => AppEnvironment.Production,
+        _ => null,
+    };
+}
+
 /// <summary>Section "Minditful" trong appsettings.json.</summary>
 public sealed class MinditfulOptions
 {
@@ -56,6 +68,49 @@ public sealed class ConnectionOptions
     public bool IncludeSelfSentMail { get; set; }
     /// <summary>Mở cửa sổ Bộ não Milo khi khởi động.</summary>
     public bool ShowControlCenter { get; set; }
+    /// <summary>Baseline workload khi lịch sử local chưa đủ 5 ngày (null = WorkDay.AvgInProgressBaseline).</summary>
+    public double? AvgInProgressFallback { get; set; }
+    public PollingOptions Polling { get; set; } = new();
+    /// <summary>Chỉ Sandbox: rút gọn các ngưỡng phải chờ lâu để test trong 1 buổi. Prod để trống → ngưỡng chuẩn của tài liệu.</summary>
+    public BehaviorOverrides? BehaviorOverrides { get; set; }
+}
+
+/// <summary>Chu kỳ đọc từng nguồn (docs/KET-NOI-SANDBOX.md mục 5–6).</summary>
+public sealed class PollingOptions
+{
+    public int PresenceSeconds { get; set; } = 30;
+    public int CalendarSeconds { get; set; } = 120;
+    public int MailSeconds { get; set; } = 300;
+    public int BoardsSeconds { get; set; } = 180;
+}
+
+/// <summary>Ngưỡng rút gọn cho Sandbox. Trường nào để trống thì giữ ngưỡng chuẩn.</summary>
+public sealed class BehaviorOverrides
+{
+    public int? StuckTaskMinBusinessDays { get; set; }
+    public int? EmailMinBusinessDaysWaiting { get; set; }
+    /// <summary>"HH:mm" — Email chờ không giao trước giờ này (chuẩn 10:00).</summary>
+    public string? EmailNotBefore { get; set; }
+    public int? NoBreakStreakMin { get; set; }
+    public int? OverloadMinChainCount { get; set; }
+    /// <summary>Khoảng cách tối thiểu giữa 2 lời nhắc chủ động (chuẩn 15 phút).</summary>
+    public int? BudgetGapMin { get; set; }
+    /// <summary>[min, max] phút giữa 2 lần ghé ngang (chuẩn [30, 60]).</summary>
+    public int[]? VisitEveryMin { get; set; }
+    /// <summary>Chấm "1" trên đuôi giữ bao lâu (chuẩn 30 phút).</summary>
+    public int? ParkedReminderTtlMin { get; set; }
+
+    public string Describe() => string.Join(" · ", new[]
+    {
+        StuckTaskMinBusinessDays is { } s ? $"task kẹt ≥ {s} ngày" : null,
+        EmailMinBusinessDaysWaiting is { } e ? $"email chờ ≥ {e} ngày" : null,
+        EmailNotBefore is { } n ? $"email từ {n}" : null,
+        NoBreakStreakMin is { } b ? $"làm liền {b}'" : null,
+        OverloadMinChainCount is { } o ? $"họp liên tục ≥ {o} cuộc" : null,
+        BudgetGapMin is { } g ? $"cách nhau {g}'" : null,
+        VisitEveryMin is [var a, var z] ? $"ghé ngang {a}–{z}'" : null,
+        ParkedReminderTtlMin is { } p ? $"chấm chờ {p}'" : null,
+    }.Where(x => x is not null));
 }
 
 public sealed class GraphOptions

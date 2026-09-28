@@ -2,8 +2,9 @@ namespace Minditful.Core.Engine;
 
 public sealed class EngineConfig
 {
-    public double Start { get; init; } = Tm.T("09:00");
-    public double End { get; init; } = Tm.T("18:00");
+    public double Start { get; set; } = Tm.T("09:00");
+    /// <summary>Giờ kết thúc khung làm việc — Sandbox cho đổi lúc đang chạy để test Tan tầm ngay.</summary>
+    public double End { get; set; } = Tm.T("18:00");
     /// <summary>Chỉ dùng cho ngày mẫu: giờ bắt đầu/kết thúc mô phỏng.</summary>
     public double DayOpen { get; init; } = Tm.T("08:50");
     public double DayClose { get; init; } = Tm.T("18:45");
@@ -21,6 +22,19 @@ public sealed class EngineConfig
     /// <summary>Chạy theo kịch bản ngày mẫu (world/ui script, tự trả lời, dừng ở DayClose).</summary>
     public bool Scripted { get; init; }
     public uint Seed { get; init; } = 24;
+
+    // ---- Ngưỡng hành vi (tài liệu mục 4, 7, 8, 9). Sandbox có thể rút gọn qua BehaviorOverrides để test trong 1 buổi. ----
+    /// <summary>Task kẹt: số ngày làm việc ở Active (spec: 3).</summary>
+    public int StuckMinDays { get; init; } = 3;
+    /// <summary>Email chờ không giao trước giờ này vì bản tin sáng đã báo (spec: 10:00).</summary>
+    public double EmailNotBefore { get; init; } = Tm.T("10:00");
+    /// <summary>Làm liền: số phút không có lần nghỉ ≥ 5 phút (spec: 120).</summary>
+    public double NoBreakMin { get; init; } = 120;
+    /// <summary>Họp liên tục: số cuộc họp liền nhau tối thiểu (spec: 3).</summary>
+    public int OverloadMinChain { get; init; } = 3;
+    /// <summary>Ghé ngang mỗi 30–60 phút (spec §9.3).</summary>
+    public double VisitMinMinutes { get; init; } = 30;
+    public double VisitMaxMinutes { get; init; } = 60;
 }
 
 /// <summary>Hành động Milo cần làm ra thế giới thật (Teams, Outlook, Azure Boards). Demo chỉ ghi log.</summary>

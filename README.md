@@ -53,24 +53,26 @@ PAT và API key cũng có thể nhập trong Bảng điều khiển; khi đó ch
 
 `src/Minditful.App/appsettings.json` giữ các giá trị mặc định không bí mật. Khung giờ làm (`WorkDay.Start/End`), ngưỡng rời máy, ngưỡng phân mảnh và nhịp làm mới dữ liệu nằm trong mục `WorkDay`.
 
-### Sandbox bằng tài khoản cá nhân
+### Sandbox (tenant `mindiful.onmicrosoft.com`)
 
-1. **App registration** ở [entra.microsoft.com](https://entra.microsoft.com), đăng nhập bằng Microsoft account cá nhân:
-   - *Supported account types*: **Personal Microsoft accounts only**
-   - *Platform*: **Mobile and desktop applications**, redirect URI `http://localhost`
-   - *API permissions* (Delegated, Microsoft Graph): `User.Read`, `Calendars.ReadWrite`, `Mail.Read`, `Mail.Send`
-   - Chép *Application (client) ID* vào `.env`: `MINDITFUL__Minditful__Sandbox__Graph__ClientId=…`. `TenantId` giữ là `consumers`.
-2. **Azure DevOps**: tạo org miễn phí tại [dev.azure.com](https://dev.azure.com), tạo project `Minditful-Sandbox` (process **Agile**; nếu dùng Scrum thì đặt `SeedState` là `In Progress`, Basic thì `Doing`).
-   Tạo **PAT** với scope *Work Items (Read & write)* và *Project and Team (Read)*.
-3. Điền org, project và `MINDITFUL_SANDBOX_ADO_PAT` vào `.env` (hoặc dán PAT vào ô *Lưu PAT* trong Bảng điều khiển). Chạy `--env Sandbox`, rồi trong **Bảng điều khiển** bấm *Đăng nhập Microsoft* → *Tạo dữ liệu mẫu*.
-   Seeder dựng lại ngày mẫu và lệch theo giờ hiện tại:
-   - 1 cuộc họp sau 7 phút, nên Sắp họp sẽ bật sau khoảng 2 phút
-   - chuỗi 3 cuộc họp liền (Lịch kín → Họp liên tục)
-   - 6 work item, trong đó 2 cái đã dở từ 3 ngày trở lên (Task kẹt)
-   - 3 email có dấu "?" (Email chờ)
-4. Dùng *Giả lập tín hiệu* để đè lên tín hiệu thật: gõ phím, rời máy, toàn màn hình, Không làm phiền. Dùng *Chạy thử 1 case* để ép một episode hiện ngay. Bấm nút trên thẻ của Milo sẽ gọi API thật, ví dụ Giữ chỗ tạo sự kiện "Nghỉ cùng Milo" trong Outlook cá nhân.
+Hướng dẫn đầy đủ: **[docs/KET-NOI-SANDBOX.md](docs/KET-NOI-SANDBOX.md)**. Tài liệu gồm app registration, quyền Graph, Teams/Outlook/Azure DevOps, cách kiểm tra bằng tay, checklist 14 bước test và các lỗi thường gặp.
 
-Microsoft account cá nhân **không có Teams presence**. Vì vậy trong Sandbox, cổng *Đang họp* được suy ra từ lịch, còn *Không làm phiền* được giả lập. Đây đúng là cột "Nếu thiếu" ở mục 14 của tài liệu.
+TenantId, ClientId, org `mindiful-sandbox`, project `Milo-Sandbox` và team `Milo-Sandbox Team` đã có sẵn trong appsettings.json. Việc còn lại:
+
+1. Điền `MINDITFUL_SANDBOX_ADO_PAT` vào `.env`. PAT do **thulu@** tạo, hoặc dán vào ô *Lưu PAT* trong Bảng điều khiển.
+2. Chạy `--env Sandbox`, bấm *Đăng nhập Microsoft* rồi chọn **thulu@mindiful.onmicrosoft.com**.
+3. Làm theo checklist ở mục 7 của hướng dẫn. Bảng điều khiển có sẵn các công cụ:
+   - **Reset ngày**: chào sáng lại.
+   - **Giờ về = bây giờ + 2'**: test Tan tầm ngay.
+   - **Xoá PAT**.
+   - **Tạo dữ liệu mẫu**: tự tạo Teams meeting và work item.
+   - **Chạy thử 1 case**.
+
+Sandbox dùng **ngưỡng rút gọn** (`BehaviorOverrides`) để test trong 1 buổi: task Active 0 ngày đã tính là kẹt, email chờ 0 ngày, làm liền 20 phút, 2 lời nhắc cách nhau 3 phút, ghé ngang 3–5 phút, chấm chờ giữ 5 phút. Production không có khối này nên dùng đúng ngưỡng của tài liệu.
+
+Mỗi nguồn được đọc lại theo chu kỳ riêng: presence 30 giây, lịch 2 phút, mail 5 phút, Boards 3 phút. Khi mở khoá máy, đăng nhập hoặc bấm *Làm mới*, app đọc lại tất cả ngay.
+
+Tên môi trường nhận cả `Scenario`/`Demo`, `Sandbox`, `Prod`/`Production`. Thứ tự chọn: `--env` > biến `MINDITFUL_ENV` > `Minditful:Environment`. Visual Studio có sẵn 3 launch profile.
 
 ### Production (tenant Bosch)
 

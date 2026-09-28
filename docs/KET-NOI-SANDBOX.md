@@ -13,9 +13,9 @@
 | Người dùng chính (máy chạy Milo) | `thulu@mindiful.onmicrosoft.com` | Đăng nhập app bằng account này |
 | "Đồng nghiệp" tạo dữ liệu | `killig@` (Duy, admin), `qk76@` (Quân), `milo@` | Mời họp, gửi email, kéo task |
 | App registration | **Minditful Milo (Sandbox)**, single tenant, public client | Redirect URI `http://localhost` |
-| Directory (tenant) ID | `<ĐIỀN_TENANT_ID>` | Entra → App registrations → Overview |
-| Application (client) ID | `<ĐIỀN_CLIENT_ID>` | Như trên |
-| Azure DevOps org | `https://dev.azure.com/<ĐIỀN_TÊN_ORG>` (ví dụ `mindiful-sandbox`) | Gắn Azure subscription free trial, ≤ 5 user Basic = 0đ |
+| Directory (tenant) ID | `093be8d4-f285-4982-a198-db10d74e61e2` | Entra → App registrations → Overview |
+| Application (client) ID | `aa4ae2a6-4d2a-474c-a6f5-d7d2ebf5de06` | Như trên |
+| Azure DevOps org | `https://dev.azure.com/mindiful-sandbox` (ví dụ `mindiful-sandbox`) | Gắn Azure subscription free trial, ≤ 5 user Basic = 0đ |
 | Project / Team | `Milo-Sandbox` / `Milo-Sandbox Team` | Process **Agile**, sprint `Sprint 1` |
 | PAT | Do **thulu@** tạo, scope *Work Items R&W* + *Project and Team R* | **Bí mật**, không commit, không gửi qua chat |
 

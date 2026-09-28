@@ -11,7 +11,7 @@ public sealed partial class MiloEngine
             S.DayStarted = true;
             S.FirstAct = S.T;
             S.LastBreakEnd = S.T;
-            S.NextVisit = S.T + RandMin(30, 60);
+            S.NextVisit = S.T + RandMin(Cfg.VisitMinMinutes, Cfg.VisitMaxMinutes);
             Log("Mở khoá lần đầu trong ngày", LogKind.User);
             if (Cfg.MorningHelloUntil is not { } until || S.T < until)
                 Enqueue(CaseId.MorningHello, "mh", new CaseData());
@@ -182,7 +182,7 @@ public sealed partial class MiloEngine
         else
         {
             S.Visit = null;
-            S.NextVisit = S.T + RandMin(30, 60);
+            S.NextVisit = S.T + RandMin(Cfg.VisitMinMinutes, Cfg.VisitMaxMinutes);
         }
     }
 

@@ -180,7 +180,7 @@ public sealed partial class MiloEngine
     public double Streak() => !S.DayStarted || S.BreakRun >= 5 ? 0 : (S.T - (S.LastBreakEnd ?? S.T)) / 60;
     public double Worked() => S.FirstAct is null ? 0 : (S.T - S.FirstAct.Value) / 60;
     public int SwitchesHour() => S.Switches.Count(x => x > S.T - 3600);
-    public List<WorkTask> StuckTasks() => S.Tasks.Where(x => !x.Done && x.Days >= 3).OrderByDescending(x => x.Days).ToList();
+    public List<WorkTask> StuckTasks() => S.Tasks.Where(x => !x.Done && x.Days >= Cfg.StuckMinDays).OrderByDescending(x => x.Days).ToList();
     public int InProgress() => S.Tasks.Count(x => !x.Done);
     public List<MailItem> WaitingEmails() => S.Emails.Where(e => e.Days >= 1 && !e.Handled).OrderByDescending(e => e.Days).ToList();
     public bool FocusActive() => S.FocusUntil is { } f && S.T < f;

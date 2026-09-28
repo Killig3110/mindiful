@@ -34,19 +34,32 @@ public sealed class GraphClient(MicrosoftAuth auth, HttpClient http)
         return req;
     }
 
+    /// <summary>Gửi request; bị throttle (429) hay lỗi tạm (5xx) thì chờ theo Retry-After rồi thử lại, tối đa 3 lần.</summary>
+    private async Task<HttpResponseMessage> SendAsync(HttpMethod method, string path, object? body, CancellationToken ct)
+    {
+        for (var attempt = 0; ; attempt++)
+        {
+            using var req = await RequestAsync(method, path, ct);
+            if (body is not null) req.Content = JsonContent.Create(body);
+            var res = await http.SendAsync(req, ct);
+            var transient = (int)res.StatusCode == 429 || (int)res.StatusCode >= 500;
+            if (!transient || attempt >= 2) return res;
+            var wait = res.Headers.RetryAfter?.Delta ?? TimeSpan.FromSeconds(5 * (attempt + 1));
+            res.Dispose();
+            await Task.Delay(wait, ct);
+        }
+    }
+
     private async Task<JsonNode> GetAsync(string path, CancellationToken ct)
     {
-        using var req = await RequestAsync(HttpMethod.Get, path, ct);
-        using var res = await http.SendAsync(req, ct);
+        using var res = await SendAsync(HttpMethod.Get, path, null, ct);
         await EnsureAsync(res, ct);
         return (await JsonNode.ParseAsync(await res.Content.ReadAsStreamAsync(ct), cancellationToken: ct))!;
     }
 
     private async Task<JsonNode?> PostAsync(string path, object? body, CancellationToken ct)
     {
-        using var req = await RequestAsync(HttpMethod.Post, path, ct);
-        if (body is not null) req.Content = JsonContent.Create(body);
-        using var res = await http.SendAsync(req, ct);
+        using var res = await SendAsync(HttpMethod.Post, path, body, ct);
         await EnsureAsync(res, ct);
         var text = await res.Content.ReadAsStringAsync(ct);
         return string.IsNullOrWhiteSpace(text) ? null : JsonNode.Parse(text);
@@ -153,10 +166,19 @@ public sealed class GraphClient(MicrosoftAuth auth, HttpClient http)
     }
 
     // ---------- mail ----------
+    private string? _meId;
+
     public async Task<(string Mail, string Name)> MeAsync(CancellationToken ct = default)
     {
-        var me = await GetAsync("/me?$select=mail,userPrincipalName,displayName", ct);
+        var me = await GetAsync("/me?$select=id,mail,userPrincipalName,displayName", ct);
+        _meId = me["id"]?.GetValue<string>();
         return (me["mail"]?.GetValue<string>() ?? me["userPrincipalName"]?.GetValue<string>() ?? "", me["displayName"]?.GetValue<string>() ?? "");
+    }
+
+    private async Task<string> MeIdAsync(CancellationToken ct)
+    {
+        if (_meId is null) await MeAsync(ct);
+        return _meId ?? throw new InvalidOperationException("Không lấy được id người dùng từ /me");
     }
 
     public async Task<int> UnreadCountAsync(CancellationToken ct = default)
@@ -209,16 +231,17 @@ public sealed class GraphClient(MicrosoftAuth auth, HttpClient http)
         return new GraphPresence(p["availability"]?.GetValue<string>() ?? "", p["activity"]?.GetValue<string>() ?? "");
     }
 
-    public Task SetDoNotDisturbAsync(TimeSpan duration, CancellationToken ct = default) =>
-        PostAsync("/me/presence/setUserPreferredPresence", new
+    /// <summary>Chỉ có tác dụng khi người dùng đang mở Teams; hết hạn thì Teams tự về trạng thái cũ.</summary>
+    public async Task SetDoNotDisturbAsync(TimeSpan duration, CancellationToken ct = default) =>
+        await PostAsync($"/users/{await MeIdAsync(ct)}/presence/setUserPreferredPresence", new
         {
             availability = "DoNotDisturb",
             activity = "DoNotDisturb",
             expirationDuration = System.Xml.XmlConvert.ToString(duration),
         }, ct);
 
-    public Task ClearPreferredPresenceAsync(CancellationToken ct = default) =>
-        PostAsync("/me/presence/clearUserPreferredPresence", null, ct);
+    public async Task ClearPreferredPresenceAsync(CancellationToken ct = default) =>
+        await PostAsync($"/users/{await MeIdAsync(ct)}/presence/clearUserPreferredPresence", null, ct);
 }
 
 public sealed class GraphException(System.Net.HttpStatusCode status, string body)

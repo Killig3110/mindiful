@@ -52,7 +52,7 @@ public class DotEnvTests
         while (root is not null && !File.Exists(Path.Combine(root.FullName, ".env.sample"))) root = root.Parent;
         Assert.NotNull(root);
         var sample = File.ReadAllText(Path.Combine(root!.FullName, ".env.sample"));
-        foreach (var k in new[] { "ANTHROPIC_API_KEY", "MINDITFUL_SANDBOX_ADO_PAT", "MINDITFUL_PROD_ADO_PAT", "Sandbox__Graph__ClientId", "Production__Graph__TenantId" })
+        foreach (var k in new[] { "ANTHROPIC_API_KEY", "MINDITFUL_SANDBOX_ADO_PAT", "MINDITFUL_PROD_ADO_PAT", "MINDITFUL_ENV", "Production__AzureDevOps__Organization" })
             Assert.Contains(k, sample);
     }
 }

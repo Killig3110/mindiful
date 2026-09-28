@@ -301,7 +301,7 @@ public sealed partial class MiloEngine
         var ep = S.Ep!;
         S.Ep = null;
         S.LastEpEnd = S.T;
-        S.NextVisit = S.T + RandMin(30, 60);
+        S.NextVisit = S.T + RandMin(Cfg.VisitMinMinutes, Cfg.VisitMaxMinutes);
         if (ep.GoHome)
         {
             S.OffDuty = true;

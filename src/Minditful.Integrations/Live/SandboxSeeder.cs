@@ -67,17 +67,27 @@ public sealed class SandboxSeeder(ConnectionOptions conn, MicrosoftAuth auth, Gr
     }
 }
 
-/// <summary>Đọc /me/presence định kỳ: cổng Đang họp và Không làm phiền (mục 4).</summary>
+/// <summary>Kết quả đọc presence. <c>null</c> ở InCall = không dùng được presence → đoán cuộc họp từ lịch.</summary>
+public sealed record PresenceReading(bool? InCall, bool Dnd, bool Presenting, string Activity);
+
+/// <summary>Đọc /me/presence định kỳ: cổng Đang họp và Không làm phiền (mục 4; docs/KET-NOI-SANDBOX.md mục 5.2).</summary>
 public sealed class PresenceWatcher(GraphClient graph, MicrosoftAuth auth)
 {
     private static readonly string[] CallActivities = ["InACall", "InAConferenceCall", "InAMeeting", "Presenting"];
+    private static readonly string[] DndActivities = ["DoNotDisturb", "UrgentInterruptionsOnly"];
+    private static readonly string[] Unknown = ["Offline", "PresenceUnknown", ""];
 
-    public async Task<(bool InCall, bool Dnd)?> PollAsync(CancellationToken ct = default)
+    public bool CanRead => auth.Has("Presence.Read") || auth.Has("Presence.ReadWrite");
+
+    public async Task<PresenceReading> PollAsync(CancellationToken ct = default)
     {
-        if (!auth.Has("Presence.Read") && !auth.Has("Presence.ReadWrite")) return null;
+        if (!CanRead) return new(null, false, false, "");
         var p = await graph.PresenceAsync(ct);
+        // Offline thường là do Teams chưa mở → không kết luận được, để engine dùng lịch
+        if (Unknown.Contains(p.Activity, StringComparer.OrdinalIgnoreCase)) return new(null, false, false, p.Activity);
         var inCall = CallActivities.Contains(p.Activity, StringComparer.OrdinalIgnoreCase);
-        var dnd = string.Equals(p.Availability, "DoNotDisturb", StringComparison.OrdinalIgnoreCase) && !inCall;
-        return (inCall, dnd);
+        var dnd = !inCall && (DndActivities.Contains(p.Activity, StringComparer.OrdinalIgnoreCase)
+                              || string.Equals(p.Availability, "DoNotDisturb", StringComparison.OrdinalIgnoreCase));
+        return new(inCall, dnd, string.Equals(p.Activity, "Presenting", StringComparison.OrdinalIgnoreCase), p.Activity);
     }
 }

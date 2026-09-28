@@ -30,11 +30,13 @@ public partial class ControlCenterWindow : Window
         _session = session;
         var sandbox = session.Env == AppEnvironment.Sandbox;
         Title = $"Minditful · {(sandbox ? "Sandbox" : "Production")} · Bảng điều khiển";
-        EnvEyebrow.Text = sandbox ? "MINDITFUL · MÔI TRƯỜNG SANDBOX (TÀI KHOẢN CÁ NHÂN)" : "MINDITFUL · MÔI TRƯỜNG PRODUCTION";
-        EnvTitle.Text = sandbox ? "Milo chạy thật trên tài khoản cá nhân" : "Milo đang chạy với Teams + Azure Boards";
-        EnvHint.Text = sandbox
-            ? "Tài khoản Microsoft cá nhân không có Teams presence nên cổng Đang họp suy ra từ lịch, Không làm phiền được giả lập. Mọi thứ khác gọi API thật."
-            : "Milo ở góc phải dưới màn hình. Cửa sổ này chỉ để xem trạng thái; đóng lại thì Milo vẫn chạy (biểu tượng ở khay hệ thống).";
+        EnvEyebrow.Text = sandbox ? "MINDITFUL · MÔI TRƯỜNG SANDBOX" : "MINDITFUL · MÔI TRƯỜNG PRODUCTION";
+        EnvTitle.Text = sandbox ? "Milo chạy với tenant sandbox (Teams + Outlook + Azure Boards thật)" : "Milo đang chạy với Teams + Azure Boards";
+        EnvHint.Text = (sandbox
+            ? "Dữ liệu thật của tenant sandbox, ngưỡng hành vi được rút gọn để test trong 1 buổi. Hướng dẫn và checklist: docs/KET-NOI-SANDBOX.md. "
+            : "Ngưỡng hành vi chuẩn theo tài liệu. ")
+            + "Milo ở góc màn hình; đóng cửa sổ này thì Milo vẫn chạy (biểu tượng ở khay hệ thống).";
+        WorkEndBox.Text = Tm.Hm(session.Engine.Cfg.End);
         SandboxTools.Visibility = sandbox ? Visibility.Visible : Visibility.Collapsed;
         foreach (var c in Forceable) CaseBox.Items.Add(new ComboBoxItem { Content = Catalog.Def(c).Name, Tag = c });
         CaseBox.SelectedIndex = 0;
@@ -57,6 +59,7 @@ public partial class ControlCenterWindow : Window
         DayLabel.Text = e.Day.ToDateTime(TimeOnly.MinValue).ToString("dddd · dd/MM", new CultureInfo("vi-VN"));
         ClockState.Text = Present.ClockState(e);
         GraphStatus.Text = _session.GraphStatus;
+        OverridesText.Text = _session.OverridesText is { } ov ? "Ngưỡng rút gọn: " + ov : "Ngưỡng chuẩn theo tài liệu.";
         LlmStatus.Text = _session.LlmStatus;
         TuningText.Text = Personalizer.Describe(e.Tuning);
         BoardsStatus.Text = _session.BoardsStatus;
@@ -84,6 +87,25 @@ public partial class ControlCenterWindow : Window
             if (tag == "leave") b.IsEnabled = e.InCall();
         }
         Brain.Render(e);
+    }
+
+    private void ClearPat_Click(object sender, RoutedEventArgs e) => _session.ClearPat();
+
+    private void ResetDay_Click(object sender, RoutedEventArgs e)
+    {
+        _session.ResetDay();
+        ((App)Application.Current).Companion?.Refresh();
+    }
+
+    private void WorkEnd_Click(object sender, RoutedEventArgs e)
+    {
+        if (!_session.SetWorkEnd(WorkEndBox.Text)) MessageBox.Show("Nhập giờ dạng HH:mm, ví dụ 17:30.", "Minditful");
+    }
+
+    private void WorkEndSoon_Click(object sender, RoutedEventArgs e)
+    {
+        WorkEndBox.Text = DateTime.Now.AddMinutes(2).ToString("HH:mm");
+        _session.SetWorkEnd(WorkEndBox.Text);
     }
 
     private void SaveClaudeKey_Click(object sender, RoutedEventArgs e)

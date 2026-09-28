@@ -260,3 +260,61 @@ public class LimitationsTests
         }
     }
 }
+
+/// <summary>docs/KET-NOI-SANDBOX.md: ngưỡng rút gọn của Sandbox, tên môi trường, hạ cấp khi thiếu quyền ghi lịch.</summary>
+public class SandboxGuideTests
+{
+    [Fact]
+    public void Sandbox_overrides_shorten_thresholds()
+    {
+        var cfg = new EngineConfig { StuckMinDays = 0, NoBreakMin = 20, EmailNotBefore = T("00:00"), GapBudget = 180 };
+        var snap = new WorkSnapshot { Tasks = [new WorkTask { Id = "7", Title = "Task mới giao", Days = 0 }] };
+        var e = new MiloEngine(cfg, snap, null, DemoScenario.Day, T("09:00"));
+        e.SetAuto(false);
+        e.SetLocked(false);
+        e.Advance(25 * 60, false);
+        Assert.Contains(e.S.Log, l => l.Text.StartsWith("Task kẹt đủ điều kiện"));   // task Active 0 ngày vẫn tính kẹt
+        Assert.Contains(e.S.Log, l => l.Text.StartsWith("Làm liền đủ điều kiện"));   // làm liền 20 phút
+    }
+
+    [Theory]
+    [InlineData("Scenario", AppEnvironment.Demo)]
+    [InlineData("demo", AppEnvironment.Demo)]
+    [InlineData("Sandbox", AppEnvironment.Sandbox)]
+    [InlineData("Prod", AppEnvironment.Production)]
+    [InlineData("Production", AppEnvironment.Production)]
+    public void Environment_names_from_the_guide_are_accepted(string name, AppEnvironment env) => Assert.Equal(env, AppEnvironments.Parse(name));
+
+    [Fact]
+    public void Without_calendar_write_permission_hold_becomes_a_reminder()
+    {
+        var snap = DemoScenario.Snapshot();
+        var e = new MiloEngine(new EngineConfig(), new WorkSnapshot { Calendar = snap.Calendar, CanWriteCalendar = false }, null, DemoScenario.Day, T("09:00"));
+        e.SetAuto(false);
+        e.SetLocked(false);
+        e.S.Queue.Clear();
+        e.ForceCase(CaseId.CalendarPacked);
+        for (var i = 0; i < 400 && e.S.Ep is not { C: CaseId.CalendarPacked, Phase: Phase.Show }; i++)
+        {
+            if (e.S.Ep is { C: CaseId.MorningHello, Phase: Phase.Show }) e.UserReply("gotIt");
+            e.Advance(0.25, false);
+        }
+        var buttons = Present.Card(e).Blocks.OfType<ButtonsBlock>().SelectMany(b => b.Buttons).Select(b => b.Label).ToList();
+        Assert.Contains("Nhắc tôi lúc đó", buttons);
+        Assert.DoesNotContain("Giữ chỗ trong lịch", buttons);
+    }
+
+    [Fact]
+    public void Sandbox_appsettings_match_the_guide()
+    {
+        var root = new DirectoryInfo(AppContext.BaseDirectory);
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "src", "Minditful.App", "appsettings.json"))) root = root.Parent;
+        var json = System.Text.Json.JsonDocument.Parse(File.ReadAllText(Path.Combine(root!.FullName, "src", "Minditful.App", "appsettings.json")));
+        var sb = json.RootElement.GetProperty("Minditful").GetProperty("Sandbox");
+        Assert.Equal("093be8d4-f285-4982-a198-db10d74e61e2", sb.GetProperty("Graph").GetProperty("TenantId").GetString());
+        Assert.Equal("aa4ae2a6-4d2a-474c-a6f5-d7d2ebf5de06", sb.GetProperty("Graph").GetProperty("ClientId").GetString());
+        Assert.Equal("Milo-Sandbox Team", sb.GetProperty("AzureDevOps").GetProperty("Team").GetString());
+        Assert.Equal(20, sb.GetProperty("BehaviorOverrides").GetProperty("NoBreakStreakMin").GetInt32());
+        Assert.DoesNotContain("Mail.Send", sb.GetProperty("Graph").GetProperty("Scopes").EnumerateArray().Select(x => x.GetString()));
+    }
+}

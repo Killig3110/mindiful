@@ -66,17 +66,17 @@ public sealed partial class MiloEngine
                     Enqueue(CaseId.CalendarPacked, ch[0].Id + HalfOf(t), new CaseData { Chain = ch });
             }
             // Email chờ (7.3) — không trước 10:00 vì bản tin sáng đã báo
-            if (t >= Tm.T("10:00") && WaitingEmails().Any(m => m.Days >= Math.Ceiling(Tf(CaseId.EmailWaiting))) && !Mem(CaseId.EmailWaiting).Half.Contains(HalfOf(t)))
+            if (t >= Cfg.EmailNotBefore && WaitingEmails().Any(m => m.Days >= Math.Ceiling(Tf(CaseId.EmailWaiting))) && !Mem(CaseId.EmailWaiting).Half.Contains(HalfOf(t)))
                 Enqueue(CaseId.EmailWaiting, "mail-" + HalfOf(t), new CaseData());
             // Task kẹt (7.4)
-            var st = StuckTasks().Where(x => x.Days >= Math.Ceiling(3 * Tf(CaseId.StuckTask))).ToList();
+            var st = StuckTasks().Where(x => x.Days >= Math.Ceiling(Cfg.StuckMinDays * Tf(CaseId.StuckTask))).ToList();
             var slot = Math.Min(GapToNext(), (Cfg.End - t) / 60);
             if (st.Count > 0 && slot >= 45 && !FocusActive() && Mem(CaseId.StuckTask).Shown == 0)
                 Enqueue(CaseId.StuckTask, st[0].Id, new CaseData { Task = st[0] });
             // Họp liên tục: chuỗi ≥3 vừa xong trong 60'
             foreach (var ch in Chains())
             {
-                if (ch.Count < Math.Ceiling(3 * Tf(CaseId.MeetingOverload))) continue;
+                if (ch.Count < Math.Ceiling(Cfg.OverloadMinChain * Tf(CaseId.MeetingOverload))) continue;
                 var last = ch[^1];
                 if (last.End <= t && t - last.End <= 3600 && !InCall())
                     Enqueue(CaseId.MeetingOverload, "chain-" + ch[0].Id, new CaseData { Count = ch.Count, Min = (last.End - ch[0].Start) / 60 });
@@ -95,7 +95,7 @@ public sealed partial class MiloEngine
                 Enqueue(CaseId.LunchMissed, "lunch", new CaseData());
             // Làm liền
             var sk = Streak();
-            if (sk >= 120 * Tf(CaseId.NoBreak)) Enqueue(CaseId.NoBreak, "nb-" + S.LastBreakEnd, new CaseData { Min = sk });
+            if (sk >= Cfg.NoBreakMin * Tf(CaseId.NoBreak)) Enqueue(CaseId.NoBreak, "nb-" + S.LastBreakEnd, new CaseData { Min = sk });
             // Nghỉ quá ít
             var w = Worked();
             if (w >= 180 * Tf(CaseId.LowRest) && S.Rest < 0.5 * 45 * w / 480 && t < Cfg.End)

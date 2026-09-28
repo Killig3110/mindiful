@@ -1,0 +1,19 @@
+{
+  "profiles": {
+    "Scenario (Demo)": {
+      "commandName": "Project",
+      "commandLineArgs": "--env Scenario"
+    },
+    "Sandbox": {
+      "commandName": "Project",
+      "commandLineArgs": "--env Sandbox"
+    },
+    "Prod": {
+      "commandName": "Project",
+      "commandLineArgs": "--env Prod"
+    },
+    "Chọn môi trường": {
+      "commandName": "Project"
+    }
+  }
+}

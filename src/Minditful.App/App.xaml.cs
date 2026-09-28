@@ -58,6 +58,10 @@ public partial class App : Application
             .AddJsonFile("appsettings.local.json", optional: true) // bí mật/ClientId riêng, không commit
             .AddJsonFile(Path.Combine(AppPaths.Root, "appsettings.json"), optional: true)
             .AddEnvironmentVariables("MINDITFUL__")
+            // Thứ tự chọn môi trường: --env > MINDITFUL_ENV > Minditful:Environment trong appsettings/.env
+            .AddInMemoryCollection(Environment.GetEnvironmentVariable("MINDITFUL_ENV") is { Length: > 0 } envVar
+                ? new Dictionary<string, string?> { ["Minditful:Environment"] = envVar }
+                : [])
             .AddCommandLine(args, new Dictionary<string, string> { ["--env"] = "Minditful:Environment" })
             .Build();
         return cfg.GetSection("Minditful").Get<MinditfulOptions>() ?? new MinditfulOptions();
@@ -65,7 +69,7 @@ public partial class App : Application
 
     private static AppEnvironment? ResolveEnvironment(MinditfulOptions opt)
     {
-        if (Enum.TryParse<AppEnvironment>(opt.Environment, true, out var fromConfig)) return fromConfig;
+        if (AppEnvironments.Parse(opt.Environment) is { } fromConfig) return fromConfig;
         var shift = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
         if (!shift && File.Exists(AppPaths.RememberedEnvFile)
             && Enum.TryParse<AppEnvironment>(File.ReadAllText(AppPaths.RememberedEnvFile).Trim(), out var remembered))

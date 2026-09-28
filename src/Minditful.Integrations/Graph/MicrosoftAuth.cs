@@ -78,6 +78,18 @@ public sealed class MicrosoftAuth
 
     public bool Has(string scope) => GrantedScopes.Contains(scope);
 
+    /// <summary>Quyền đã khai trong cấu hình nhưng token chưa có (chưa consent hoặc admin chưa duyệt).</summary>
+    public IReadOnlyList<string> MissingScopes =>
+        GrantedScopes.Count == 0 ? [] : _opt.Scopes.Where(s => !Has(s.Split('/').Last())).ToList();
+
+    /// <summary>Đã từng đăng nhập trên máy này (còn tài khoản trong cache) — nếu chưa thì lần mở đầu cần mở trình duyệt.</summary>
+    public async Task<bool> HasCachedAccountAsync()
+    {
+        if (!IsConfigured) return false;
+        if (_opt.UseBroker) return true; // WAM dùng tài khoản Windows, lấy im lặng được
+        return (await (await AppAsync()).GetAccountsAsync()).Any();
+    }
+
     public async Task SignOutAsync()
     {
         var app = await AppAsync();
