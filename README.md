@@ -16,7 +16,7 @@ Cả **3 môi trường đều là cùng một app**: Milo sống trên desktop 
 Yêu cầu: Windows 10 1809+ / Windows 11, [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) (hoặc Visual Studio 2022 17.8+).
 
 ```powershell
-dotnet test                                                # 81 test (chạy được cả trên macOS/Linux)
+dotnet test                                                # 87 test (chạy được cả trên macOS/Linux)
 dotnet run --project src/Minditful.App                     # mở màn hình chọn môi trường
 dotnet run --project src/Minditful.App -- --env Demo       # vào thẳng Demo (không cần tài khoản)
 dotnet run --project src/Minditful.App -- --env Sandbox
@@ -27,6 +27,148 @@ dotnet run --project src/Minditful.App -- --env Production
 
 Ở màn hình chọn môi trường có ô "Nhớ lựa chọn". Muốn quay lại màn hình này thì giữ **Shift** khi mở app.
 Sandbox/Production chạy nền và có biểu tượng chóp đuôi ở khay hệ thống. Chuột phải vào biểu tượng để mở dashboard, bảng điều khiển, đăng nhập hoặc thoát.
+
+## Hướng dẫn test 3 môi trường (dành cho người mới và khi present)
+
+> Tài liệu kiến trúc chi tiết (flow, sequence, dữ liệu, API): **[docs/KIEN-TRUC.md](docs/KIEN-TRUC.md)**.
+> Kết nối tenant sandbox: **[docs/KET-NOI-SANDBOX.md](docs/KET-NOI-SANDBOX.md)**. Hành vi gốc của Milo: **[docs/Kịch bản hành vi Milo.md](docs/Kịch%20bản%20hành%20vi%20Milo.md)**.
+
+### 0. Chuẩn bị (làm 1 lần)
+
+| Bước | Lệnh / thao tác | Kết quả mong đợi |
+| --- | --- | --- |
+| 1 | Cài Windows 10 1809+ hoặc 11, [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) | `dotnet --version` in ra 8.x |
+| 2 | `git clone` repo, rồi `copy .env.sample .env` | Có file `.env` (không commit) |
+| 3 | `dotnet test` | `Passed! … 87` |
+| 4 | `dotnet run --project src/Minditful.App` | Hiện màn hình **Chạy Milo ở môi trường nào?** với 3 thẻ |
+
+Mở thẳng một môi trường: `--env Scenario` (= Demo), `--env Sandbox`, `--env Prod`. Nếu đã tick "Nhớ lựa chọn", **giữ Shift** khi mở app để hiện lại màn hình chọn.
+
+Cả 3 môi trường đều là **cùng một app**:
+- Milo sống ở **góc phải dưới màn hình thật**, ngay trên taskbar.
+- Khay hệ thống có biểu tượng **chóp đuôi cáo**; chuột phải vào để mở menu.
+- Có một **bảng điều khiển** riêng: Demo là "Điều khiển kịch bản", Sandbox/Prod là "Bảng điều khiển".
+
+### 1. Demo (Scenario): không cần tài khoản, không cần mạng
+
+Dùng để present và để kiểm tra đủ 16 case của prototype. Giờ, lịch, email, task và thao tác của người dùng đều theo **ngày mẫu Thứ Năm 24/9**.
+
+**1a. Để ngày mẫu tự chạy** (tick "Người dùng trong kịch bản tự trả lời", tốc độ 120×):
+
+| Giờ kịch bản | Nhìn vào góc màn hình | Nhìn vào bảng điều khiển |
+| --- | --- | --- |
+| 08:50 → 08:58 | Không có gì (máy "đang khoá") | Trạng thái *Nghỉ làm*, đồng hồ tua nhanh |
+| 08:58 | Hai bàn chân bám mép → Milo leo lên → chữ **Hello!** → thẻ **Chào buổi sáng** (4 họp, 7 email, 6 task) → tự bấm *Đã rõ* → Milo leo xuống | Nhật ký: *Giao Chào sáng (P1, miễn ngân sách)* |
+| 09:25 | Milo chỉ tay, thẻ **Teams · còn 5 phút · Sprint Planning**, vai *Trình bày* → *Mở slide* → *Tham gia* → Milo thụt nhanh | |
+| 09:30–10:30 | Milo **im lặng**, cả chóp đuôi cũng ẩn; góc màn hình hiện chấm **"2 lời nhắc đang chờ"** | Cổng *Đang họp* sáng |
+| 10:37 | Milo **nhảy vòng cung** từ mép phải (JumpIn) → thẻ **Task kẹt #4821** → *Khoá 90 phút* → Milo thụt xuống | Cổng *Giờ tập trung* sáng tới 12:07 |
+| 12:07 | Bóng thoại "90 phút sâu xong rồi!" → thẻ **Nghỉ quá ít** → *Để sau* | |
+| 12:55 | Thẻ **Lịch kín** + lịch mini → *Giữ chỗ* → khối xanh "Nghỉ 10'" trượt vào, dấu **Đã giữ** | |
+| 13:10 | Thẻ **Email chờ** (3 email) → *Mở Outlook* | |
+| 13:14–13:15 | Milo ló đầu thì thầm "Hôm nay mọng 80" → mở **dashboard** (chùm nho) → *Xem cả tuần* → đóng | |
+| 13:30–16:10 | Im lặng suốt 3 cuộc họp liền | Điểm tụt xuống 57 → **Mệt dần**, Milo nhạt màu |
+| 16:12 | JumpIn → **Họp liên tục · 2h40** → *Đồng ý* → **vòng thở 4-4-4** × 3 → "Cảm ơn…" → leo xuống | |
+| 17:45 | Milo nhảy tưng "Xong #4821 rồi!", điểm hồi lại | Mức về *Cân bằng* |
+| 18:00 → 18:31 | Thẻ **Tan tầm** (tổng kết ngày) → *Thêm 30 phút* → 18:31 **Nhắc lại tan tầm** → *Về thôi* → Milo **chạy ra xe** | Điểm cuối ngày **54**, trạng thái *Nghỉ làm* |
+
+**1b. Tự bấm:** bỏ tick "tự trả lời", rồi bấm các nút trên thẻ của Milo ngay trên desktop. Nên thử:
+- *Để sau* 2 lần: lần thứ 3 thẻ không còn nút Để sau.
+- *Không cần*: chờ lâu hơn, bấm lần 2 thì giãn ×3.
+- Gõ chat "mệt quá": Milo vào vòng thở. Gõ "đang bận": tương đương Để sau.
+
+**1c. Chạy từng case:** mục **Chạy từng case · 16 episode**, bấm một dòng là Milo giao ngay. Checklist:
+
+| Nhóm | Case | Cần thấy |
+| --- | --- | --- |
+| Xã giao | Chào sáng · Chào hỏi · Tan tầm · Nhắc lại tan tầm | Hello! + bản tin · thẻ 1 nút "Cảm ơn Milo" · tổng kết 3 ô · 1 nút "Về thôi" |
+| Hỗ trợ | Sắp họp · Lịch kín · Email chờ · Task kẹt · Task xong · Hết giờ tập trung | Thẻ Teams · lịch mini · 3 email · thanh sprint · bóng thoại 3s · bóng thoại 3s |
+| Chăm sóc | Họp liên tục · Quá giờ · Chưa nghỉ trưa · Làm liền · Nghỉ quá ít · Phân mảnh | Nhãn màu riêng từng case, nút Đồng ý / Để sau (Np) / Không cần, ô chat |
+| Người dùng | Dashboard | Chùm nho 7 ngày, Office Vibe, lịch hôm nay kèm **mức nặng cuộc họp** (5 chấm) |
+
+**1d. Bẻ kịch bản** (mục *Bạn thử làm*):
+- *Đang gõ phím*: lời nhắc bị hoãn; gõ liên tục 5' thì chỉ hiện nhãn gọn "Milo có lời nhắn".
+- *Toàn màn hình* hoặc *Không làm phiền*: Milo im lặng và hiện chấm chờ; **bấm chấm chờ** thì thẻ bung ra ngay kể cả đang họp.
+- *Nhảy việc 12 lần/giờ*: case Phân mảnh.
+- *Giả lập ngày căng*: Milo đổi dáng mệt, có chữ z bay.
+
+**1e. Tương tác chung** (cả 3 môi trường):
+- Rê chuột lên chóp đuôi **0,6 giây** thì Milo ló đầu; bấm vào đuôi thì mở dashboard; Esc để đóng.
+- **Kéo chóp đuôi** sang góc khác thì Milo neo góc đó; góc trái lật ngang, góc trên thò xuống.
+- Menu khay có: Mở dashboard · Điều khiển kịch bản · Phát/tạm dừng · Làm lại ngày mẫu · Thoát.
+
+### 2. Sandbox: dữ liệu thật của tenant `mindiful.onmicrosoft.com`
+
+Điều kiện: đã setup theo [docs/KET-NOI-SANDBOX.md](docs/KET-NOI-SANDBOX.md) mục 1, và đã điền `MINDITFUL_SANDBOX_ADO_PAT` trong `.env`.
+
+1. `dotnet run --project src/Minditful.App -- --env Sandbox`. **Lần đầu** trình duyệt mở màn hình đăng nhập: chọn **thulu@mindiful.onmicrosoft.com**, rồi đồng ý quyền nếu được hỏi.
+2. Bảng điều khiển phải hiện:
+   - *Đã đăng nhập thulu@… · quyền: …*, không có chữ "THIẾU".
+   - Azure Boards: *N work item đang làm · Sprint 1 x/y*.
+   - Dòng *Ngưỡng rút gọn: task kẹt ≥ 0 ngày · làm liền 20' …*.
+3. Chạy **checklist 14 bước** ở mục 7 của KET-NOI-SANDBOX.md. Công cụ trong Bảng điều khiển giúp làm nhanh:
+
+| Muốn test | Dùng |
+| --- | --- |
+| Chào sáng lại (bước 1) | **Reset ngày (chào sáng lại)** |
+| Sắp họp, Lịch kín (bước 2, 4) mà không cần đồng nghiệp | **Tạo dữ liệu mẫu**: Teams meeting sau 7' + chuỗi 3 cuộc sau 52' + 6 work item |
+| Tan tầm ngay (bước 12) | **Giờ về = bây giờ + 2'** |
+| Xoá PAT (bước 14) | **Xoá PAT**: dashboard phải có dòng "Chưa kết nối Azure Boards" |
+| Một case bất kỳ ngay lập tức | **Chạy thử 1 case** (bỏ qua điều kiện và ngân sách) |
+| Giả lập gõ phím / rời máy / toàn màn hình / DND | Các nút *Giả lập tín hiệu* (đè lên tín hiệu thật, bấm lần nữa để trả lại) |
+
+4. Kiểm tra hành động thật:
+   - *Giữ chỗ*: Outlook của thulu@ có sự kiện "Nghỉ cùng Milo" (tentative, category **Milo**).
+   - *Khoá 90 phút*: có sự kiện "Tập trung: #id" (busy), và Teams chuyển **Do not disturb** nếu Teams đang mở.
+   - Share màn hình trong Teams: người xem **không thấy** Milo.
+5. Kiểm tra dữ liệu local: dashboard → *Xem cả tuần* có mục **Thống kê tuần**. Bảng điều khiển → *Dữ liệu cá nhân trên máy* ghi chính sách xoá và có nút **Xoá toàn bộ dữ liệu thống kê ngay**.
+6. (Có API key) điền `ANTHROPIC_API_KEY`, đặt `…Features__Mood=Hybrid` và `…Features__Meetings=Llm`, mở lại app:
+   - Bảng Bộ não có "Nguồn: luật X + Claude ±Y" và câu nhận xét.
+   - Dashboard có mức nặng cuộc họp nguồn *Claude*.
+   - Nhật ký có dòng *Claude viết sẵn câu cho …*.
+
+Dọn dẹp sau khi test: trong Outlook, xoá các sự kiện category **Milo**; bấm *Xoá toàn bộ dữ liệu thống kê ngay* nếu cần.
+
+### 3. Production: tenant Bosch
+
+1. Đảm bảo IT đã duyệt app registration (TenantId/ClientId đã có trong appsettings.json). Điền org/project Azure DevOps và `MINDITFUL_PROD_ADO_PAT` trong `.env`.
+2. `--env Prod`: lần đầu đăng nhập bằng tài khoản Bosch. Prod mặc định chỉ có 3 quyền đọc, nên Bảng điều khiển (mở từ khay) có thể ghi *THIẾU: Calendars.ReadWrite, Mail.Read, Presence.ReadWrite*. **Đó là đúng**, app đang tự hạ cấp:
+   - Nút *Giữ chỗ trong lịch* đổi thành **Nhắc tôi lúc đó**, không ghi vào lịch.
+   - Không có thẻ Email chờ; bản tin sáng bỏ dòng email.
+   - Khoá tập trung chỉ nhắc bạn tự bật DND.
+3. Kiểm tra:
+   - Tham gia một cuộc gọi Teams: Milo và chóp đuôi ẩn trong vòng ≤ 30s, lời nhắc dồn thành chấm chờ.
+   - Share màn hình: người xem không thấy Milo.
+   - Khoá máy rồi mở lại: Milo tiếp tục đúng trạng thái.
+4. Prod dùng **ngưỡng chuẩn** của tài liệu: làm liền 120', task kẹt ≥ 3 ngày, 2 lời nhắc cách nhau ≥ 15'. Vì vậy trong 1 buổi sẽ thấy ít lời nhắc hơn Sandbox. Đó là thiết kế, không phải lỗi.
+
+### 4. Kịch bản present ~10 phút
+
+| Phút | Làm gì | Nói gì |
+| --- | --- | --- |
+| 0–1 | Mở app → màn hình chọn 3 môi trường | "Một app, 3 môi trường: Demo chạy kịch bản, Sandbox là tenant thử, Prod là Bosch" |
+| 1–3 | Chọn **Demo**, tốc độ **300×**; nhảy mốc **08:58** | Milo sống ở góc màn hình thật; chào sáng + bản tin |
+| 3–4 | Mốc **09:25** → **09:30** | Nhắc họp đúng lúc; vào họp thì Milo **im lặng**, lời nhắc dồn thành chấm chờ |
+| 4–5 | Mốc **10:37** | JumpIn sau họp, Task kẹt → khoá 90' tập trung (tạo lịch + Teams DND) |
+| 5–6 | Mốc **16:12**, bỏ tick tự trả lời, tự bấm *Đồng ý* | Vòng thở 4-4-4 ngay trong thẻ |
+| 6–7 | Rê chuột lên đuôi → bấm → *Xem cả tuần* | Chùm nho 7 ngày, Office Vibe, **mức nặng từng cuộc họp**, thống kê tuần |
+| 7–8 | Bảng **Bộ não Milo** (cột phải) | Mọi quyết định có lý do: cổng im lặng, ngân sách 15', hàng đợi ưu tiên; mood tính minh bạch |
+| 8–9 | (Tuỳ chọn) chuyển sang **Sandbox** đã đăng nhập sẵn: Tạo dữ liệu mẫu → 2' sau Milo nhắc Teams meeting thật | Cùng bộ não, dữ liệu thật từ Graph + Azure Boards |
+| 9–10 | Kéo đuôi sang góc khác; nhắc riêng tư | Chỉ gửi số liệu cho LLM, dữ liệu cá nhân tự xoá mỗi tuần, ẩn khi share màn hình |
+
+Mẹo:
+- Để bảng điều khiển ở màn hình thứ hai, màn hình chính chỉ có Milo.
+- Trước giờ present chạy thử 1 lượt, rồi bấm *Làm lại ngày mẫu* trong menu khay.
+- Present Sandbox thì đăng nhập trước, để lần đầu không phải chờ trình duyệt.
+
+### 5. Sự cố hay gặp khi test
+
+| Hiện tượng | Cách xử lý |
+| --- | --- |
+| Không thấy Milo | Nhìn đúng góc đã neo (mặc định phải dưới); nếu trạng thái là *Nghỉ làm*/*Im lặng* thì đó là đúng. Demo: kiểm tra đồng hồ kịch bản đang chạy |
+| Mở app vào thẳng một môi trường không mong muốn | Giữ Shift khi mở, hoặc xoá `MINDITFUL_ENV` trong `.env` |
+| Đăng nhập báo lỗi | Bảng điều khiển ghi lý do bằng tiếng Việt; xem thêm bảng lỗi AADSTS ở KET-NOI-SANDBOX.md mục 8 |
+| Azure Boards 0 task | PAT phải do đúng người được giao task tạo; project/team đúng tên |
+| App lỗi | Xem `%LOCALAPPDATA%\Minditful\crash.log` |
 
 ## Cấu hình
 
@@ -201,9 +343,27 @@ Kéo chóp đuôi rồi thả ở đâu thì Milo neo vào **góc gần nhất**
 - Góc trên: Milo thò xuống từ mép trên; thẻ và dashboard mọc xuống dưới.
 - Góc neo lưu riêng từng môi trường. Bảng điều khiển Sandbox/Production có 4 nút chọn góc; ở cả 3 môi trường đều kéo chóp đuôi được.
 
+## Dữ liệu cá nhân trên máy (SQLite, tự xoá)
+
+Mỗi môi trường có 1 file `%LOCALAPPDATA%\Minditful\<môi trường>\minditful.db`, gồm 4 bảng:
+- `day_record`: điểm, phút họp, nghỉ, tập trung… mỗi ngày.
+- `mood_sample`: điểm mood mỗi 15 phút.
+- `outcome_event`: log phản hồi từng lời nhắc.
+- `meeting_assessment`: mức nặng cuộc họp. Id sự kiện được **băm**, không lưu tiêu đề.
+
+App **không lưu tiêu đề hay nội dung** email, cuộc họp hay task.
+
+| Cấu hình (`Storage`) | Mặc định | Ý nghĩa |
+| --- | --- | --- |
+| `RetentionPeriod` | `Week` | `Week`: sang thứ Hai tự xoá. `Month`: sang ngày 1 tự xoá |
+| `KeepPreviousPeriod` | `true` | Giữ thêm 1 kỳ trước (chùm nho 7 ngày, cá nhân hoá 7 ngày, "so với tuần trước"). `false` = chỉ giữ kỳ hiện tại |
+| `MoodSampleMinutes` | `15` | Nhịp lưu mẫu mood và bản ghi ngày đang chạy |
+
+Việc dọn chạy lúc mở app và mỗi lần sang ngày mới, xoá xong thì `VACUUM` để dữ liệu không còn trong file. Nút **Xoá toàn bộ dữ liệu thống kê ngay** nằm trong Bảng điều khiển. Dữ liệu bản cũ (`history.json`, `outcomes.tsv`) được tự chuyển sang SQLite ở lần chạy đầu.
+
 ## Cá nhân hoá 7 ngày (§14)
 
-Mọi phản hồi được ghi local vào `%LOCALAPPDATA%\Minditful\<môi trường>\outcomes.tsv`, giữ 30 ngày. Các loại phản hồi: hiện, đồng ý, để sau, không cần, bỏ qua, chat, bị cổng ngắt, bị gộp. Mỗi đầu ngày Milo tính lại:
+Mọi phản hồi được ghi vào bảng `outcome_event` của SQLite local, tự xoá theo tuần/tháng như mục trên. Các loại phản hồi: hiện, đồng ý, để sau, không cần, bỏ qua, chat, bị cổng ngắt, bị gộp. Mỗi đầu ngày Milo tính lại:
 
 | Luật | Điều kiện | Milo làm |
 | --- | --- | --- |
