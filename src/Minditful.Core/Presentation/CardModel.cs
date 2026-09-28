@@ -1,0 +1,40 @@
+using Minditful.Core.Engine;
+
+namespace Minditful.Core.Presentation;
+
+public enum ButtonStyle { Amber, Dark, Teams, Ghost }
+public enum PillIcon { None, Bell, Clock }
+public enum LeadKind { Square, Avatar, IdTag }
+public enum CardVariant { Card, Breathe, Say, Chip, None }
+
+/// <summary>Khối nội dung của thẻ. Text có thể chứa **đậm**.</summary>
+public abstract record CardBlock;
+public sealed record TopBlock(string Pill, string Bg, string Fg, PillIcon Icon = PillIcon.None, string? Meta = null, bool Stamp = false) : CardBlock;
+public sealed record EyebrowBlock(string Text) : CardBlock;
+public sealed record TitleBlock(string Text, double Size = 17) : CardBlock;
+public sealed record ParagraphBlock(string Text, bool Small = false, string? Color = null) : CardBlock;
+public sealed record LineBlock(LeadKind Lead, string LeadText, string LeadColor, string Text, string? Source = null, bool SourceAlert = false,
+    string? PillText = null, string? PillBg = null, string? PillFg = null) : CardBlock;
+public sealed record CardButton(string Act, string Label, ButtonStyle Style, bool Enabled = true);
+public sealed record ButtonsBlock(IReadOnlyList<CardButton> Buttons) : CardBlock;
+public sealed record PeopleBlock(IReadOnlyList<Person> People, string Role, string RoleBg, string RoleFg) : CardBlock;
+public sealed record ScheduleRow(string Text, bool IsSlot);
+public sealed record ScheduleBlock(string From, string To, IReadOnlyList<ScheduleRow> Rows) : CardBlock;
+public sealed record ProgressBlock(string Left, string Right, double Fraction) : CardBlock;
+public sealed record TilesBlock(IReadOnlyList<(string Big, string Small)> Tiles) : CardBlock;
+public sealed record StatusDotBlock(string Text) : CardBlock;
+public sealed record ChatBlock(IReadOnlyList<ChatLine> Lines) : CardBlock;
+
+public sealed record CardModel(CardVariant Variant, IReadOnlyList<CardBlock> Blocks, double Width = 310, string? SayText = null, bool Low = false)
+{
+    public static readonly CardModel Empty = new(CardVariant.None, []);
+}
+
+public sealed record DashRow(string Time, string Name, string Tag, string TagBg, string TagFg);
+
+public sealed record DashboardModel(
+    DashPage Page, int Score, string Phrase, string YesterdayLine, IReadOnlyList<DayScore> Days,
+    IReadOnlyList<(string Big, string Small)> Tiles, DashRow? Next,
+    (int F, int E, int S) Vibe, SprintInfo? Sprint, IReadOnlyList<DashRow> Events, string? StatusNote);
+
+public sealed record Caption(string Tag, string Text, string Ref);

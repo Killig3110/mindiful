@@ -1,0 +1,461 @@
+using System.Diagnostics;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
+using System.Windows.Media.Effects;
+using System.Windows.Shapes;
+using System.Windows.Threading;
+using Minditful.App.Rendering;
+using Minditful.Core.Engine;
+using Minditful.Core.Presentation;
+using MClip = Minditful.Core.Engine.Clip;
+using static Minditful.App.Rendering.Ui;
+
+namespace Minditful.App.Controls;
+
+/// <summary>
+/// Góc phải dưới màn hình của Milo: chóp đuôi, Milo, thì thầm, thẻ, dashboard, chấm chờ, hiệu ứng.
+/// Toạ độ giữ đúng prototype (sân khấu 700×560, taskbar 44px) — <see cref="BaseOffset"/> là chiều cao taskbar bên dưới.
+/// </summary>
+public sealed class MiloLayer : Grid
+{
+    private const double RegionW = 420, RegionH = 340;
+
+    private readonly Canvas _region;
+    private readonly Image _milo;
+    private readonly ScaleTransform _scale = new();
+    private readonly RotateTransform _rotate = new();
+    private readonly TranslateTransform _translate = new();
+    private readonly Button _miloHit, _tail, _dotPill;
+    private readonly System.Windows.Shapes.Path _tailBody, _tailTip;
+    private readonly Border _badge, _whisper;
+    private readonly System.Windows.Controls.TextBlock _badgeText, _whisperText, _dotText;
+    private readonly Ellipse _whisperDot;
+    private readonly ContentControl _cardHost, _dashHost;
+    private readonly Grid _fx;
+    private readonly CardRenderer _cards;
+    private readonly Stopwatch _clock = Stopwatch.StartNew();
+    private readonly DispatcherTimer _hoverTimer = new() { Interval = TimeSpan.FromMilliseconds(600) };
+    private readonly DispatcherTimer _leaveTimer = new() { Interval = TimeSpan.FromMilliseconds(300) };
+
+    private MiloEngine? _engine;
+    private MClip _clip = MClip.Gone;
+    private double _clipStart;
+    private string? _cardKey, _dashKey, _fxKey;
+    private int _cardEp = -1;
+    private Phase? _cardPhase;
+    private double _sat = -1;
+    private readonly List<(FrameworkElement El, Func<double, (double Op, double Tx, double Ty, double Sx, double Sy)> Anim, double Delay)> _fxAnims = [];
+
+    public double BaseOffset { get; set; } = 44;
+
+    /// <summary>Người dùng vừa tương tác (host có thể vẽ lại ngay, lưu trạng thái…).</summary>
+    public event Action? Interacted;
+
+    public MiloEngine? Engine
+    {
+        get => _engine;
+        set
+        {
+            _engine = value;
+            _cardKey = _dashKey = _fxKey = null;
+        }
+    }
+
+    public MiloLayer()
+    {
+        ClipToBounds = false;
+
+        _milo = new Image { Width = 150, Height = 150, IsHitTestVisible = false, RenderTransform = new TransformGroup { Children = { _scale, _rotate, _translate } } };
+        RenderOptions.SetBitmapScalingMode(_milo, BitmapScalingMode.HighQuality);
+        Canvas.SetLeft(_milo, RegionW - 40 - 150);
+        Canvas.SetTop(_milo, RegionH - 150);
+        _region = new Canvas { Width = RegionW, Height = RegionH, ClipToBounds = true, IsHitTestVisible = false, Children = { _milo } };
+        Place(_region, 0, 0);
+
+        _miloHit = new Button { Width = 150, Height = 150, Style = (Style)Application.Current.FindResource("Bare"), ToolTip = "Bấm vào Milo" };
+        _miloHit.Click += (_, _) => Act(e => e.MiloClick());
+        Place(_miloHit, 40, 0);
+
+        // Chóp đuôi (mục 9.1): quầng thở 5s + đuôi cáo, màu theo mood
+        var halo = new Ellipse { Width = 40, Height = 40, Fill = Br("#FFE3C4"), RenderTransformOrigin = new Point(.5, .5), RenderTransform = new ScaleTransform(), IsHitTestVisible = false };
+        StartHalo(halo);
+        Canvas.SetLeft(halo, 3);
+        Canvas.SetTop(halo, 40 - 40 + 14);
+        _tailBody = new System.Windows.Shapes.Path
+        {
+            Data = Geometry.Parse("M6 34 C4 24 8 14 16 9 C20 6 24 4 27 5 C24 8 23 11 24 14 C26 11 29 10 31 11 C27 15 24 22 24 34 Z"),
+            Stroke = Br("#45231F"), StrokeThickness = 2, StrokeLineJoin = PenLineJoin.Round,
+        };
+        _tailTip = new System.Windows.Shapes.Path
+        {
+            Data = Geometry.Parse("M16 9 C20 6 24 4 27 5 C24 8 23 11 24 14 C26 11 29 10 31 11 C28 14 26 17 25 20 C22 17 18 13 16 9 Z"),
+            Stroke = Br("#45231F"), StrokeThickness = 2, StrokeLineJoin = PenLineJoin.Round,
+        };
+        var tailArt = new Canvas { Width = 34, Height = 34, Children = { _tailBody, _tailTip } };
+        Canvas.SetLeft(tailArt, 6);
+        Canvas.SetTop(tailArt, 6);
+        _badgeText = new System.Windows.Controls.TextBlock { FontSize = 10.5, FontWeight = FontWeights.Bold, Foreground = Br("#2B211A"), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+        _badge = new Border { MinWidth = 18, Height = 18, CornerRadius = new CornerRadius(9), Background = Br("#E8A33D"), BorderBrush = Brushes.White, BorderThickness = new Thickness(2), Padding = new Thickness(4, 0, 4, 0), Child = _badgeText, Visibility = Visibility.Collapsed };
+        Canvas.SetLeft(_badge, 34);
+        Canvas.SetTop(_badge, -4);
+        var tailBox = new Canvas { Width = 46, Height = 40, Children = { halo, tailArt, _badge } };
+        _tail = new Button { Width = 46, Height = 40, Content = tailBox, Style = (Style)Application.Current.FindResource("Bare"), ToolTip = "Chóp đuôi Milo: rê chuột để Milo ló đầu, bấm để mở dashboard" };
+        _tail.MouseEnter += (_, _) =>
+        {
+            _leaveTimer.Stop();
+            _hoverTimer.Start();
+        };
+        _tail.MouseLeave += (_, _) =>
+        {
+            _hoverTimer.Stop();
+            if (_engine?.S.Peek == true) _leaveTimer.Start();
+        };
+        _tail.Click += (_, _) =>
+        {
+            _hoverTimer.Stop();
+            Act(e => e.TailClick());
+        };
+        _hoverTimer.Tick += (_, _) =>
+        {
+            _hoverTimer.Stop();
+            Act(e => e.Hover());
+        };
+        _leaveTimer.Tick += (_, _) =>
+        {
+            _leaveTimer.Stop();
+            Act(e => e.Unhover());
+        };
+        Place(_tail, 96, 0);
+
+        _whisperDot = new Ellipse { Width = 14, Height = 14, StrokeThickness = 2, Stroke = Br("#E8A33D"), Margin = new Thickness(0, 0, 8, 0) };
+        _whisperText = new System.Windows.Controls.TextBlock { FontSize = 12.5, Foreground = Br("#FBF3E7"), VerticalAlignment = VerticalAlignment.Center };
+        _whisper = new Border
+        {
+            Background = Br("#3A2A1E"), CornerRadius = new CornerRadius(999), Padding = new Thickness(10, 9, 14, 9), IsHitTestVisible = false,
+            Effect = new DropShadowEffect { BlurRadius = 20, ShadowDepth = 8, Direction = 270, Opacity = .25 },
+            Child = new StackPanel { Orientation = Orientation.Horizontal, Children = { _whisperDot, _whisperText } }, Visibility = Visibility.Collapsed,
+        };
+        Place(_whisper, 150, 68);
+
+        _fx = new Grid { IsHitTestVisible = false };
+        Children.Add(_fx);
+
+        _cards = new CardRenderer((act, val) => Act(e => e.UserReply(act, val)));
+        _cardHost = new ContentControl { Focusable = false };
+        Place(_cardHost, 26, 162);
+        _dashHost = new ContentControl { Focusable = false };
+        Place(_dashHost, 22, 156);
+
+        var pulse = new Ellipse { Width = 10, Height = 10, Fill = Br("#E8A33D"), Margin = new Thickness(0, 0, 8, 0) };
+        _dotText = new System.Windows.Controls.TextBlock { FontSize = 12, Foreground = Br("#3A2A1E") };
+        _dotPill = new Button
+        {
+            Style = (Style)Application.Current.FindResource("Round"), Background = Br("#FBF3E7"), Padding = new Thickness(9, 7, 12, 7), Visibility = Visibility.Collapsed,
+            Content = new StackPanel { Orientation = Orientation.Horizontal, Children = { pulse, _dotText } },
+            Effect = new DropShadowEffect { BlurRadius = 16, ShadowDepth = 6, Direction = 270, Opacity = .25 },
+            ToolTip = "Bấm để mở lời nhắc đứng đầu ngay, kể cả khi đang họp",
+        };
+        _dotPill.Click += (_, _) => Act(e => e.DotPillClick());
+        Place(_dotPill, 22, 10);
+    }
+
+    private void Place(FrameworkElement el, double right, double bottom)
+    {
+        el.HorizontalAlignment = HorizontalAlignment.Right;
+        el.VerticalAlignment = VerticalAlignment.Bottom;
+        el.Tag = (right, bottom);
+        Children.Add(el);
+    }
+
+    private void Act(Action<MiloEngine> a)
+    {
+        if (_engine is null) return;
+        a(_engine);
+        Interacted?.Invoke();
+        Render();
+    }
+
+    private static void StartHalo(Ellipse halo)
+    {
+        var ease = new SineEase { EasingMode = EasingMode.EaseInOut };
+        var s = new DoubleAnimation(1, 1.18, TimeSpan.FromSeconds(2.5)) { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever, EasingFunction = ease };
+        var o = new DoubleAnimation(.35, .8, TimeSpan.FromSeconds(2.5)) { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever, EasingFunction = ease };
+        ((ScaleTransform)halo.RenderTransform).BeginAnimation(ScaleTransform.ScaleXProperty, s);
+        ((ScaleTransform)halo.RenderTransform).BeginAnimation(ScaleTransform.ScaleYProperty, s);
+        halo.BeginAnimation(OpacityProperty, o);
+    }
+
+    private double Now => _clock.Elapsed.TotalSeconds;
+
+    /// <summary>Vẽ lại theo trạng thái engine. Gọi mỗi khung hình khi Milo đang hiện.</summary>
+    public void Render()
+    {
+        var e = _engine;
+        if (e is null) return;
+        foreach (FrameworkElement el in Children)
+            if (el.Tag is (double r, double b)) el.Margin = new Thickness(0, 0, r, b + BaseOffset);
+
+        // ---- Milo ----
+        var clip = Present.VisualClip(e);
+        if (clip != _clip)
+        {
+            _clip = clip;
+            _clipStart = Now;
+        }
+        var elapsed = Now - _clipStart;
+        var tf = ClipAnimation.Evaluate(clip, elapsed);
+        double cx = tf.OriginX * 150, cy = tf.OriginY * 150;
+        _scale.CenterX = _rotate.CenterX = cx;
+        _scale.CenterY = _rotate.CenterY = cy;
+        _scale.ScaleX = tf.Sx;
+        _scale.ScaleY = tf.Sy;
+        _rotate.Angle = tf.Rot;
+        _translate.X = tf.Tx;
+        _translate.Y = tf.Ty;
+        var sat = e.CurrentBand.Saturation;
+        _milo.Source = clip == MClip.Gone ? null : MiloSkin.Get(Present.PoseFor(e, clip), sat);
+
+        // ---- chóp đuôi ----
+        _tail.Visibility = Present.TailVisible(e) ? Visibility.Visible : Visibility.Collapsed;
+        if (Math.Abs(sat - _sat) > .001)
+        {
+            _sat = sat;
+            _tailBody.Fill = MiloSkin.Saturated("#E8772E", sat);
+            _tailTip.Fill = MiloSkin.Saturated("#FFF7EC", sat);
+        }
+        var badge = Present.TailBadge(e);
+        _badge.Visibility = badge is null ? Visibility.Collapsed : Visibility.Visible;
+        _badgeText.Text = badge ?? "";
+
+        // ---- thì thầm ----
+        var w = Present.Whisper(e);
+        if (w is null) _whisper.Visibility = Visibility.Collapsed;
+        else
+        {
+            if (_whisper.Visibility != Visibility.Visible) Pop(_whisper);
+            _whisper.Visibility = Visibility.Visible;
+            _whisperDot.Fill = Br(e.CurrentBand.Bg);
+            _whisperText.Inlines.Clear();
+            AddInlines(_whisperText.Inlines, w);
+        }
+
+        // ---- chấm chờ ----
+        var dot = Present.DotPill(e);
+        _dotPill.Visibility = dot is null ? Visibility.Collapsed : Visibility.Visible;
+        _dotText.Text = dot ?? "";
+        _miloHit.Visibility = Present.MiloClickable(e) ? Visibility.Visible : Visibility.Collapsed;
+
+        // ---- thẻ ----
+        var ep = e.S.Ep;
+        var showDash = ep is { C: CaseId.Dashboard, Card: true };
+        var cardKey = ep is { Card: true } && !showDash ? $"{ep.Id}:{ep.CardVer}" : null;
+        if (cardKey != _cardKey)
+        {
+            _cardKey = cardKey;
+            var model = cardKey is null ? CardModel.Empty : Present.Card(e);
+            var el = _cards.Build(model);
+            var focused = _cardHost.IsKeyboardFocusWithin;
+            _cardHost.Content = el;
+            _cardHost.Tag = model.Low ? (26.0, 16.0) : (26.0, 162.0);
+            _cardHost.Margin = new Thickness(0, 0, 26, (model.Low ? 16 : 162) + BaseOffset);
+            if (el is not null && (ep!.Id != _cardEp || ep.Phase != _cardPhase)) Pop(el);
+            if (focused && el is not null) FocusChat(el);
+            _cardEp = ep?.Id ?? -1;
+            _cardPhase = ep?.Phase;
+        }
+        if (_cards.Breathe is { } br && Present.Breathe(e) is { } bs) br.Update(Present.BreatheElapsed(e), bs.Phase, bs.Count, bs.Label);
+
+        // ---- dashboard ----
+        var dashKey = showDash ? $"{ep!.Id}:{ep.CardVer}:{ep.Page}" : null;
+        if (dashKey != _dashKey)
+        {
+            var first = _dashKey is null;
+            _dashKey = dashKey;
+            var dm = dashKey is null ? null : Present.Dashboard(e);
+            var el = dm is null ? null : DashboardRenderer.Build(dm, act => Act(x => x.UserReply(act)));
+            _dashHost.Content = el;
+            if (el is not null && first) Rise(el);
+        }
+
+        RenderFx(e, clip, elapsed);
+    }
+
+    private static void FocusChat(FrameworkElement card)
+    {
+        card.Dispatcher.BeginInvoke(() =>
+        {
+            var tb = FindChild<TextBox>(card);
+            tb?.Focus();
+        }, DispatcherPriority.Loaded);
+    }
+
+    private static T? FindChild<T>(DependencyObject root) where T : DependencyObject
+    {
+        for (var i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++)
+        {
+            var c = VisualTreeHelper.GetChild(root, i);
+            if (c is T t) return t;
+            if (FindChild<T>(c) is { } found) return found;
+        }
+        return null;
+    }
+
+    // pop: 0% mờ, lệch 14px, .85 → 70% rõ, 1.03 → 100% bình thường (.35s)
+    private static void Pop(FrameworkElement el)
+    {
+        var sc = new ScaleTransform(1, 1);
+        var tr = new TranslateTransform();
+        el.RenderTransformOrigin = new Point(1, 1);
+        el.RenderTransform = new TransformGroup { Children = { sc, tr } };
+        var d = TimeSpan.FromSeconds(.35);
+        var s = new DoubleAnimationUsingKeyFrames { Duration = d };
+        s.KeyFrames.Add(new LinearDoubleKeyFrame(.85, KeyTime.FromPercent(0)));
+        s.KeyFrames.Add(new EasingDoubleKeyFrame(1.03, KeyTime.FromPercent(.7), new CubicEase { EasingMode = EasingMode.EaseOut }));
+        s.KeyFrames.Add(new LinearDoubleKeyFrame(1, KeyTime.FromPercent(1)));
+        sc.BeginAnimation(ScaleTransform.ScaleXProperty, s);
+        sc.BeginAnimation(ScaleTransform.ScaleYProperty, s);
+        tr.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(14, 0, TimeSpan.FromSeconds(.25)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
+        el.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromSeconds(.25)));
+    }
+
+    private static void Rise(FrameworkElement el)
+    {
+        var tr = new TranslateTransform();
+        el.RenderTransform = tr;
+        tr.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(50, 0, TimeSpan.FromSeconds(.3)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
+        el.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromSeconds(.3)));
+    }
+
+    // ================= hiệu ứng =================
+    private void RenderFx(MiloEngine e, MClip clip, double elapsed)
+    {
+        var visible = clip != MClip.Gone;
+        var paws = clip == MClip.HangPull && elapsed < 1.8;
+        var key = $"{clip}:{paws}:{(e.S.BandIdx == 3 && visible)}";
+        if (key != _fxKey)
+        {
+            _fxKey = key;
+            _fx.Children.Clear();
+            _fxAnims.Clear();
+            BuildFx(clip, paws, e.S.BandIdx == 3 && visible);
+        }
+        foreach (var (el, anim, delay) in _fxAnims)
+        {
+            var t = elapsed - delay;
+            if (t < 0)
+            {
+                el.Opacity = 0;
+                continue;
+            }
+            var (op, tx, ty, sx, sy) = anim(t);
+            el.Opacity = op;
+            if (el.RenderTransform is TransformGroup { Children: [ScaleTransform s, TranslateTransform tt] })
+            {
+                s.ScaleX = sx;
+                s.ScaleY = sy;
+                tt.X = tx;
+                tt.Y = ty;
+            }
+        }
+    }
+
+    private void AddFx(FrameworkElement el, double right, double bottom, Func<double, (double, double, double, double, double)> anim, double delay = 0)
+    {
+        el.HorizontalAlignment = HorizontalAlignment.Right;
+        el.VerticalAlignment = VerticalAlignment.Bottom;
+        el.Margin = new Thickness(0, 0, right, bottom + BaseOffset);
+        el.RenderTransformOrigin = new Point(.5, .5);
+        el.RenderTransform = new TransformGroup { Children = { new ScaleTransform(), new TranslateTransform() } };
+        _fx.Children.Add(el);
+        _fxAnims.Add((el, anim, delay));
+    }
+
+    private static double Seg(double t, double a, double b) => Math.Clamp((t - a) / (b - a), 0, 1);
+
+    private void BuildFx(MClip clip, bool paws, bool zz)
+    {
+        if (paws)
+        {
+            foreach (var r in new[] { 76.0, 136.0 })
+                AddFx(new Border { Width = 20, Height = 10, CornerRadius = new CornerRadius(6, 6, 3, 3), Background = Br("#D76C43"), BorderBrush = Br("#45231F"), BorderThickness = new Thickness(2) },
+                    r, -4, t => (Seg(t, 0, .2), 0, 0, 1, 1));
+        }
+        if (clip == MClip.Hello)
+        {
+            var hello = new Border
+            {
+                Background = Br("#FBF3E7"), CornerRadius = new CornerRadius(18, 18, 4, 18), Padding = new Thickness(16, 9, 16, 9),
+                Effect = new DropShadowEffect { BlurRadius = 24, ShadowDepth = 10, Direction = 270, Opacity = .2 },
+                Child = new System.Windows.Controls.TextBlock { Text = "Hello!", FontFamily = Serif, FontSize = 24, Foreground = Br("#3A2A1E") },
+            };
+            AddFx(hello, 150, 170, t =>
+            {
+                var p = Seg(t, 0, .45);
+                var sc = p < .7 ? .85 + (1.03 - .85) * (p / .7) : 1.03 - .03 * ((p - .7) / .3);
+                return (Math.Min(1, p / .7), 0, 14 * (1 - Math.Min(1, p / .7)), sc, sc);
+            });
+        }
+        if (clip is MClip.Hello or MClip.Celebrate or MClip.Thanks)
+        {
+            (double R, double B, string C, double D)[] sparks = [(62, 186, "#E8A33D", 0), (170, 156, "#7FA65A", .5), (120, 194, "#7261B0", .9)];
+            foreach (var (r, b, c, d) in sparks)
+                AddFx(Dot(c, 9), r, b, t =>
+                {
+                    var p = t % 1.4 / 1.4;
+                    var op = p < .4 ? p / .4 : 1 - (p - .4) / .6;
+                    var s = .4 + .7 * p;
+                    return (op, 0, -40 * p, s, s);
+                }, d);
+        }
+        if (clip == MClip.JumpIn)
+        {
+            foreach (var (r, d) in new[] { (150.0, 0.0), (66.0, .1) })
+                AddFx(new Border { Width = 30, Height = 8, CornerRadius = new CornerRadius(4), Background = new SolidColorBrush(Color.FromArgb(46, 58, 42, 30)) }, r, 0, t =>
+                {
+                    var p = Seg(t, 0, .6);
+                    var op = p < .4 ? p / .4 : 1 - (p - .4) / .6;
+                    return (op, 0, 0, .3 + 1.3 * p, 1);
+                }, 1.0 + d);
+        }
+        if (clip == MClip.RunToCar)
+        {
+            var car = new Canvas { Width = 92, Height = 52 };
+            var body = new System.Windows.Shapes.Path { Data = Geometry.Parse("M8 30 L16 16 C18 12 22 10 26 10 L52 10 C56 10 60 12 62 16 L70 30 Z"), Fill = Br("#5471B0") };
+            var cars = new UIElement[]
+            {
+                body,
+                new Rectangle { Width = 76, Height = 12, RadiusX = 5, RadiusY = 5, Fill = Br("#3F5A92") },
+                new Rectangle { Width = 14, Height = 12, RadiusX = 2, RadiusY = 2, Fill = Br("#D6E2F4") },
+                new Rectangle { Width = 14, Height = 12, RadiusX = 2, RadiusY = 2, Fill = Br("#D6E2F4") },
+                new Ellipse { Width = 14, Height = 14, Fill = Br("#1F262D") },
+                new Ellipse { Width = 14, Height = 14, Fill = Br("#1F262D") },
+            };
+            (double X, double Y)[] at = [(0, 0), (4, 28), (24, 14), (42, 14), (15, 34), (55, 34)];
+            for (var i = 0; i < cars.Length; i++)
+            {
+                Canvas.SetLeft(cars[i], at[i].X);
+                Canvas.SetTop(cars[i], at[i].Y);
+                car.Children.Add(cars[i]);
+            }
+            var art = new Viewbox { Width = 92, Height = 52, Child = new Canvas { Width = 84, Height = 48, Children = { car } } };
+            AddFx(art, 250, 2, t =>
+            {
+                var p = Seg(t, 1.12, 2.8); // 0–40% đứng yên rồi chạy (ease-in)
+                return (1, -520 * p * p, 0, 1, 1);
+            });
+        }
+        if (zz)
+        {
+            (double R, double B, double S, double D)[] zs = [(70, 174, 20, 0), (56, 184, 15, .8), (44, 194, 12, 1.6)];
+            foreach (var (r, b, s, d) in zs)
+                AddFx(new System.Windows.Controls.TextBlock { Text = "z", FontFamily = Serif, FontSize = s, Foreground = Br("#7A6455") }, r, b, t =>
+                {
+                    var p = t % 2.2 / 2.2;
+                    var op = p < .3 ? p / .3 : 1 - (p - .3) / .7;
+                    return (op, 14 * p, -30 * p, 1, 1);
+                }, d);
+        }
+    }
+}

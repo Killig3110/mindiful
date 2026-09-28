@@ -1,0 +1,8 @@
+bin/
+obj/
+.vs/
+*.user
+.DS_Store
+TestResults/
+# ClientId/Tenant/PAT riêng của từng người — không commit
+src/Minditful.App/appsettings.local.json

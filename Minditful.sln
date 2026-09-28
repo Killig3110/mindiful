@@ -1,0 +1,50 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{35B25503-F74C-486C-954D-E84B601915C8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Minditful.Core", "src\Minditful.Core\Minditful.Core.csproj", "{56F391B6-3C47-41DB-9EFC-5C576C443795}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Minditful.Integrations", "src\Minditful.Integrations\Minditful.Integrations.csproj", "{9EC5F634-68FC-436F-9FAE-F91E774F0F01}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Minditful.App", "src\Minditful.App\Minditful.App.csproj", "{379CC118-0887-4B9B-9124-A42959238557}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{CB3C7EF4-24B4-48ED-B63A-F0897ED6122B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Minditful.Core.Tests", "tests\Minditful.Core.Tests\Minditful.Core.Tests.csproj", "{8DD13795-8D6D-4F93-A41F-1F34E1AABA9D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{56F391B6-3C47-41DB-9EFC-5C576C443795}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{56F391B6-3C47-41DB-9EFC-5C576C443795}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{56F391B6-3C47-41DB-9EFC-5C576C443795}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{56F391B6-3C47-41DB-9EFC-5C576C443795}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9EC5F634-68FC-436F-9FAE-F91E774F0F01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9EC5F634-68FC-436F-9FAE-F91E774F0F01}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9EC5F634-68FC-436F-9FAE-F91E774F0F01}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9EC5F634-68FC-436F-9FAE-F91E774F0F01}.Release|Any CPU.Build.0 = Release|Any CPU
+		{379CC118-0887-4B9B-9124-A42959238557}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{379CC118-0887-4B9B-9124-A42959238557}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{379CC118-0887-4B9B-9124-A42959238557}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{379CC118-0887-4B9B-9124-A42959238557}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8DD13795-8D6D-4F93-A41F-1F34E1AABA9D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8DD13795-8D6D-4F93-A41F-1F34E1AABA9D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8DD13795-8D6D-4F93-A41F-1F34E1AABA9D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8DD13795-8D6D-4F93-A41F-1F34E1AABA9D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{56F391B6-3C47-41DB-9EFC-5C576C443795} = {35B25503-F74C-486C-954D-E84B601915C8}
+		{9EC5F634-68FC-436F-9FAE-F91E774F0F01} = {35B25503-F74C-486C-954D-E84B601915C8}
+		{379CC118-0887-4B9B-9124-A42959238557} = {35B25503-F74C-486C-954D-E84B601915C8}
+		{8DD13795-8D6D-4F93-A41F-1F34E1AABA9D} = {CB3C7EF4-24B4-48ED-B63A-F0897ED6122B}
+	EndGlobalSection
+EndGlobal

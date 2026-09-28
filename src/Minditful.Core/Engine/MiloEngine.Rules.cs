@@ -1,0 +1,179 @@
+namespace Minditful.Core.Engine;
+
+public sealed partial class MiloEngine
+{
+    private static readonly CaseId[] Conditional =
+    [
+        CaseId.MeetingOverload, CaseId.LowRest, CaseId.Overtime, CaseId.NoBreak, CaseId.LunchMissed,
+        CaseId.HighFragmentation, CaseId.CalendarPacked, CaseId.StuckTask, CaseId.EmailWaiting,
+    ];
+
+    private static string HalfOf(double t) => t < Tm.T("12:00") ? "am" : "pm";
+
+    private void Enqueue(CaseId c, string key, CaseData data, int? pri = null, int? sev = null, double? ttl = null)
+    {
+        S.Live?.Add(c);
+        var def = Catalog.Def(c);
+        var m = Mem(c);
+        var ex = S.Queue.FirstOrDefault(q => q.C == c);
+        if (ex is not null)
+        {
+            ex.Data = data;
+            ex.Key = key;
+            return;
+        }
+        if (m.Keys.Contains(key)) return;
+        if (S.T < m.SnoozedUntil || S.T < m.DismissedUntil || m.ForDay) return;
+        if (def.MaxDay > 0 && m.Shown >= def.MaxDay) return;
+        if (S.ParkedList.Any(p => p.C == c)) return;
+        if (S.Ep is not null && S.Ep.C == c) return;
+        var p = pri ?? def.Pri;
+        var sv = sev is > 0 ? sev.Value : def.Sev > 0 ? def.Sev : 1;
+        S.Queue.Add(new QueueItem { C = c, Key = key, Data = data, Pri = p, Sev = sv, Enq = S.T, Ttl = ttl, Need = def.Need });
+        Log($"{def.Name} đủ điều kiện → vào hàng đợi (P{p})", LogKind.Queue);
+    }
+
+    private void EvalRules()
+    {
+        var t = S.T;
+        var g = HardGate();
+        if (!S.OffDuty)
+        {
+            // Sắp họp (7.1): 5 phút trước sự kiện online, không đang trong cuộc gọi khác
+            foreach (var e in Meetings)
+            {
+                var lead = e.Start - t;
+                if (lead > 0 && lead <= 300 && e.IsOnline && !InCall() && !S.Skipped.Contains(e.Id))
+                    Enqueue(CaseId.MeetingSoon, e.Id, new CaseData { Ev = e }, ttl: e.Start);
+            }
+            // Lịch kín (7.2)
+            foreach (var ch in Chains())
+            {
+                if (ch.Count >= 3 && ch[0].Start > t && ch[0].Start - t <= 240 * 60 && HalfOf(ch[0].Start) == HalfOf(t)
+                    && !Mem(CaseId.CalendarPacked).Half.Contains(HalfOf(t)))
+                    Enqueue(CaseId.CalendarPacked, ch[0].Id + HalfOf(t), new CaseData { Chain = ch });
+            }
+            // Email chờ (7.3) — không trước 10:00 vì bản tin sáng đã báo
+            if (t >= Tm.T("10:00") && WaitingEmails().Count > 0 && !Mem(CaseId.EmailWaiting).Half.Contains(HalfOf(t)))
+                Enqueue(CaseId.EmailWaiting, "mail-" + HalfOf(t), new CaseData());
+            // Task kẹt (7.4)
+            var st = StuckTasks();
+            var slot = Math.Min(GapToNext(), (Cfg.End - t) / 60);
+            if (st.Count > 0 && slot >= 45 && !FocusActive() && Mem(CaseId.StuckTask).Shown == 0)
+                Enqueue(CaseId.StuckTask, st[0].Id, new CaseData { Task = st[0] });
+            // Họp liên tục: chuỗi ≥3 vừa xong trong 60'
+            foreach (var ch in Chains())
+            {
+                if (ch.Count < 3) continue;
+                var last = ch[^1];
+                if (last.End <= t && t - last.End <= 3600 && !InCall())
+                    Enqueue(CaseId.MeetingOverload, "chain-" + ch[0].Id, new CaseData { Count = ch.Count, Min = (last.End - ch[0].Start) / 60 });
+            }
+            // Khối Nghỉ đã giữ trong lịch: tới giờ mà đã ra khỏi call thì chạy Họp liên tục
+            foreach (var h in S.Holds)
+            {
+                if (h.Kind == "break" && t >= h.Start && t < h.End && !InCall())
+                {
+                    var chainStart = Chains().FirstOrDefault(c => c[0].Start <= h.Start && h.Start <= c[^1].End)?[0].Start ?? h.Start;
+                    Enqueue(CaseId.MeetingOverload, "hold-" + h.Start, new CaseData { Count = 3, Min = (t - chainStart) / 60, FromHold = true });
+                }
+            }
+            // Chưa nghỉ trưa
+            if (t >= Tm.T("12:30") && t <= Tm.T("14:00") && !S.LunchTaken && !S.Away && !S.Locked)
+                Enqueue(CaseId.LunchMissed, "lunch", new CaseData());
+            // Làm liền
+            var sk = Streak();
+            if (sk >= 120) Enqueue(CaseId.NoBreak, "nb-" + S.LastBreakEnd, new CaseData { Min = sk });
+            // Nghỉ quá ít
+            var w = Worked();
+            if (w >= 180 && S.Rest < 0.5 * 45 * w / 480 && t < Cfg.End)
+                Enqueue(CaseId.LowRest, "lr-" + Math.Floor(w / 180), new CaseData { Rest = S.Rest, Worked = w });
+            // Phân mảnh
+            var sw = SwitchesHour();
+            if (sw > Cfg.FragThreshold && !InCall())
+                Enqueue(CaseId.HighFragmentation, "frag-" + Math.Floor(t / 3600), new CaseData { Sw = sw });
+            // Chào hỏi ngẫu nhiên (thứ tự điều kiện giữ nguyên để rnd() gọi đúng lúc như prototype)
+            if (t >= Tm.T("10:00") && t <= Tm.T("16:30") && S.Score >= 60 && t - S.LastEpEnd >= 7200 && g is null
+                && S.Queue.Count == 0 && Mem(CaseId.CheckIn).Shown < 2 && S.Rnd.Next() < 0.02)
+                Enqueue(CaseId.CheckIn, "ci-" + Mem(CaseId.CheckIn).Shown, new CaseData());
+            // Tan tầm
+            if (t >= Cfg.End && !S.EodShown) Enqueue(CaseId.EodWrapup, "eod", new CaseData());
+            if (S.ExtendedUntil is { } ext && t >= ext && !S.Nudged) Enqueue(CaseId.EodNudge, "nudge", new CaseData());
+        }
+        // Quá giờ — xét cả khi đã "Về thôi"
+        if (S.OtAfter >= 30)
+        {
+            var lvl = 1 + (int)Math.Floor((S.OtAfter - 30) / 30);
+            Enqueue(CaseId.Overtime, "ot-" + lvl, new CaseData { Over = S.OtMin }, pri: lvl >= 2 ? 2 : 3, sev: lvl >= 2 ? 3 : 2);
+        }
+        // Nhắc hẹn giờ
+        foreach (var r in S.Reminders.ToList())
+        {
+            if (t < r.At) continue;
+            S.Reminders.Remove(r);
+            Mem(r.C).Half = [];
+            Mem(r.C).Keys.Remove(r.Key);
+            Enqueue(r.C, r.Key + "-r", r.Data);
+        }
+    }
+
+    private void MinuteTick()
+    {
+        var t = S.T;
+        if (S.DayStarted)
+        {
+            var brk = (S.Locked || S.Away) && !InCall();
+            if (brk) S.BreakRun++;
+            else
+            {
+                if (S.BreakRun >= 5)
+                {
+                    S.Rest += S.BreakRun;
+                    S.LastBreakEnd = t;
+                    var bs = t - S.BreakRun * 60;
+                    if (S.BreakRun >= 20 && bs < Tm.T("14:00") && t > Tm.T("11:00")) S.LunchTaken = true;
+                    Log($"Kết thúc lần nghỉ {S.BreakRun} phút → chuỗi làm liền về 0, tổng nghỉ {S.Rest} phút", LogKind.Sig);
+                }
+                S.BreakRun = 0;
+            }
+            var active = !S.Locked && !S.Away;
+            if (active && !InCall())
+            {
+                S.NmRun++;
+                S.LongestNm = Math.Max(S.LongestNm, S.NmRun);
+            }
+            else S.NmRun = 0;
+            if (active && t > Cfg.End)
+            {
+                S.OtMin++;
+                if (t > Math.Max(Cfg.End, S.ExtendedUntil ?? 0)) S.OtAfter++;
+            }
+            if (S.OffDuty && active)
+            {
+                S.OffActive++;
+                if (S.OffActive >= 15)
+                {
+                    S.OffDuty = false;
+                    Log("Vẫn làm 15 phút sau \"Về thôi\" → Milo thức lại, case Quá giờ được xét", LogKind.Gate);
+                }
+            }
+            else S.OffActive = 0;
+        }
+        if (!(S.OffDuty && S.Locked)) ComputeMood();
+        if (S.DayStarted)
+        {
+            S.Live = [];
+            EvalRules();
+            S.Queue = S.Queue.Where(q =>
+            {
+                if (Conditional.Contains(q.C) && !S.Live.Contains(q.C) && !S.Forced.Contains(q.C))
+                {
+                    Log($"{Catalog.Def(q.C).Name} không còn đúng → bỏ khỏi hàng đợi", LogKind.Queue);
+                    return false;
+                }
+                return true;
+            }).ToList();
+            S.Live = null;
+        }
+    }
+}

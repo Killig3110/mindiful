@@ -1,0 +1,10 @@
+<Window x:Class="Minditful.App.Views.CompanionWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="clr-namespace:Minditful.App.Controls"
+        Title="Milo" Width="480" Height="620"
+        WindowStyle="None" AllowsTransparency="True" Background="{x:Null}" ResizeMode="NoResize"
+        Topmost="True" ShowInTaskbar="False" ShowActivated="False" FontFamily="{StaticResource Sans}">
+    <!-- Nền trong suốt hoàn toàn: chỗ nào không có Milo thì chuột đi xuyên qua xuống desktop -->
+    <c:MiloLayer x:Name="Layer" BaseOffset="0" />
+</Window>

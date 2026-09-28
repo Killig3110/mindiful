@@ -1,0 +1,174 @@
+using System.IO;
+using System.Windows;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Threading;
+using Microsoft.Extensions.Configuration;
+using Minditful.App.Services;
+using Minditful.App.Views;
+using Minditful.Integrations;
+using WinForms = System.Windows.Forms;
+
+namespace Minditful.App;
+
+public partial class App : Application
+{
+    private LiveSession? _session;
+    private WinForms.NotifyIcon? _tray;
+    private ControlCenterWindow? _control;
+    private Mutex? _single;
+
+    internal CompanionWindow? Companion { get; private set; }
+
+    protected override void OnStartup(StartupEventArgs e)
+    {
+        base.OnStartup(e);
+        DispatcherUnhandledException += OnCrash;
+
+        var opt = LoadOptions(e.Args);
+        var env = ResolveEnvironment(opt);
+        if (env is null)
+        {
+            Shutdown();
+            return;
+        }
+
+        _single = new Mutex(true, $"Minditful.{env}", out var first);
+        if (!first)
+        {
+            MessageBox.Show($"Milo ({env}) đang chạy rồi — xem biểu tượng ở khay hệ thống.", "Minditful");
+            Shutdown();
+            return;
+        }
+
+        if (env == AppEnvironment.Demo) StartDemo();
+        else _ = StartLiveAsync(env.Value, opt);
+    }
+
+    private static MinditfulOptions LoadOptions(string[] args)
+    {
+        var baseDir = AppContext.BaseDirectory;
+        var cfg = new ConfigurationBuilder()
+            .SetBasePath(baseDir)
+            .AddJsonFile("appsettings.json", optional: true)
+            .AddJsonFile("appsettings.local.json", optional: true) // bí mật/ClientId riêng, không commit
+            .AddJsonFile(Path.Combine(AppPaths.Root, "appsettings.json"), optional: true)
+            .AddEnvironmentVariables("MINDITFUL__")
+            .AddCommandLine(args, new Dictionary<string, string> { ["--env"] = "Minditful:Environment" })
+            .Build();
+        return cfg.GetSection("Minditful").Get<MinditfulOptions>() ?? new MinditfulOptions();
+    }
+
+    private static AppEnvironment? ResolveEnvironment(MinditfulOptions opt)
+    {
+        if (Enum.TryParse<AppEnvironment>(opt.Environment, true, out var fromConfig)) return fromConfig;
+        var shift = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
+        if (!shift && File.Exists(AppPaths.RememberedEnvFile)
+            && Enum.TryParse<AppEnvironment>(File.ReadAllText(AppPaths.RememberedEnvFile).Trim(), out var remembered))
+            return remembered;
+
+        var launcher = new LauncherWindow(opt);
+        if (launcher.ShowDialog() != true || launcher.Choice is not { } env) return null;
+        Directory.CreateDirectory(AppPaths.Root);
+        if (launcher.RememberChoice) File.WriteAllText(AppPaths.RememberedEnvFile, env.ToString());
+        else if (File.Exists(AppPaths.RememberedEnvFile)) File.Delete(AppPaths.RememberedEnvFile);
+        return env;
+    }
+
+    private void StartDemo()
+    {
+        var w = new SimulatorWindow();
+        MainWindow = w;
+        w.Closed += (_, _) => Shutdown();
+        w.Show();
+    }
+
+    private async Task StartLiveAsync(AppEnvironment env, MinditfulOptions opt)
+    {
+        _session = new LiveSession(env, opt);
+        Companion = new CompanionWindow(_session);
+        MainWindow = Companion;
+        Companion.Show();
+        CreateTray(env);
+        if (_session.Conn.ShowControlCenter || !_session.Auth.IsConfigured) ShowControlCenter();
+        await _session.StartAsync();
+    }
+
+    private void ShowControlCenter()
+    {
+        if (_session is null) return;
+        if (_control is { IsLoaded: true })
+        {
+            _control.Activate();
+            return;
+        }
+        _control = new ControlCenterWindow(_session);
+        _control.Show();
+    }
+
+    private void CreateTray(AppEnvironment env)
+    {
+        var menu = new WinForms.ContextMenuStrip();
+        menu.Items.Add("Mở dashboard của Milo", null, (_, _) => Companion?.OpenDashboard());
+        menu.Items.Add("Bảng điều khiển · Bộ não Milo", null, (_, _) => ShowControlCenter());
+        menu.Items.Add("Đăng nhập Microsoft", null, async (_, _) => await _session!.SignInAsync(true));
+        menu.Items.Add("Làm mới dữ liệu", null, async (_, _) => await _session!.RefreshAsync());
+        menu.Items.Add(new WinForms.ToolStripSeparator());
+        menu.Items.Add("Thoát Milo", null, (_, _) => Shutdown());
+        _tray = new WinForms.NotifyIcon
+        {
+            Text = $"Milo · Minditful ({env})",
+            Icon = TailIcon(),
+            ContextMenuStrip = menu,
+            Visible = true,
+        };
+        _tray.DoubleClick += (_, _) => ShowControlCenter();
+    }
+
+    /// <summary>Icon khay vẽ từ chóp đuôi Milo (không cần file .ico).</summary>
+    private static System.Drawing.Icon TailIcon()
+    {
+        var dv = new DrawingVisual();
+        using (var dc = dv.RenderOpen())
+        {
+            dc.PushTransform(new ScaleTransform(32 / 34.0, 32 / 34.0));
+            var pen = new Pen(new SolidColorBrush(Color.FromRgb(0x45, 0x23, 0x1F)), 2);
+            dc.DrawGeometry(new SolidColorBrush(Color.FromRgb(0xE8, 0x77, 0x2E)), pen,
+                Geometry.Parse("M6 34 C4 24 8 14 16 9 C20 6 24 4 27 5 C24 8 23 11 24 14 C26 11 29 10 31 11 C27 15 24 22 24 34 Z"));
+            dc.DrawGeometry(new SolidColorBrush(Color.FromRgb(0xFF, 0xF7, 0xEC)), pen,
+                Geometry.Parse("M16 9 C20 6 24 4 27 5 C24 8 23 11 24 14 C26 11 29 10 31 11 C28 14 26 17 25 20 C22 17 18 13 16 9 Z"));
+            dc.Pop();
+        }
+        var rtb = new RenderTargetBitmap(32, 32, 96, 96, PixelFormats.Pbgra32);
+        rtb.Render(dv);
+        var enc = new PngBitmapEncoder();
+        enc.Frames.Add(BitmapFrame.Create(rtb));
+        using var ms = new MemoryStream();
+        enc.Save(ms);
+        ms.Position = 0;
+        using var bmp = new System.Drawing.Bitmap(ms);
+        return System.Drawing.Icon.FromHandle(bmp.GetHicon());
+    }
+
+    private void OnCrash(object sender, DispatcherUnhandledExceptionEventArgs e)
+    {
+        var log = Path.Combine(AppPaths.Root, "crash.log");
+        Directory.CreateDirectory(AppPaths.Root);
+        File.AppendAllText(log, $"[{DateTime.Now:O}] {e.Exception}\n\n");
+        _session?.Engine.LogExternal("Lỗi: " + e.Exception.Message, Core.Engine.LogKind.Error);
+        e.Handled = true; // Milo không được làm sập máy người dùng; lỗi ghi vào crash.log
+    }
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        _session?.Dispose();
+        if (_tray is not null)
+        {
+            _tray.Visible = false;
+            _tray.Dispose();
+        }
+        _single?.Dispose();
+        base.OnExit(e);
+    }
+}
