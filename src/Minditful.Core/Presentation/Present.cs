@@ -325,7 +325,21 @@ public static class Present
                     x.A is { } a ? $"{a.Kind} · nặng {a.Load}/5 · nên nghỉ {a.RecoveryMin}' sau đó · {a.Note} ({a.Source})" : null);
             }).ToList();
         var insight = e.Cfg.MoodMode != MoodMode.Rules && s.MoodInsight is { } mi ? $"Milo nhận xét: {mi.Insight}" : null;
-        return new DashboardModel(ep.Page, s.Score, BandPhrase(s.BandIdx), yLine, days, tiles, next, s.Vibe, e.Snap.Sprint, events, e.Snap.StatusNote, insight);
+        return new DashboardModel(ep.Page, s.Score, BandPhrase(s.BandIdx), yLine, days, tiles, next, s.Vibe, e.Snap.Sprint, events, e.Snap.StatusNote, insight,
+            WeekSummary(e.Snap.ThisWeek, e.Snap.LastWeek));
+    }
+
+    /// <summary>Thống kê tuần từ dữ liệu local (SQLite), kèm so sánh tuần trước nếu còn giữ.</summary>
+    public static string? WeekSummary(WeekStats? w, WeekStats? prev)
+    {
+        if (w is null) return null;
+        var answered = w.Accepted + w.Snoozed + w.Dismissed + w.Ignored;
+        var diff = prev is null ? "" : $" ({(w.AvgScore >= prev.AvgScore ? "+" : "")}{w.AvgScore - prev.AvgScore:0} so với tuần trước)";
+        return $"{w.Days} ngày · điểm TB **{w.AvgScore:0}**{diff}" +
+               (w.Best is { } b && w.Worst is { } z && w.Days > 1 ? $" · tốt nhất {b.Label} {b.Score}, mệt nhất {z.Label} {z.Score}" : "") +
+               $"\nHọp {Dur(w.MeetingMin)} · nghỉ cùng Milo {w.AcceptedBreaks} lần · tập trung sâu {Dur(w.FocusMin)} · {w.TasksDone} task xong" +
+               (w.OvertimeMin >= 1 ? $" · quá giờ {Dur(w.OvertimeMin)}" : "") +
+               (answered > 0 ? $"\nLời nhắc: {w.Shown} lần hiện · đồng ý {w.Accepted} · để sau {w.Snoozed} · không cần {w.Dismissed} · bỏ qua {w.Ignored}" : "");
     }
 
     public static string BandPhrase(int idx) =>

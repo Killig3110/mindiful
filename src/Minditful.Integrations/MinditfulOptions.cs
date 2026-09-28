@@ -33,6 +33,7 @@ public sealed class MinditfulOptions
     public ConnectionOptions Sandbox { get; set; } = new();
     public ConnectionOptions Production { get; set; } = new();
     public LlmOptions Llm { get; set; } = new();
+    public Storage.StorageOptions Storage { get; set; } = new();
 
     public ConnectionOptions For(AppEnvironment env) => env == AppEnvironment.Production ? Production : Sandbox;
 }

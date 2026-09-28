@@ -46,6 +46,11 @@ public sealed record TomorrowInfo(string Time, string Subject);
 
 public sealed record CompletedTask(string Id, string Title);
 
+/// <summary>Thống kê 1 tuần (thứ Hai → Chủ nhật) tính từ dữ liệu local.</summary>
+public sealed record WeekStats(
+    DateOnly From, int Days, double AvgScore, DayScore? Best, DayScore? Worst, double MeetingMin, int AcceptedBreaks,
+    double FocusMin, int TasksDone, double OvertimeMin, int Shown, int Accepted, int Snoozed, int Dismissed, int Ignored);
+
 /// <summary>Toàn bộ dữ liệu công việc mà Rule Engine đọc. Demo dùng bản cố định, Prod/Sandbox làm mới định kỳ.</summary>
 public sealed class WorkSnapshot
 {
@@ -58,6 +63,8 @@ public sealed class WorkSnapshot
     public SprintInfo? Sprint { get; init; }
     public IReadOnlyList<DayScore> Week { get; init; } = [];
     public int? YesterdayScore { get; init; }
+    public WeekStats? ThisWeek { get; init; }
+    public WeekStats? LastWeek { get; init; }
     /// <summary>Work item chuyển Done hôm nay (Prod/Sandbox). Engine tự lọc những cái đã báo.</summary>
     public IReadOnlyList<CompletedTask> CompletedToday { get; init; } = [];
     /// <summary>Tính năng tắt vì thiếu quyền/mất mạng, hiện 1 dòng nhỏ trong dashboard (mục 14).</summary>

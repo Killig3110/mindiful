@@ -36,6 +36,6 @@ public sealed record DashRow(string Time, string Name, string Tag, string TagBg,
 public sealed record DashboardModel(
     DashPage Page, int Score, string Phrase, string YesterdayLine, IReadOnlyList<DayScore> Days,
     IReadOnlyList<(string Big, string Small)> Tiles, DashRow? Next,
-    (int F, int E, int S) Vibe, SprintInfo? Sprint, IReadOnlyList<DashRow> Events, string? StatusNote, string? Insight = null);
+    (int F, int E, int S) Vibe, SprintInfo? Sprint, IReadOnlyList<DashRow> Events, string? StatusNote, string? Insight = null, string? WeekSummary = null);
 
 public sealed record Caption(string Tag, string Text, string Ref);

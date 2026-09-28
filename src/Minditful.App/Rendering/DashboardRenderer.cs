@@ -53,6 +53,11 @@ internal static class DashboardRenderer
                 days.Children.Add(col);
             }
             Add(days);
+            if (m.WeekSummary is { } ws)
+            {
+                Add(Text("THỐNG KÊ TUẦN (DỮ LIỆU TRÊN MÁY)", 10.5, "#9C8672", FontWeights.Bold));
+                Add(new Border { Background = Brushes.White, CornerRadius = new CornerRadius(10), Padding = new Thickness(10, 7, 10, 7), Child = Text(ws, 12, "#3A2A1E") }, 6);
+            }
             Add(Text("OFFICE VIBE", 10.5, "#9C8672", FontWeights.Bold));
             Add(VibeRow("Tập trung", m.Vibe.F, "#E8A33D"), 6);
             Add(VibeRow("Năng lượng", m.Vibe.E, "#D1495B"), 6);

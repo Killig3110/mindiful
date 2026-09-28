@@ -11,6 +11,7 @@ using Minditful.Integrations.AzureDevOps;
 using Minditful.Integrations.Graph;
 using Minditful.Integrations.Live;
 using Minditful.Integrations.Llm;
+using Minditful.Integrations.Storage;
 
 namespace Minditful.App.Services;
 
@@ -32,6 +33,8 @@ internal sealed class LiveSession : IMiloSession
     private readonly PresenceWatcher? _presenceWatcher;
     private DateTime _lastPoll;
     private string? _lastNote;
+    private long _lastSample = -1;
+    private StorageOptions _storage = new();
     private DateTime? _offlineSince;
     private DateTime? _offlineLogged;
     private bool _refreshing;
@@ -44,11 +47,11 @@ internal sealed class LiveSession : IMiloSession
     public AzureBoardsClient? Boards { get; }
     public LiveWorkDataProvider Provider { get; }
     public LiveActionSink Sink { get; }
-    public DayHistoryStore History { get; }
+    /// <summary>SQLite local: điểm mỗi ngày, mẫu mood, log phản hồi, đánh giá cuộc họp. Tự xoá theo tuần/tháng.</summary>
+    public LocalStore History { get; }
     public SandboxSeeder Seeder { get; }
     public WindowsActivityMonitor Monitor { get; }
     public ClaudeLineWriter Writer { get; }
-    public OutcomeStore Outcomes { get; }
     public LlmOptions Llm { get; }
 
     public string GraphStatus { get; private set; } = "Chưa đăng nhập";
@@ -70,7 +73,6 @@ internal sealed class LiveSession : IMiloSession
         Llm = opt.Llm;
         Writer = new ClaudeLineWriter(opt.Llm, () => _claudeKey.Read() ?? Environment.GetEnvironmentVariable(opt.Llm.ApiKeyEnvVar));
         var dir = AppPaths.For(env);
-        Outcomes = new OutcomeStore(Path.Combine(dir, "outcomes.tsv"));
 
         Auth = new MicrosoftAuth(Conn.Graph, dir, Conn.Graph.UseBroker ? ConfigureBroker : null);
         Graph = Auth.IsConfigured ? new GraphClient(Auth, Http) : null;
@@ -82,7 +84,9 @@ internal sealed class LiveSession : IMiloSession
                 : AzureBoardsClient.PatAuth(() => _secrets.Read() ?? Environment.GetEnvironmentVariable(ado.PatEnvVar));
             Boards = new AzureBoardsClient(ado, Http, header);
         }
-        History = new DayHistoryStore(Path.Combine(dir, "history.json"));
+        History = new LocalStore(Path.Combine(dir, "minditful.db"), opt.Storage);
+        _storage = opt.Storage;
+        var imported = History.ImportLegacy(dir);
         Provider = new LiveWorkDataProvider(Conn, _day, Auth, Graph, Boards, History);
         Sink = new LiveActionSink(Conn, Auth, Graph, History, () => Engine!.Day, LogOnUi, Shell.Open);
         Seeder = new SandboxSeeder(Conn, Auth, Graph, Boards);
@@ -108,7 +112,8 @@ internal sealed class LiveSession : IMiloSession
         Engine = new MiloEngine(cfg, new WorkSnapshot(), null, DateOnly.FromDateTime(now), now.TimeOfDay.TotalSeconds);
         Engine.SetAuto(false);
         Engine.ActionRequested += a => _ = Sink.HandleAsync(a);
-        Engine.OutcomeRecorded += (c, o) => Outcomes.Append(new OutcomeEvent(Engine.Day, Engine.S.T, c, o, Engine.S.Score));
+        Engine.OutcomeRecorded += (c, o) => History.Append(new OutcomeEvent(Engine.Day, Engine.S.T, c, o, Engine.S.Score));
+        if (imported > 0) Engine.LogExternal($"Đã chuyển {imported} bản ghi cũ (history.json, outcomes.tsv) sang SQLite", LogKind.Sig);
         LlmBridge.Attach(Engine, Writer, Application.Current.Dispatcher, opt.Llm.Features);
         LlmBridge.ApplyModes(Engine, Writer, opt.Llm);
         ApplyTuning();
@@ -162,7 +167,7 @@ internal sealed class LiveSession : IMiloSession
         if (today != Engine.Day)
         {
             // Qua ngày mà chưa "Về thôi": lưu im lặng (mục 6.4 · Tắt máy ngang)
-            if (Engine.S.DayStarted && !Engine.S.OffDuty) History.Save(Engine.BuildDayRecord());
+            if (Engine.S.DayStarted && !Engine.S.OffDuty) SaveToday();
             Engine.StartNewDay(today, now.TimeOfDay.TotalSeconds, Engine.Snap);
             ApplyTuning();
             if (!Monitor.Locked) Engine.SetLocked(false);
@@ -178,13 +183,51 @@ internal sealed class LiveSession : IMiloSession
             if (!_pinned.Contains("fullscreen")) Engine.SetFullscreen(Monitor.Fullscreen);
         }
         Engine.AdvanceTo(now.TimeOfDay.TotalSeconds);
+
+        // Mẫu mood + bản ghi ngày đang chạy, mỗi 15 phút: thống kê tuần có luôn dữ liệu hôm nay
+        var slot = (long)(now.TimeOfDay.TotalMinutes / Math.Max(1, _storage.MoodSampleMinutes));
+        if (Engine.S.DayStarted && slot != _lastSample)
+        {
+            _lastSample = slot;
+            SaveToday();
+        }
     }
+
+    private string MoodSource => Engine.Cfg.MoodMode switch
+    {
+        MoodMode.Hybrid when Engine.S.MoodInsight is not null => "Luật + Claude",
+        MoodMode.Llm when Engine.S.MoodInsight is not null => "Claude",
+        _ => "Luật",
+    };
+
+    /// <summary>Ghi ngày hiện tại vào SQLite (upsert): điểm cuối ngày tạm tính, 1 mẫu mood, đánh giá các cuộc họp đã qua.</summary>
+    private void SaveToday()
+    {
+        var s = Engine.S;
+        History.SaveDay(Engine.BuildDayRecord(), MoodSource);
+        History.SampleMood(Engine.Day, s.T, s.Score, s.RuleScore, Engine.CurrentBand.Label, MoodSource);
+        foreach (var m in Engine.Meetings.Where(m => m.End <= s.T))
+            if (Engine.Assessment(m.Id) is { } a) History.SaveMeeting(Engine.Day, a, m.Start, (m.End - m.Start) / 60);
+    }
+
+    /// <summary>Xoá toàn bộ dữ liệu thống kê local của môi trường này (không đụng tới token đăng nhập, PAT, API key).</summary>
+    public void WipeLocalData()
+    {
+        History.WipeAll();
+        Engine.LogExternal("Đã xoá toàn bộ dữ liệu thống kê trên máy (SQLite)", LogKind.User);
+        _ = RefreshAsync();
+    }
+
+    public string StorageText => $"{History.RetentionText} · file: {History.Path}";
 
     /// <summary>Luật cá nhân hoá 7 ngày (§14) tính lại mỗi đầu ngày từ log phản hồi local.</summary>
     private void ApplyTuning()
     {
-        Outcomes.Trim(Engine.Day);
-        Engine.Tuning = Personalizer.Compute(Outcomes.Load(), Engine.Day);
+        // Mỗi lần mở app / sang ngày mới: tự xoá dữ liệu cá nhân của kỳ đã qua (tuần hoặc tháng)
+        var cleaned = History.Cleanup(Engine.Day);
+        if (cleaned.Total > 0)
+            Engine.LogExternal($"Tự xoá {cleaned.Total} bản ghi trước {cleaned.Cutoff:dd/MM} ({History.RetentionText})", LogKind.Sig);
+        Engine.Tuning = Personalizer.Compute(History.Outcomes(Engine.Day.AddDays(-Personalizer.WindowDays)), Engine.Day);
         Engine.LogExternal("Cá nhân hoá 7 ngày: " + Personalizer.Describe(Engine.Tuning), LogKind.Sig);
     }
 
@@ -360,7 +403,7 @@ internal sealed class LiveSession : IMiloSession
 
     public void Dispose()
     {
-        if (Engine.S.DayStarted && !Engine.S.OffDuty) History.Save(Engine.BuildDayRecord());
+        if (Engine.S.DayStarted) SaveToday();
         _tick.Stop();
         _refresh.Stop();
         _presence.Stop();

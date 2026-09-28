@@ -62,6 +62,7 @@ public partial class ControlCenterWindow : Window
         OverridesText.Text = _session.OverridesText is { } ov ? "Ngưỡng rút gọn: " + ov : "Ngưỡng chuẩn theo tài liệu.";
         LlmStatus.Text = _session.LlmStatus;
         TuningText.Text = Personalizer.Describe(e.Tuning);
+        StorageText.Text = "Chỉ lưu số liệu, không lưu tiêu đề email/họp/task. " + _session.StorageText;
         BoardsStatus.Text = _session.BoardsStatus;
         PatHint.Text = _session.Conn.AzureDevOps.Auth.Equals("Pat", StringComparison.OrdinalIgnoreCase)
             ? (_session.HasPat ? "Đã có PAT (lưu mã hoá trên máy này)." : $"Chưa có PAT. Nhập ở trên hoặc đặt biến môi trường {_session.Conn.AzureDevOps.PatEnvVar}.")
@@ -90,6 +91,13 @@ public partial class ControlCenterWindow : Window
     }
 
     private void ClearPat_Click(object sender, RoutedEventArgs e) => _session.ClearPat();
+
+    private void Wipe_Click(object sender, RoutedEventArgs e)
+    {
+        if (MessageBox.Show("Xoá toàn bộ điểm mỗi ngày, mẫu mood, log phản hồi và đánh giá cuộc họp của môi trường này?\n(Không đụng tới đăng nhập, PAT hay API key.)",
+                "Minditful", MessageBoxButton.OKCancel, MessageBoxImage.Warning) == MessageBoxResult.OK)
+            _session.WipeLocalData();
+    }
 
     private void ResetDay_Click(object sender, RoutedEventArgs e)
     {

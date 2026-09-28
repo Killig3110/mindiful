@@ -1,11 +1,12 @@
 using Minditful.Core.Engine;
 using Minditful.Integrations.Graph;
+using Minditful.Integrations.Storage;
 
 namespace Minditful.Integrations.Live;
 
 /// <summary>Thực hiện <see cref="MiloAction"/> trên Teams/Outlook thật; thiếu quyền thì hạ cấp như cột "Nếu thiếu" của mục 14.</summary>
 public sealed class LiveActionSink(
-    ConnectionOptions conn, MicrosoftAuth auth, GraphClient? graph, DayHistoryStore history,
+    ConnectionOptions conn, MicrosoftAuth auth, GraphClient? graph, LocalStore history,
     Func<DateOnly> day, Action<string, LogKind> log, Action<string> open)
 {
     /// <summary>Milo đang giữ DND cho khối tập trung (để presence watcher không hiểu nhầm là người dùng tự bật).</summary>
@@ -76,7 +77,7 @@ public sealed class LiveActionSink(
                     break;
 
                 case MiloAction.DayClosed { Record: var r }:
-                    history.Save(r);
+                    history.SaveDay(r);
                     log($"Đã lưu quả nho {r.Date:dd/MM}: {r.Score} điểm", LogKind.Action);
                     break;
             }

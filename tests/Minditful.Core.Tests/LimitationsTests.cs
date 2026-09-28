@@ -239,26 +239,6 @@ public class LimitationsTests
         Assert.Equal(5, log.Count(x => x.Item2 == Outcome.Shown));
     }
 
-    [Fact]
-    public void Outcome_store_round_trips_and_trims()
-    {
-        var file = Path.Combine(Path.GetTempPath(), $"minditful-{Guid.NewGuid():N}.tsv");
-        try
-        {
-            var store = new OutcomeStore(file);
-            var today = DemoScenario.Day;
-            store.Append(new OutcomeEvent(today.AddDays(-40), 100, CaseId.NoBreak, Outcome.Shown, 60));
-            store.Append(new OutcomeEvent(today.AddDays(-1), 36000.7, CaseId.LowRest, Outcome.Snoozed, 72));
-            Assert.Equal(2, store.Load().Count);
-            store.Trim(today);
-            var e = Assert.Single(store.Load());
-            Assert.Equal((CaseId.LowRest, Outcome.Snoozed, 72, 36000.0), (e.Case, e.Kind, e.Score, e.T));
-        }
-        finally
-        {
-            File.Delete(file);
-        }
-    }
 }
 
 /// <summary>docs/KET-NOI-SANDBOX.md: ngưỡng rút gọn của Sandbox, tên môi trường, hạ cấp khi thiếu quyền ghi lịch.</summary>

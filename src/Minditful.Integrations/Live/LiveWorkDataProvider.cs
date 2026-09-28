@@ -2,6 +2,7 @@ using Microsoft.Identity.Client;
 using Minditful.Core.Engine;
 using Minditful.Integrations.AzureDevOps;
 using Minditful.Integrations.Graph;
+using Minditful.Integrations.Storage;
 
 namespace Minditful.Integrations.Live;
 
@@ -10,7 +11,7 @@ namespace Minditful.Integrations.Live;
 /// Thiếu quyền hay mất mạng thì chỉ tắt đúng phần đó và ghi 1 dòng vào dashboard (mục 14).
 /// </summary>
 public sealed class LiveWorkDataProvider(
-    ConnectionOptions conn, WorkDayOptions workDay, MicrosoftAuth auth, GraphClient? graph, AzureBoardsClient? boards, DayHistoryStore history)
+    ConnectionOptions conn, WorkDayOptions workDay, MicrosoftAuth auth, GraphClient? graph, AzureBoardsClient? boards, LocalStore history)
 {
     private static readonly string[] Palette = ["#5471B0", "#7FA65A", "#B85A34", "#7261B0", "#2B7A4B", "#0B4F8A", "#C07A2C"];
     private readonly Dictionary<string, string?> _attachmentCache = [];
@@ -136,6 +137,8 @@ public sealed class LiveWorkDataProvider(
             AvgInProgress = history.AvgInProgress(today) ?? conn.AvgInProgressFallback ?? workDay.AvgInProgressBaseline,
             Week = history.Week(today),
             YesterdayScore = history.Yesterday(today),
+            ThisWeek = history.WeekStats(today),
+            LastWeek = history.WeekStats(today.AddDays(-7)),
             MailAvailable = _mailOk,
             CanWriteCalendar = graph is null || auth.GrantedScopes.Count == 0 || auth.Has("Calendars.ReadWrite"),
             BoardsAvailable = _boardsOk,
