@@ -198,6 +198,9 @@ public partial class App : Application
     protected override void OnExit(ExitEventArgs e)
     {
         _session?.Dispose();
+        // File đính kèm tải về cho nút "Mở slide" là dữ liệu công việc → không để lại trên máy
+        try { Directory.Delete(Path.Combine(Path.GetTempPath(), "Minditful"), recursive: true); }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
         if (_tray is not null)
         {
             _tray.Visible = false;
