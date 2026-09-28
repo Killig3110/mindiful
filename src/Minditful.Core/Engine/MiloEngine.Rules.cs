@@ -18,6 +18,7 @@ public sealed partial class MiloEngine
         var ex = S.Queue.FirstOrDefault(q => q.C == c);
         if (ex is not null)
         {
+            data.Line ??= ex.Data.Line; // giữ câu LLM đã viết sẵn khi số liệu được cập nhật
             ex.Data = data;
             ex.Key = key;
             return;
@@ -29,8 +30,19 @@ public sealed partial class MiloEngine
         if (S.Ep is not null && S.Ep.C == c) return;
         var p = pri ?? def.Pri;
         var sv = sev is > 0 ? sev.Value : def.Sev > 0 ? def.Sev : 1;
-        S.Queue.Add(new QueueItem { C = c, Key = key, Data = data, Pri = p, Sev = sv, Enq = S.T, Ttl = ttl, Need = def.Need });
+        var item = new QueueItem { C = c, Key = key, Data = data, Pri = p, Sev = sv, Enq = S.T, Ttl = ttl, Need = def.Need };
+        S.Queue.Add(item);
         Log($"{def.Name} đủ điều kiện → vào hàng đợi (P{p})", LogKind.Queue);
+        RequestLine(item);
+    }
+
+    /// <summary>§14: gọi LLM ngay lúc case vào hàng đợi để khi giao không phải chờ.</summary>
+    private void RequestLine(QueueItem item)
+    {
+        if (LineWanted is null || S.Instant || !Lines.Supports(item.C)) return;
+        var variant = S.VariantCounter.GetValueOrDefault(item.C);
+        LineWanted(item, new LineRequest(item.C, Catalog.Def(item.C).Name, Lines.Facts(this, item.C, item.Data), Lines.Action(item.C),
+            Lines.Template(this, item.C, item.Data, variant)));
     }
 
     private void EvalRules()
@@ -49,22 +61,22 @@ public sealed partial class MiloEngine
             // Lịch kín (7.2)
             foreach (var ch in Chains())
             {
-                if (ch.Count >= 3 && ch[0].Start > t && ch[0].Start - t <= 240 * 60 && HalfOf(ch[0].Start) == HalfOf(t)
+                if (ch.Count >= Math.Ceiling(3 * Tf(CaseId.CalendarPacked)) && ch[0].Start > t && ch[0].Start - t <= 240 * 60 && HalfOf(ch[0].Start) == HalfOf(t)
                     && !Mem(CaseId.CalendarPacked).Half.Contains(HalfOf(t)))
                     Enqueue(CaseId.CalendarPacked, ch[0].Id + HalfOf(t), new CaseData { Chain = ch });
             }
             // Email chờ (7.3) — không trước 10:00 vì bản tin sáng đã báo
-            if (t >= Tm.T("10:00") && WaitingEmails().Count > 0 && !Mem(CaseId.EmailWaiting).Half.Contains(HalfOf(t)))
+            if (t >= Tm.T("10:00") && WaitingEmails().Any(m => m.Days >= Math.Ceiling(Tf(CaseId.EmailWaiting))) && !Mem(CaseId.EmailWaiting).Half.Contains(HalfOf(t)))
                 Enqueue(CaseId.EmailWaiting, "mail-" + HalfOf(t), new CaseData());
             // Task kẹt (7.4)
-            var st = StuckTasks();
+            var st = StuckTasks().Where(x => x.Days >= Math.Ceiling(3 * Tf(CaseId.StuckTask))).ToList();
             var slot = Math.Min(GapToNext(), (Cfg.End - t) / 60);
             if (st.Count > 0 && slot >= 45 && !FocusActive() && Mem(CaseId.StuckTask).Shown == 0)
                 Enqueue(CaseId.StuckTask, st[0].Id, new CaseData { Task = st[0] });
             // Họp liên tục: chuỗi ≥3 vừa xong trong 60'
             foreach (var ch in Chains())
             {
-                if (ch.Count < 3) continue;
+                if (ch.Count < Math.Ceiling(3 * Tf(CaseId.MeetingOverload))) continue;
                 var last = ch[^1];
                 if (last.End <= t && t - last.End <= 3600 && !InCall())
                     Enqueue(CaseId.MeetingOverload, "chain-" + ch[0].Id, new CaseData { Count = ch.Count, Min = (last.End - ch[0].Start) / 60 });
@@ -79,18 +91,18 @@ public sealed partial class MiloEngine
                 }
             }
             // Chưa nghỉ trưa
-            if (t >= Tm.T("12:30") && t <= Tm.T("14:00") && !S.LunchTaken && !S.Away && !S.Locked)
+            if (t >= Tm.T("12:30") + 90 * 60 * (Tf(CaseId.LunchMissed) - 1) && t <= Tm.T("14:00") && !S.LunchTaken && !S.Away && !S.Locked)
                 Enqueue(CaseId.LunchMissed, "lunch", new CaseData());
             // Làm liền
             var sk = Streak();
-            if (sk >= 120) Enqueue(CaseId.NoBreak, "nb-" + S.LastBreakEnd, new CaseData { Min = sk });
+            if (sk >= 120 * Tf(CaseId.NoBreak)) Enqueue(CaseId.NoBreak, "nb-" + S.LastBreakEnd, new CaseData { Min = sk });
             // Nghỉ quá ít
             var w = Worked();
-            if (w >= 180 && S.Rest < 0.5 * 45 * w / 480 && t < Cfg.End)
+            if (w >= 180 * Tf(CaseId.LowRest) && S.Rest < 0.5 * 45 * w / 480 && t < Cfg.End)
                 Enqueue(CaseId.LowRest, "lr-" + Math.Floor(w / 180), new CaseData { Rest = S.Rest, Worked = w });
             // Phân mảnh
             var sw = SwitchesHour();
-            if (sw > Cfg.FragThreshold && !InCall())
+            if (sw > Cfg.FragThreshold * Tf(CaseId.HighFragmentation) && !InCall())
                 Enqueue(CaseId.HighFragmentation, "frag-" + Math.Floor(t / 3600), new CaseData { Sw = sw });
             // Chào hỏi ngẫu nhiên (thứ tự điều kiện giữ nguyên để rnd() gọi đúng lúc như prototype)
             if (t >= Tm.T("10:00") && t <= Tm.T("16:30") && S.Score >= 60 && t - S.LastEpEnd >= 7200 && g is null
@@ -101,9 +113,10 @@ public sealed partial class MiloEngine
             if (S.ExtendedUntil is { } ext && t >= ext && !S.Nudged) Enqueue(CaseId.EodNudge, "nudge", new CaseData());
         }
         // Quá giờ — xét cả khi đã "Về thôi"
-        if (S.OtAfter >= 30)
+        var otStart = 30 * Tf(CaseId.Overtime);
+        if (S.OtAfter >= otStart)
         {
-            var lvl = 1 + (int)Math.Floor((S.OtAfter - 30) / 30);
+            var lvl = 1 + (int)Math.Floor((S.OtAfter - otStart) / 30);
             Enqueue(CaseId.Overtime, "ot-" + lvl, new CaseData { Over = S.OtMin }, pri: lvl >= 2 ? 2 : 3, sev: lvl >= 2 ? 3 : 2);
         }
         // Nhắc hẹn giờ

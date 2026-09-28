@@ -26,6 +26,18 @@ public sealed partial class MiloEngine
     /// <summary>Milo cần làm gì đó ra thế giới thật (host chuyển tới Graph/Azure DevOps).</summary>
     public event Action<MiloAction>? ActionRequested;
 
+    /// <summary>Case vừa vào hàng đợi: host gọi LLM viết sẵn câu chính rồi trả về bằng <see cref="SetLine"/>.</summary>
+    public event Action<QueueItem, LineRequest>? LineWanted;
+
+    /// <summary>Câu chat không khớp từ khoá: host hỏi LLM rồi trả về bằng <see cref="ResolveChat"/>.</summary>
+    public event Action<int, int, ChatRequest>? ChatWanted;
+
+    /// <summary>Mỗi lần hiện/đồng ý/để sau/không cần/bỏ qua… (§14 · Log) — host lưu để cá nhân hoá.</summary>
+    public event Action<CaseId, Outcome>? OutcomeRecorded;
+
+    /// <summary>Điều chỉnh theo 7 ngày gần nhất (host tính bằng <see cref="Personalizer"/> mỗi đầu ngày).</summary>
+    public IReadOnlyDictionary<CaseId, CaseTuning> Tuning { get; set; } = new Dictionary<CaseId, CaseTuning>();
+
     public MiloEngine(EngineConfig cfg, WorkSnapshot snap, ScenarioScript? script = null, DateOnly? day = null, double? startT = null)
     {
         Cfg = cfg;
@@ -92,6 +104,35 @@ public sealed partial class MiloEngine
 
     private double Dt(double sec) => S.Instant ? 0 : sec;
     private double RandMin(double a, double b) => (a + S.Rnd.Next() * (b - a)) * 60;
+
+    private CaseTuning Tune(CaseId c) => Tuning.TryGetValue(c, out var t) ? t : CaseTuning.None;
+    /// <summary>Hệ số ngưỡng kích hoạt (luật 2: +15%).</summary>
+    private double Tf(CaseId c) => Tune(c).ThresholdFactor;
+    /// <summary>Hệ số thời gian chờ Để sau/Không cần (luật 1 trong ngày × luật 2 theo 7 ngày).</summary>
+    public double WaitFactor(CaseId c) => Mem(c).Widen * Tune(c).WaitFactor;
+    public int SnoozeMinutes(CaseId c) => (int)Math.Round(Catalog.Def(c).Snooze * WaitFactor(c));
+    public int SnoozeCount(CaseId c) => Mem(c).Snoozes;
+
+    private void Record(CaseId c, Outcome o)
+    {
+        if (S.Instant || c == CaseId.Dashboard) return;
+        OutcomeRecorded?.Invoke(c, o);
+    }
+
+    /// <summary>LLM đã viết xong câu chính cho case trong hàng đợi (hoặc đang hiện).</summary>
+    public void SetLine(QueueItem item, string line)
+    {
+        item.Data.Line = line;
+        if (S.Ep is { } ep && ep.Item == item && !ep.Opened) ep.CardVer++;
+    }
+
+    /// <summary>LLM trả lời câu chat (null = hết giờ/lỗi → câu mặc định).</summary>
+    public void ResolveChat(int epId, int index, string? text)
+    {
+        if (S.Ep is not { } ep || ep.Id != epId || index >= ep.Chat.Count) return;
+        ep.Chat[index] = ep.Chat[index] with { Milo = text ?? Lines.ChatFallback };
+        ep.CardVer++;
+    }
 
     private void Raise(MiloAction a)
     {

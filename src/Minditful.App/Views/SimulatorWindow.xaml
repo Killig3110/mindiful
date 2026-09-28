@@ -59,7 +59,7 @@
                         <Button Style="{StaticResource Round}" Tag="done" Content="Kéo 1 task sang Done" Margin="0,0,0,6" HorizontalContentAlignment="Left" Click="Act_Click" />
                         <Button Style="{StaticResource Round}" Tag="stress" Content="Giả lập ngày căng (−30 điểm)" Margin="0,0,6,6" HorizontalContentAlignment="Left" Click="Act_Click" />
                     </UniformGrid>
-                    <TextBlock Style="{StaticResource Hint}" Margin="0,4,0,0" Text="Rê chuột lên chóp đuôi ở góc để Milo ló đầu. Bấm vào đuôi để mở dashboard." />
+                    <TextBlock Style="{StaticResource Hint}" Margin="0,4,0,0" Text="Rê chuột lên chóp đuôi ở góc để Milo ló đầu. Bấm vào đuôi để mở dashboard. Kéo đuôi sang góc khác để đổi góc neo." />
 
                     <TextBlock Style="{StaticResource Eyebrow}" Text="XEM TỪNG CASE · 16 EPISODE" Margin="0,16,0,4" />
                     <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,8"

@@ -42,7 +42,8 @@ public partial class App : Application
             return;
         }
 
-        if (env == AppEnvironment.Demo) StartDemo();
+        Rendering.MiloSkin.Prewarm(Dispatcher);
+        if (env == AppEnvironment.Demo) StartDemo(opt);
         else _ = StartLiveAsync(env.Value, opt);
     }
 
@@ -76,9 +77,9 @@ public partial class App : Application
         return env;
     }
 
-    private void StartDemo()
+    private void StartDemo(MinditfulOptions opt)
     {
-        var w = new SimulatorWindow();
+        var w = new SimulatorWindow(opt);
         MainWindow = w;
         w.Closed += (_, _) => Shutdown();
         w.Show();

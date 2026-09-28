@@ -7,6 +7,7 @@ using System.Windows.Media.Effects;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using Minditful.App.Rendering;
+using Minditful.App.Services;
 using Minditful.Core.Engine;
 using Minditful.Core.Presentation;
 using MClip = Minditful.Core.Engine.Clip;
@@ -29,6 +30,11 @@ public sealed class MiloLayer : Grid
     private readonly TranslateTransform _translate = new();
     private readonly Button _miloHit, _tail, _dotPill;
     private readonly System.Windows.Shapes.Path _tailBody, _tailTip;
+    private readonly ScaleTransform _tailFlip = new(1, 1, 17, 17);
+    private readonly TranslateTransform _tailDrag = new();
+    private Point? _dragStart;
+    private bool _dragging;
+    private Corner _corner = Corner.BottomRight;
     private readonly Border _badge, _whisper;
     private readonly System.Windows.Controls.TextBlock _badgeText, _whisperText, _dotText;
     private readonly Ellipse _whisperDot;
@@ -49,6 +55,24 @@ public sealed class MiloLayer : Grid
     private readonly List<(FrameworkElement El, Func<double, (double Op, double Tx, double Ty, double Sx, double Sy)> Anim, double Delay)> _fxAnims = [];
 
     public double BaseOffset { get; set; } = 44;
+
+    /// <summary>Góc neo (§9.1). Góc trái lật Milo theo chiều ngang, góc trên thì Milo tụt xuống từ mép trên.</summary>
+    internal Corner Corner
+    {
+        get => _corner;
+        set
+        {
+            _corner = value;
+            _fxKey = null;
+            Render();
+        }
+    }
+
+    private bool LeftSide => _corner is Corner.BottomLeft or Corner.TopLeft;
+    private bool TopSide => _corner is Corner.TopRight or Corner.TopLeft;
+
+    /// <summary>Người dùng kéo chóp đuôi rồi thả ở <c>Point</c> (toạ độ màn hình, pixel thiết bị).</summary>
+    public event Action<Point>? TailDropped;
 
     /// <summary>Người dùng vừa tương tác (host có thể vẽ lại ngay, lưu trạng thái…).</summary>
     public event Action? Interacted;
@@ -93,7 +117,7 @@ public sealed class MiloLayer : Grid
             Data = Geometry.Parse("M16 9 C20 6 24 4 27 5 C24 8 23 11 24 14 C26 11 29 10 31 11 C28 14 26 17 25 20 C22 17 18 13 16 9 Z"),
             Stroke = Br("#45231F"), StrokeThickness = 2, StrokeLineJoin = PenLineJoin.Round,
         };
-        var tailArt = new Canvas { Width = 34, Height = 34, Children = { _tailBody, _tailTip } };
+        var tailArt = new Canvas { Width = 34, Height = 34, Children = { _tailBody, _tailTip }, RenderTransform = _tailFlip };
         Canvas.SetLeft(tailArt, 6);
         Canvas.SetTop(tailArt, 6);
         _badgeText = new System.Windows.Controls.TextBlock { FontSize = 10.5, FontWeight = FontWeights.Bold, Foreground = Br("#2B211A"), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
@@ -102,6 +126,35 @@ public sealed class MiloLayer : Grid
         Canvas.SetTop(_badge, -4);
         var tailBox = new Canvas { Width = 46, Height = 40, Children = { halo, tailArt, _badge } };
         _tail = new Button { Width = 46, Height = 40, Content = tailBox, Style = (Style)Application.Current.FindResource("Bare"), ToolTip = "Chóp đuôi Milo: rê chuột để Milo ló đầu, bấm để mở dashboard" };
+        _tail.RenderTransform = _tailDrag;
+        // Kéo chóp đuôi sang góc khác (§9.1); bấm không kéo thì vẫn là mở dashboard
+        _tail.PreviewMouseLeftButtonDown += (_, e) =>
+        {
+            _dragStart = e.GetPosition(this);
+            _dragging = false;
+        };
+        _tail.PreviewMouseMove += (_, e) =>
+        {
+            if (_dragStart is not { } p0 || e.LeftButton != System.Windows.Input.MouseButtonState.Pressed) return;
+            var p = e.GetPosition(this);
+            if (!_dragging && (p - p0).Length < 8) return;
+            _dragging = true;
+            _hoverTimer.Stop();
+            _tail.Cursor = System.Windows.Input.Cursors.SizeAll;
+            _tailDrag.X = p.X - p0.X;
+            _tailDrag.Y = p.Y - p0.Y;
+        };
+        _tail.PreviewMouseLeftButtonUp += (_, e) =>
+        {
+            _dragStart = null;
+            _tail.Cursor = System.Windows.Input.Cursors.Hand;
+            if (!_dragging) return;
+            _dragging = false;
+            e.Handled = true; // không tính là bấm
+            _tail.ReleaseMouseCapture();
+            _tailDrag.X = _tailDrag.Y = 0;
+            TailDropped?.Invoke(PointToScreen(e.GetPosition(this)));
+        };
         _tail.MouseEnter += (_, _) =>
         {
             _leaveTimer.Stop();
@@ -169,6 +222,15 @@ public sealed class MiloLayer : Grid
         Children.Add(el);
     }
 
+    /// <summary>Đặt phần tử cách góc neo (right, bottom) — toạ độ của prototype, lật theo góc đang neo.</summary>
+    private void Anchor(FrameworkElement el, double right, double bottom)
+    {
+        el.HorizontalAlignment = LeftSide ? HorizontalAlignment.Left : HorizontalAlignment.Right;
+        el.VerticalAlignment = TopSide ? VerticalAlignment.Top : VerticalAlignment.Bottom;
+        var v = bottom + BaseOffset;
+        el.Margin = new Thickness(LeftSide ? right : 0, TopSide ? v : 0, LeftSide ? 0 : right, TopSide ? 0 : v);
+    }
+
     private void Act(Action<MiloEngine> a)
     {
         if (_engine is null) return;
@@ -195,7 +257,11 @@ public sealed class MiloLayer : Grid
         var e = _engine;
         if (e is null) return;
         foreach (FrameworkElement el in Children)
-            if (el.Tag is (double r, double b)) el.Margin = new Thickness(0, 0, r, b + BaseOffset);
+            if (el.Tag is (double r, double b)) Anchor(el, r, b);
+        Canvas.SetLeft(_milo, LeftSide ? 40 : RegionW - 40 - 150);
+        Canvas.SetTop(_milo, TopSide ? 0 : RegionH - 150);
+        _tailFlip.ScaleX = LeftSide ? -1 : 1;
+        _tailFlip.ScaleY = TopSide ? -1 : 1;
 
         // ---- Milo ----
         var clip = Present.VisualClip(e);
@@ -206,6 +272,9 @@ public sealed class MiloLayer : Grid
         }
         var elapsed = Now - _clipStart;
         var tf = ClipAnimation.Evaluate(clip, elapsed);
+        // Góc trái: lật ngang; góc trên: lật dọc (Milo thò xuống từ mép trên)
+        if (LeftSide) tf = tf with { Tx = -tf.Tx, Rot = -tf.Rot, Sx = -tf.Sx, OriginX = 1 - tf.OriginX };
+        if (TopSide) tf = tf with { Ty = -tf.Ty, Rot = -tf.Rot, Sy = -tf.Sy, OriginY = 1 - tf.OriginY };
         double cx = tf.OriginX * 150, cy = tf.OriginY * 150;
         _scale.CenterX = _rotate.CenterX = cx;
         _scale.CenterY = _rotate.CenterY = cy;
@@ -215,7 +284,14 @@ public sealed class MiloLayer : Grid
         _translate.X = tf.Tx;
         _translate.Y = tf.Ty;
         var sat = e.CurrentBand.Saturation;
-        _milo.Source = clip == MClip.Gone ? null : MiloSkin.Get(Present.PoseFor(e, clip), sat);
+        if (clip == MClip.Gone) _milo.Source = null;
+        else
+        {
+            var tired = e.S.BandIdx >= 2;
+            var rig = MiloRig.For(clip, tired);
+            var blink = MiloRig.Blink(Now, tired);
+            _milo.Source = MiloSkin.Frame(Present.PoseFor(e, clip), rig, MiloRig.FrameIndex(rig, elapsed), blink, sat);
+        }
 
         // ---- chóp đuôi ----
         _tail.Visibility = Present.TailVisible(e) ? Visibility.Visible : Visibility.Collapsed;
@@ -259,7 +335,7 @@ public sealed class MiloLayer : Grid
             var focused = _cardHost.IsKeyboardFocusWithin;
             _cardHost.Content = el;
             _cardHost.Tag = model.Low ? (26.0, 16.0) : (26.0, 162.0);
-            _cardHost.Margin = new Thickness(0, 0, 26, (model.Low ? 16 : 162) + BaseOffset);
+            Anchor(_cardHost, 26, model.Low ? 16 : 162);
             if (el is not null && (ep!.Id != _cardEp || ep.Phase != _cardPhase)) Pop(el);
             if (focused && el is not null) FocusChat(el);
             _cardEp = ep?.Id ?? -1;
@@ -333,7 +409,7 @@ public sealed class MiloLayer : Grid
     {
         var visible = clip != MClip.Gone;
         var paws = clip == MClip.HangPull && elapsed < 1.8;
-        var key = $"{clip}:{paws}:{(e.S.BandIdx == 3 && visible)}";
+        var key = $"{clip}:{paws}:{(e.S.BandIdx == 3 && visible)}:{_corner}";
         if (key != _fxKey)
         {
             _fxKey = key;
@@ -363,9 +439,7 @@ public sealed class MiloLayer : Grid
 
     private void AddFx(FrameworkElement el, double right, double bottom, Func<double, (double, double, double, double, double)> anim, double delay = 0)
     {
-        el.HorizontalAlignment = HorizontalAlignment.Right;
-        el.VerticalAlignment = VerticalAlignment.Bottom;
-        el.Margin = new Thickness(0, 0, right, bottom + BaseOffset);
+        Anchor(el, right, bottom);
         el.RenderTransformOrigin = new Point(.5, .5);
         el.RenderTransform = new TransformGroup { Children = { new ScaleTransform(), new TranslateTransform() } };
         _fx.Children.Add(el);

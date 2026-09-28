@@ -60,4 +60,5 @@ public sealed class DayState
     public bool DoneSeeded;
     /// <summary>Case do Sandbox ép vào hàng đợi: không bị bỏ khi điều kiện không đúng.</summary>
     public readonly HashSet<CaseId> Forced = [];
+    public readonly Dictionary<CaseId, int> VariantCounter = [];
 }

@@ -21,10 +21,10 @@ internal static class AppPaths
     public static string RememberedEnvFile => Path.Combine(Root, "last-environment.txt");
 }
 
-/// <summary>PAT Azure DevOps lưu local, mã hoá bằng DPAPI theo tài khoản Windows (spec: "PAT lưu local").</summary>
-internal sealed class SecretStore(AppEnvironment env)
+/// <summary>Bí mật lưu local (PAT Azure DevOps, API key Claude), mã hoá bằng DPAPI theo tài khoản Windows (spec: "PAT lưu local").</summary>
+internal sealed class SecretStore(AppEnvironment env, string name = "ado-pat")
 {
-    private string File => Path.Combine(AppPaths.For(env), "ado-pat.bin");
+    private string File => Path.Combine(AppPaths.For(env), name + ".bin");
 
     public string? Read()
     {
@@ -61,4 +61,17 @@ internal static class Shell
             System.Windows.MessageBox.Show("Không mở được: " + target + "\n" + ex.Message, "Minditful");
         }
     }
+}
+
+internal enum Corner { BottomRight, BottomLeft, TopRight, TopLeft }
+
+/// <summary>Góc neo của Milo (§9.1: kéo đuôi sang góc khác), lưu riêng từng môi trường.</summary>
+internal static class UiSettings
+{
+    private static string File(AppEnvironment env) => Path.Combine(AppPaths.For(env), "corner.txt");
+
+    public static Corner LoadCorner(AppEnvironment env) =>
+        System.IO.File.Exists(File(env)) && Enum.TryParse<Corner>(System.IO.File.ReadAllText(File(env)).Trim(), out var c) ? c : Corner.BottomRight;
+
+    public static void SaveCorner(AppEnvironment env, Corner c) => System.IO.File.WriteAllText(File(env), c.ToString());
 }

@@ -51,6 +51,30 @@
                     <TextBlock Style="{StaticResource Eyebrow}" Text="DỮ LIỆU MILO ĐANG THẤY" Margin="0,14,0,6" />
                     <TextBlock x:Name="SnapSummary" TextWrapping="Wrap" Foreground="{StaticResource Soft}" FontSize="12" />
 
+                    <!-- ============ lớp 2 · cá nhân hoá · góc neo ============ -->
+                    <TextBlock Style="{StaticResource Eyebrow}" Text="CLAUDE · LỚP 2 LỜI THOẠI (§14)" Margin="0,14,0,6" />
+                    <TextBlock x:Name="LlmStatus" TextWrapping="Wrap" Foreground="{StaticResource Soft}" FontSize="12" />
+                    <Grid Margin="0,8,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <PasswordBox x:Name="ClaudeKeyBox" Height="32" Padding="10,6" Background="{StaticResource Panel2}" Foreground="{StaticResource Cream}"
+                                     BorderBrush="{StaticResource Line}" ToolTip="API key Claude. Lưu mã hoá DPAPI trên máy này. Claude chỉ nhận tên case + số liệu, không bao giờ nhận tiêu đề email/họp/task." />
+                        <Button Grid.Column="1" Style="{StaticResource Round}" Content="Lưu key" Margin="6,0,0,0" Click="SaveClaudeKey_Click" />
+                    </Grid>
+
+                    <TextBlock Style="{StaticResource Eyebrow}" Text="CÁ NHÂN HOÁ 7 NGÀY (§14)" Margin="0,14,0,6" />
+                    <TextBlock x:Name="TuningText" TextWrapping="Wrap" Foreground="{StaticResource Soft}" FontSize="12" />
+
+                    <TextBlock Style="{StaticResource Eyebrow}" Text="GÓC NEO CỦA MILO (§9.1 · CŨNG CÓ THỂ KÉO CHÓP ĐUÔI)" Margin="0,14,0,6" />
+                    <UniformGrid Columns="4">
+                        <Button Style="{StaticResource Round}" Tag="TopLeft" Content="↖ Trên trái" Margin="0,0,6,6" Click="Corner_Click" />
+                        <Button Style="{StaticResource Round}" Tag="TopRight" Content="↗ Trên phải" Margin="0,0,6,6" Click="Corner_Click" />
+                        <Button Style="{StaticResource Round}" Tag="BottomLeft" Content="↙ Dưới trái" Margin="0,0,6,6" Click="Corner_Click" />
+                        <Button Style="{StaticResource Round}" Tag="BottomRight" Content="↘ Dưới phải" Margin="0,0,6,6" Click="Corner_Click" />
+                    </UniformGrid>
+
                     <!-- ============ công cụ sandbox ============ -->
                     <StackPanel x:Name="SandboxTools">
                         <TextBlock Style="{StaticResource Eyebrow}" Text="SANDBOX · DỮ LIỆU MẪU" Margin="0,18,0,6" />

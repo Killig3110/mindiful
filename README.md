@@ -16,7 +16,7 @@ Một bộ não duy nhất (Rule Engine → Điều phối → Mood Engine) ch�
 Yêu cầu: Windows 10 1809+ / Windows 11, [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) (hoặc Visual Studio 2022 17.8+).
 
 ```powershell
-dotnet test                                                # 44 test của bộ não (chạy được cả trên macOS/Linux)
+dotnet test                                                # 61 test (chạy được cả trên macOS/Linux)
 dotnet run --project src/Minditful.App                     # mở màn hình chọn môi trường
 dotnet run --project src/Minditful.App -- --env Demo       # vào thẳng Demo (không cần tài khoản)
 dotnet run --project src/Minditful.App -- --env Sandbox
@@ -106,6 +106,7 @@ src/Minditful.App             WPF: Launcher · SimulatorWindow (Demo) · Compani
                               WindowsActivityMonitor (khoá máy, idle, gõ phím, toàn màn hình, chuyển app) · LiveSession
 tests/Minditful.Core.Tests    Ngày mẫu khớp mục 13 (08:58 chào sáng … 18:31 về thôi, 54 điểm), im lặng suốt họp, render mọi khung;
                               AllCasesTests: 16 episode tự bật đúng luật + mọi nút của mọi thẻ + chat, chấm chờ, chen ngang, cổng ngắt
+                              LimitationsTests: lời thoại/LLM (không lộ tiêu đề), khung clip, cá nhân hoá 7 ngày, log phản hồi
 ```
 
 Đối chiếu tài liệu → code:
@@ -118,11 +119,62 @@ tests/Minditful.Core.Tests    Ngày mẫu khớp mục 13 (08:58 chào sáng …
 | §5–9 Episode | `MiloEngine.Rules.cs`, `MiloEngine.Episodes.cs`, `Present.Card()` |
 | §10 Phản hồi & chat | `Reply()`, `CareReply()`, `Chat()` (nhận diện ý định local) |
 | §11 Mood Engine, lưu cuối ngày | `ComputeMood()`, `DayHistoryStore` (`%LOCALAPPDATA%\Minditful\<môi trường>\history.json`) |
-| §12 Animation | `ClipAnimation` (keyframes) + `MiloSkin` (8 tư thế SVG, giảm bão hoà theo mood) |
+| §12 Animation | `ClipAnimation` (keyframes toàn thân) + `MiloRig` (khung theo bộ phận) + `MiloSkin` (dựng khung từ SVG, giảm bão hoà theo mood) |
+| §14 Lời thoại, cá nhân hoá | `Lines` (template + ràng buộc), `ClaudeLineWriter` (Claude API), `Personalizer` + `OutcomeStore` |
+| §9.1 Góc neo | `MiloLayer.Corner` + kéo chóp đuôi, `CompanionWindow.SetCorner` |
 
-## Giới hạn hiện tại
+## Lớp 2 · Claude viết lời thoại (§14)
 
-- Chưa có **Lớp 2 (LLM)** viết lại câu thoại. Câu thoại dùng template, chat nhận diện ý định bằng từ khoá như §10.
-- Các clip "Cần vẽ" ở §12 đang dùng tư thế SVG có sẵn cộng transform, giống prototype.
-- Chưa có kéo chóp đuôi sang góc khác (§9.1). Milo luôn neo ở góc phải dưới màn hình chính.
-- Cá nhân hoá theo 7 ngày (§14, luật 2–3) chưa bật. Luật trong ngày (từ chối 2 lần thì giãn ×3) đã có.
+Khi một case vào hàng đợi, Milo gọi Claude ngay lúc đó để viết sẵn câu chính. Nhờ vậy khi thẻ hiện lên thì không phải chờ.
+
+- **Claude nhận gì:** chỉ tên case, số liệu và câu mẫu, ví dụ "vừa họp liền 2h40, còn 12 phút tới cuộc họp sau". Claude **không bao giờ** nhận tiêu đề email, cuộc họp hay task; có test kiểm tra điều này.
+- **Claude chỉ viết câu chính.** Nhãn, số liệu và nút bấm vẫn lấy từ template.
+- **Ràng buộc:** tiếng Việt, dưới 25 từ, giọng ấm, 1 hành động cụ thể, Milo xưng "Milo"/"mình". Câu trả về sai ràng buộc thì bị loại.
+- **Khi không dùng được Claude:** hết giờ (mặc định 2.5 giây), mất mạng, bị từ chối hoặc câu không đạt → dùng template. Mỗi case có 3–5 câu mẫu, xoay vòng để không lặp câu vừa dùng.
+- **Chat tự do:** câu gõ không khớp từ khoá thì hỏi Claude (tối đa 2.5 giây); không có Claude thì trả lời bằng câu mặc định như §10.
+- **Cấu hình:** mục `Llm` trong appsettings.json.
+  - Mặc định `claude-opus-5`, `effort: low`. Muốn nhanh hơn có thể đổi `Model` sang `claude-haiku-4-5`.
+  - Bật sẵn *server-side refusal fallback* (`fallbacks: "default"`). Tắt bằng `RefusalFallback: false`.
+- **API key:** nhập trong Bảng điều khiển (lưu mã hoá DPAPI) hoặc đặt biến `ANTHROPIC_API_KEY`.
+- **Demo:** mặc định dùng câu mẫu để giống prototype từng chữ. Đặt `Llm.UseInDemo: true` để bật Claude trong Demo.
+
+## Clip hoạt ảnh (§12)
+
+Các clip "Cần vẽ" được dựng thành chuỗi khung từ 8 tư thế SVG. Mỗi khung xoay hoặc dịch nhóm `armL/armR`, `legL/legR`, `tail`, `head`, `earL/earR`, `eyes/look` quanh khớp của nó:
+
+| Clip | Khung · fps | Chuyển động |
+| --- | --- | --- |
+| Leo lên / leo xuống | 11 · 8 | hai tay với so le, co chân |
+| Idle / IdleTired | 7 · 6 / 7 · 5 (ping-pong) | đuôi đung đưa; khi mệt thì đầu gục, tai cụp |
+| Greet | 7 · 7 | vẫy tay phải |
+| Reminder | 9 · 6 | nghiêng đầu, vẫy đuôi |
+| Chỉ tay | 7 · 5 | tay trái chỉ về phía thẻ |
+| Thở | 8 · 4 | ngẩng lên theo nhịp hít |
+| Nhảy tưng mừng | 8 · 8 | hai tay giơ cao |
+| Vươn vai | 6 · 5 | vươn vai |
+| Chạy ra xe | 9 · 10 | nâng gối xen kẽ, đuôi bay |
+| Đào bới | 9 · 8 | hai tay đào |
+| Nhìn quanh | 8 · 2 | đảo mắt, quay đầu |
+| Ngóc đầu | 3 · 10 | vểnh tai |
+
+Milo chớp mắt 4.5 giây/lần, khi mệt thì nhắm lâu hơn (§9.4). Chuyển động toàn thân (leo, nhảy, tụt) vẫn theo keyframes của prototype. Khung hình được dựng sẵn lúc máy rảnh để lần hiện đầu không bị giật.
+
+## Góc neo (§9.1)
+
+Kéo chóp đuôi rồi thả ở đâu thì Milo neo vào **góc gần nhất** của màn hình đó (hỗ trợ nhiều màn hình). Bấm mà không kéo thì vẫn mở dashboard.
+
+- Góc trái: Milo được lật ngang.
+- Góc trên: Milo thò xuống từ mép trên; thẻ và dashboard mọc xuống dưới.
+- Góc neo lưu riêng từng môi trường. Bảng điều khiển có 4 nút chọn góc; Demo cũng kéo được trong màn hình giả.
+
+## Cá nhân hoá 7 ngày (§14)
+
+Mọi phản hồi được ghi local vào `%LOCALAPPDATA%\Minditful\<môi trường>\outcomes.tsv`, giữ 30 ngày. Các loại phản hồi: hiện, đồng ý, để sau, không cần, bỏ qua, chat, bị cổng ngắt, bị gộp. Mỗi đầu ngày Milo tính lại:
+
+| Luật | Điều kiện | Milo làm |
+| --- | --- | --- |
+| 1 · trong ngày | Bấm Không cần lần 2 | Thời gian chờ của case đó ×3 tới hết ngày |
+| 2 · 7 ngày | Case hiện ≥ 5 lần, ≥ 60% là Không cần hoặc bị bỏ qua | Thời gian chờ ×2 và ngưỡng kích hoạt +15% (vd. Làm liền 120 → 138 phút) |
+| 3 · 7 ngày | Case bị Để sau ≥ 60% | Giao case đó ở khoảng trống dài nhất kế tiếp thay vì khoảng trống đầu tiên |
+
+Không case nào bị tắt hẳn, chỉ thưa đi. Bảng điều khiển hiện các điều chỉnh đang áp dụng.

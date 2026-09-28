@@ -80,6 +80,8 @@ public sealed class CaseData
     public double Worked { get; set; }
     public int Sw { get; set; }
     public bool FromHold { get; set; }
+    /// <summary>Câu chính do LLM viết sẵn lúc case vào hàng đợi (null = dùng template).</summary>
+    public string? Line { get; set; }
 }
 
 public sealed class QueueItem
@@ -137,6 +139,8 @@ public sealed class Episode
     public required QueueItem Item;
     public required CaseData Data;
     public int Pri;
+    /// <summary>Biến thể template của lần hiện này (xoay vòng để không lặp câu).</summary>
+    public int Variant;
     public bool Compact, FromDot, FromParked;
     public bool Card;
     public int CardVer;

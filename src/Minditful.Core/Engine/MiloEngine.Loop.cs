@@ -134,6 +134,7 @@ public sealed partial class MiloEngine
                 Log($"Bị ngắt bởi cổng {Catalog.GateLabel[gg]} → thụt xuống nhanh, "
                     + (ep.C is CaseId.MeetingSoon or CaseId.Dashboard ? "bỏ thẻ" : "thẻ quay lại hàng đợi"), LogKind.Gate);
                 if (ep.Phase is Phase.Enter or Phase.Show) Requeue(ep);
+                Record(ep.C, Outcome.Gated);
                 ep.Card = false;
                 ExitEp(Clip.ClimbOutFast);
             }

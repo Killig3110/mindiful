@@ -4,9 +4,12 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Minditful.App.Rendering;
+using Minditful.App.Services;
 using Minditful.Core.Engine;
 using Minditful.Core.Presentation;
 using Minditful.Core.Scenario;
+using Minditful.Integrations;
+using Minditful.Integrations.Llm;
 
 namespace Minditful.App.Views;
 
@@ -20,11 +23,31 @@ public partial class SimulatorWindow : Window
     private int _speed = 120;
     private int _mileIdx = -2;
 
-    public SimulatorWindow()
+    internal SimulatorWindow(MinditfulOptions opt)
     {
         InitializeComponent();
         Scene.Layer.Engine = _engine;
         Scene.Layer.Interacted += RenderPanels;
+        // Kéo chóp đuôi sang góc khác của màn hình giả (§9.1)
+        Scene.Layer.TailDropped += screenPx =>
+        {
+            var p = Scene.PointFromScreen(screenPx);
+            Scene.SetCorner((p.X < Scene.Width / 2, p.Y < Scene.Height / 2) switch
+            {
+                (true, true) => Corner.TopLeft,
+                (false, true) => Corner.TopRight,
+                (true, false) => Corner.BottomLeft,
+                _ => Corner.BottomRight,
+            });
+        };
+        // Lớp 2 trong Demo chỉ bật khi được yêu cầu, vì câu sẽ không còn giống prototype từng chữ
+        if (opt.Llm.Enabled && opt.Llm.UseInDemo)
+        {
+            var key = new SecretStore(AppEnvironment.Demo, "claude-api-key");
+            var writer = new ClaudeLineWriter(opt.Llm, () => key.Read() ?? Environment.GetEnvironmentVariable(opt.Llm.ApiKeyEnvVar));
+            LlmBridge.Attach(_engine, writer, Dispatcher);
+            Title += writer.Available ? $" · Claude {opt.Llm.Model}" : " · (chưa có API key Claude → câu mẫu)";
+        }
         for (var i = 0; i < DemoScenario.Milestones.Length; i++)
         {
             var m = DemoScenario.Milestones[i];

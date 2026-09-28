@@ -57,6 +57,8 @@ public partial class ControlCenterWindow : Window
         DayLabel.Text = e.Day.ToDateTime(TimeOnly.MinValue).ToString("dddd · dd/MM", new CultureInfo("vi-VN"));
         ClockState.Text = Present.ClockState(e);
         GraphStatus.Text = _session.GraphStatus;
+        LlmStatus.Text = _session.LlmStatus;
+        TuningText.Text = Personalizer.Describe(e.Tuning);
         BoardsStatus.Text = _session.BoardsStatus;
         PatHint.Text = _session.Conn.AzureDevOps.Auth.Equals("Pat", StringComparison.OrdinalIgnoreCase)
             ? (_session.HasPat ? "Đã có PAT (lưu mã hoá trên máy này)." : $"Chưa có PAT. Nhập ở trên hoặc đặt biến môi trường {_session.Conn.AzureDevOps.PatEnvVar}.")
@@ -82,6 +84,18 @@ public partial class ControlCenterWindow : Window
             if (tag == "leave") b.IsEnabled = e.InCall();
         }
         Brain.Render(e);
+    }
+
+    private void SaveClaudeKey_Click(object sender, RoutedEventArgs e)
+    {
+        _session.SaveClaudeKey(ClaudeKeyBox.Password);
+        ClaudeKeyBox.Clear();
+        Render();
+    }
+
+    private void Corner_Click(object sender, RoutedEventArgs e)
+    {
+        if (Enum.TryParse<Corner>((string)((Button)sender).Tag, out var c)) ((App)Application.Current).Companion?.SetCorner(c);
     }
 
     private async void SignIn_Click(object sender, RoutedEventArgs e) => await _session.SignInAsync(interactive: true);

@@ -4,6 +4,7 @@
     <RootNamespace>Minditful.Integrations</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Anthropic" Version="12.50.0" />
     <PackageReference Include="Microsoft.Identity.Client" Version="4.66.2" />
     <PackageReference Include="Microsoft.Identity.Client.Extensions.Msal" Version="4.66.2" />
   </ItemGroup>

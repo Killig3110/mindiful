@@ -172,7 +172,7 @@ public static class Present
                 var ch = d.Chain!;
                 var half = ch[0].Start < T("12:00") ? "sáng" : "chiều";
                 b.Add(new TopBlock($"Lịch Outlook · {half} nay kín", "#E1EEFA", "#0B4F8A", Stamp: ep.Held));
-                b.Add(new ParagraphBlock($"{ch.Count} cuộc họp nối liền, không có phút nào nghỉ. Chèn 10 phút vào giữa nhé?"));
+                b.Add(new ParagraphBlock(Lines.Text(e, ep)));
                 var rows = new List<ScheduleRow>();
                 for (var i = 0; i < ch.Count; i++)
                 {
@@ -210,7 +210,7 @@ public static class Present
                 break;
             }
             case CaseId.CheckIn:
-                b.Add(new ParagraphBlock($"Bạn tập trung được {Dur(Math.Max(s.LongestNm, s.FocusMinDone))} rồi đó. Uống ngụm nước cho tỉnh nè."));
+                b.Add(new ParagraphBlock(Lines.Text(e, ep)));
                 b.Add(new ButtonsBlock([new("thanks", "Cảm ơn Milo", ButtonStyle.Amber)]));
                 return new(CardVariant.Card, b, 280, Low: low);
             case CaseId.EodWrapup:
@@ -229,7 +229,7 @@ public static class Present
                 break;
             }
             case CaseId.EodNudge:
-                b.Add(new ParagraphBlock("Hết 30 phút rồi nè. Mình về nhé?"));
+                b.Add(new ParagraphBlock(Lines.Text(e, ep)));
                 b.Add(new ButtonsBlock([new("goHome", "Về thôi", ButtonStyle.Amber)]));
                 return new(CardVariant.Card, b, 280, Low: low);
         }
@@ -243,39 +243,33 @@ public static class Present
         var c = ep.C;
         var d = ep.Data;
         var def = Catalog.Def(c);
-        var m = s.Mem.TryGetValue(c, out var mm) ? mm : new CaseMemory();
-        string label = "", text = "", acceptL = "Đồng ý, nghỉ chút";
+        string label = "", acceptL = "Đồng ý, nghỉ chút";
+        var text = Lines.Text(e, ep);
         CardButton? extra = null;
         switch (c)
         {
             case CaseId.MeetingOverload:
                 label = "Họp liên tục · " + Dur(d.Min);
-                text = $"Bạn họp liền {Dur(d.Min)} rồi đó. " + (e.NextMeeting() is { } n ? $"Mình nghỉ chút trước {n.Subject} nhé?" : "Đứng dậy vươn vai 5 phút với Milo nha?");
                 break;
             case CaseId.Overtime:
                 label = $"Quá giờ làm · {JsRound(d.Over)} phút";
-                text = $"Đã quá giờ về {JsRound(d.Over)} phút rồi. Chốt việc đang dở rồi mình về nhé?";
                 acceptL = "Chốt việc, về thôi";
                 break;
             case CaseId.LunchMissed:
                 label = "Chưa nghỉ trưa";
-                text = $"{Hm(s.T)} rồi mà bạn chưa rời máy. Đi ăn trưa thôi!";
                 acceptL = "Đi ăn thôi";
                 extra = new("lunchLock", "Khoá 30' trong lịch", ButtonStyle.Ghost);
                 break;
             case CaseId.NoBreak:
                 label = "Làm liền · " + Dur(d.Min);
-                text = $"Bạn làm liền {Dur(d.Min)} không rời mắt khỏi màn hình. Hít thở 1 phút rồi uống nước nhé?";
                 acceptL = "Thở 1 phút";
                 break;
             case CaseId.LowRest:
                 label = $"Nghỉ quá ít · {Fmt(d.Rest)} phút";
-                text = $"Hôm nay bạn mới nghỉ tổng cộng {Fmt(d.Rest)} phút. Nghỉ hẳn 15 phút nhé, Milo canh giờ cho.";
                 acceptL = "Nghỉ 15 phút";
                 break;
             case CaseId.HighFragmentation:
                 label = $"Bị cắt vụn · {d.Sw} lần/giờ";
-                text = $"Giờ vừa rồi bạn chuyển việc {d.Sw} lần. Gom việc lại và tắt thông báo 30 phút nhé?";
                 acceptL = "Tập trung 30 phút";
                 break;
         }
@@ -284,7 +278,7 @@ public static class Present
         yield return new ButtonsBlock([new("accept", acceptL, ButtonStyle.Amber)]);
         if (extra is not null) yield return new ButtonsBlock([extra]);
         var sub = new List<CardButton>();
-        if (m.Snoozes < 2) sub.Add(new("snooze", $"Để sau ({def.Snooze * m.Widen}p)", ButtonStyle.Ghost));
+        if (e.SnoozeCount(c) < 2) sub.Add(new("snooze", $"Để sau ({e.SnoozeMinutes(c)}p)", ButtonStyle.Ghost));
         sub.Add(new("dismiss", "Không cần", ButtonStyle.Ghost));
         yield return new ButtonsBlock(sub);
         yield return new ChatBlock(ep.Chat);

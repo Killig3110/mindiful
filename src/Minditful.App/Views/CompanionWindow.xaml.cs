@@ -12,12 +12,15 @@ public partial class CompanionWindow : Window
 {
     private readonly LiveSession _session;
     private bool _animating;
+    private Rect? _area;
 
     internal CompanionWindow(LiveSession session)
     {
         InitializeComponent();
         _session = session;
         Layer.Engine = session.Engine;
+        Layer.Corner = UiSettings.LoadCorner(session.Env);
+        Layer.TailDropped += OnTailDropped;
         Layer.Interacted += () => Animate(true);
         SourceInitialized += (_, _) => ApplyWindowStyles();
         Loaded += (_, _) => PlaceInCorner();
@@ -42,13 +45,50 @@ public partial class CompanionWindow : Window
         timer.Start();
     }
 
-    private void OnDisplayChanged(object? sender, EventArgs e) => Dispatcher.BeginInvoke(PlaceInCorner);
+    private void OnDisplayChanged(object? sender, EventArgs e) => Dispatcher.BeginInvoke(() =>
+    {
+        _area = null; // cấu hình màn hình đổi → về màn hình chính
+        PlaceInCorner();
+    });
 
     private void PlaceInCorner()
     {
-        var wa = SystemParameters.WorkArea;
-        Left = wa.Right - Width;
-        Top = wa.Bottom - Height;
+        var wa = _area ?? SystemParameters.WorkArea;
+        var left = Layer.Corner is Corner.BottomLeft or Corner.TopLeft;
+        var top = Layer.Corner is Corner.TopRight or Corner.TopLeft;
+        Left = left ? wa.Left : wa.Right - Width;
+        Top = top ? wa.Top : wa.Bottom - Height;
+    }
+
+    /// <summary>Thả chóp đuôi ở đâu thì neo vào góc gần nhất của màn hình đó (§9.1).</summary>
+    private void OnTailDropped(Point screenPx)
+    {
+        var scr = System.Windows.Forms.Screen.FromPoint(new System.Drawing.Point((int)screenPx.X, (int)screenPx.Y));
+        var wa = scr.WorkingArea;
+        var corner = (screenPx.X < wa.Left + wa.Width / 2.0, screenPx.Y < wa.Top + wa.Height / 2.0) switch
+        {
+            (true, true) => Corner.TopLeft,
+            (false, true) => Corner.TopRight,
+            (true, false) => Corner.BottomLeft,
+            _ => Corner.BottomRight,
+        };
+        if (PresentationSource.FromVisual(this)?.CompositionTarget is { } ct)
+        {
+            var m = ct.TransformFromDevice;
+            _area = new Rect(m.Transform(new Point(wa.Left, wa.Top)), m.Transform(new Point(wa.Right, wa.Bottom)));
+        }
+        SetCorner(corner);
+    }
+
+    internal void SetCorner(Corner corner)
+    {
+        Layer.Corner = corner;
+        UiSettings.SaveCorner(_session.Env, corner);
+        PlaceInCorner();
+        _session.Engine.LogExternal("Đổi góc neo của Milo → " + corner switch
+        {
+            Corner.TopLeft => "trên trái", Corner.TopRight => "trên phải", Corner.BottomLeft => "dưới trái", _ => "dưới phải",
+        }, Core.Engine.LogKind.User);
     }
 
     private void ApplyWindowStyles()

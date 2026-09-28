@@ -10,5 +10,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Minditful.Core\Minditful.Core.csproj" />
+    <ProjectReference Include="..\..\src\Minditful.Integrations\Minditful.Integrations.csproj" />
   </ItemGroup>
 </Project>

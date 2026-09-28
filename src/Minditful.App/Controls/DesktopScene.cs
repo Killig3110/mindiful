@@ -123,6 +123,13 @@ public sealed class DesktopScene : Grid
 
     private static Border Overlay(Brush bg, UIElement child) => new() { Background = bg, Child = child, Visibility = Visibility.Collapsed };
 
+    /// <summary>Góc neo trong màn hình giả: góc dưới nằm trên taskbar 44px, góc trên sát mép màn hình.</summary>
+    internal void SetCorner(Services.Corner c)
+    {
+        Layer.BaseOffset = c is Services.Corner.BottomRight or Services.Corner.BottomLeft ? 44 : 0;
+        Layer.Corner = c;
+    }
+
     public void SetDateLabel(string text) => ((System.Windows.Controls.TextBlock)((StackPanel)_lock.Child).Children[1]).Text = text;
 
     public void Render(MiloEngine e)

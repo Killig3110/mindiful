@@ -10,6 +10,7 @@ using Minditful.Integrations;
 using Minditful.Integrations.AzureDevOps;
 using Minditful.Integrations.Graph;
 using Minditful.Integrations.Live;
+using Minditful.Integrations.Llm;
 
 namespace Minditful.App.Services;
 
@@ -27,6 +28,7 @@ internal sealed class LiveSession : IDisposable
     private readonly DispatcherTimer _presence = new();
     private readonly HashSet<string> _pinned = [];
     private readonly SecretStore _secrets;
+    private readonly SecretStore _claudeKey;
     private readonly PresenceWatcher? _presenceWatcher;
     private DateTime _lastPoll;
     private bool _refreshing;
@@ -42,6 +44,9 @@ internal sealed class LiveSession : IDisposable
     public DayHistoryStore History { get; }
     public SandboxSeeder Seeder { get; }
     public WindowsActivityMonitor Monitor { get; }
+    public ClaudeLineWriter Writer { get; }
+    public OutcomeStore Outcomes { get; }
+    public LlmOptions Llm { get; }
 
     public string GraphStatus { get; private set; } = "Chưa đăng nhập";
     public string BoardsStatus { get; private set; } = "Chưa kết nối";
@@ -56,7 +61,11 @@ internal sealed class LiveSession : IDisposable
         Conn = opt.For(env);
         _day = opt.WorkDay;
         _secrets = new SecretStore(env);
+        _claudeKey = new SecretStore(env, "claude-api-key");
+        Llm = opt.Llm;
+        Writer = new ClaudeLineWriter(opt.Llm, () => _claudeKey.Read() ?? Environment.GetEnvironmentVariable(opt.Llm.ApiKeyEnvVar));
         var dir = AppPaths.For(env);
+        Outcomes = new OutcomeStore(Path.Combine(dir, "outcomes.tsv"));
 
         Auth = new MicrosoftAuth(Conn.Graph, dir, Conn.Graph.UseBroker ? ConfigureBroker : null);
         Graph = Auth.IsConfigured ? new GraphClient(Auth, Http) : null;
@@ -84,6 +93,9 @@ internal sealed class LiveSession : IDisposable
         Engine = new MiloEngine(cfg, new WorkSnapshot(), null, DateOnly.FromDateTime(now), now.TimeOfDay.TotalSeconds);
         Engine.SetAuto(false);
         Engine.ActionRequested += a => _ = Sink.HandleAsync(a);
+        Engine.OutcomeRecorded += (c, o) => Outcomes.Append(new OutcomeEvent(Engine.Day, Engine.S.T, c, o, Engine.S.Score));
+        LlmBridge.Attach(Engine, Writer, Application.Current.Dispatcher);
+        ApplyTuning();
 
         Monitor = new WindowsActivityMonitor(_day);
         Monitor.LockChanged += locked =>
@@ -132,6 +144,7 @@ internal sealed class LiveSession : IDisposable
             // Qua ngày mà chưa "Về thôi": lưu im lặng (mục 6.4 · Tắt máy ngang)
             if (Engine.S.DayStarted && !Engine.S.OffDuty) History.Save(Engine.BuildDayRecord());
             Engine.StartNewDay(today, now.TimeOfDay.TotalSeconds, Engine.Snap);
+            ApplyTuning();
             if (!Monitor.Locked) Engine.SetLocked(false);
             _ = RefreshAsync();
         }
@@ -145,6 +158,25 @@ internal sealed class LiveSession : IDisposable
             if (!_pinned.Contains("fullscreen")) Engine.SetFullscreen(Monitor.Fullscreen);
         }
         Engine.AdvanceTo(now.TimeOfDay.TotalSeconds);
+    }
+
+    /// <summary>Luật cá nhân hoá 7 ngày (§14) tính lại mỗi đầu ngày từ log phản hồi local.</summary>
+    private void ApplyTuning()
+    {
+        Outcomes.Trim(Engine.Day);
+        Engine.Tuning = Personalizer.Compute(Outcomes.Load(), Engine.Day);
+        Engine.LogExternal("Cá nhân hoá 7 ngày: " + Personalizer.Describe(Engine.Tuning), LogKind.Sig);
+    }
+
+    public string LlmStatus =>
+        !Llm.Enabled ? "Đã tắt trong appsettings.json (Llm.Enabled) → dùng câu mẫu"
+        : !Writer.Available ? $"Chưa có API key (nhập bên dưới hoặc đặt biến {Llm.ApiKeyEnvVar}) → dùng câu mẫu"
+        : $"Đang dùng {Llm.Model} · effort {Llm.Effort} · timeout {Llm.TimeoutMs} ms" + (Writer.LastError is { } e ? " · lần gần nhất: " + e : "");
+
+    public void SaveClaudeKey(string? key)
+    {
+        _claudeKey.Write(key);
+        Changed?.Invoke();
     }
 
     public async Task SignInAsync(bool interactive)

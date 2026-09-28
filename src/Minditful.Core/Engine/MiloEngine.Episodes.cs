@@ -86,6 +86,11 @@ public sealed partial class MiloEngine
             Reason(top.C, $"sắp tới cuộc họp sau, cần khoảng trống ≥ {top.Need} phút → giữ lại");
             return;
         }
+        if (top.Pri > 1 && !S.Forced.Contains(top.C) && Tune(top.C).PreferLongGap && LongestGapLater() is { } later)
+        {
+            Reason(top.C, $"bạn hay bấm Để sau case này → chờ khoảng trống dài nhất lúc {Tm.Hm(later)} (cá nhân hoá 7 ngày)");
+            return;
+        }
         var def = Catalog.Def(top.C);
         var exempt = top.Pri <= 1 || def.Exempt;
         if (!exempt && !BudgetOk())
@@ -108,6 +113,29 @@ public sealed partial class MiloEngine
         var jump = t < S.JumpUntil;
         if (jump) S.JumpUntil = 0;
         StartEp(top, compact: compact, jump: jump);
+    }
+
+    /// <summary>
+    /// Khoảng trống giữa các cuộc họp từ giờ tới hết giờ làm. Trả về giờ bắt đầu của khoảng trống dài nhất
+    /// nếu nó nằm ở phía sau và dài hơn khoảng trống hiện tại; null nếu bây giờ đã là khoảng trống tốt nhất.
+    /// </summary>
+    public double? LongestGapLater()
+    {
+        var t = S.T;
+        var end = Math.Max(Cfg.End, t);
+        var gaps = new List<(double Start, double Len)>();
+        var cursor = t;
+        foreach (var m in Meetings.Where(m => m.End > t).OrderBy(m => m.Start))
+        {
+            if (m.Start > cursor) gaps.Add((cursor, Math.Min(m.Start, end) - cursor));
+            cursor = Math.Max(cursor, m.End);
+            if (cursor >= end) break;
+        }
+        if (cursor < end) gaps.Add((cursor, end - cursor));
+        if (gaps.Count == 0) return null;
+        var current = gaps[0].Start <= t ? gaps[0].Len : 0;
+        var best = gaps.MaxBy(g => g.Len);
+        return best.Start > t && best.Len > current ? best.Start : null;
     }
 
     private void Requeue(Episode ep)
@@ -138,6 +166,9 @@ public sealed partial class MiloEngine
             m.Shown++;
             m.Half.Add(HalfOf(S.T));
         }
+        ep.Variant = S.VariantCounter.GetValueOrDefault(c);
+        S.VariantCounter[c] = ep.Variant + 1;
+        Record(c, Outcome.Shown);
         if (item.Pri >= 2 && !def.Exempt && !fromDot)
         {
             S.LastProactive = S.T;
@@ -151,6 +182,7 @@ public sealed partial class MiloEngine
             {
                 S.FoldedList.Add(new Folded(o.C, S.T, o.Data));
                 Mem(o.C).Keys.Add(o.Key);
+                Record(o.C, Outcome.Folded);
                 Log($"Gộp {Catalog.Def(o.C).Name} vào tổng kết cuối ngày (chỉ nhắc 1 case/lần)", LogKind.Queue);
             }
             S.Queue = S.Queue.Where(q => Catalog.Def(q.C).Kind != CaseKind.Care).ToList();
@@ -288,6 +320,7 @@ public sealed partial class MiloEngine
             Mem(ep.C).SnoozedUntil = S.T + Cfg.ParkTtl;
         }
         Mem(ep.C).Keys.Add(ep.Item.Key);
+        Record(ep.C, Outcome.Ignored);
         var to = def.Timeout > 0 ? def.Timeout : Catalog.CareTimeout;
         ExitEp(Clip.ClimbOutShort, $"Không ai trả lời {to} giây → thẻ thu vào, chấm \"1\" trên đuôi giữ 30 phút");
     }
@@ -302,11 +335,13 @@ public sealed partial class MiloEngine
                 if (ep.C == CaseId.MeetingSoon)
                 {
                     Mem(ep.C).Keys.Add(ep.Item.Key);
+                    Record(ep.C, Outcome.Ignored);
                     ExitEp(Clip.ClimbOutShort, "Sắp họp: 60 giây không bấm → tự thu, không nhắc lại cuộc này");
                 }
                 else if (ep.C == CaseId.CheckIn)
                 {
                     Mem(ep.C).Keys.Add(ep.Item.Key);
+                    Record(ep.C, Outcome.Ignored);
                     ExitEp(Clip.ClimbOut, "Chào hỏi tự đóng sau 15 giây");
                 }
                 else Park();
@@ -380,6 +415,12 @@ public sealed partial class MiloEngine
             Chat(val);
             return;
         }
+        Record(c, act switch
+        {
+            "snooze" or "remindAt" or "extend" => Outcome.Snoozed,
+            "dismiss" => Outcome.Dismissed,
+            _ => Outcome.Accepted,
+        });
         switch (c)
         {
             case CaseId.Dashboard:
@@ -452,8 +493,8 @@ public sealed partial class MiloEngine
             case CaseId.StuckTask:
                 if (act == "snooze")
                 {
-                    m.SnoozedUntil = S.T + 3600;
-                    ExitEp(Clip.ClimbOut, "Để sau → hỏi lại sau 60 phút");
+                    m.SnoozedUntil = S.T + 3600 * Tune(c).WaitFactor;
+                    ExitEp(Clip.ClimbOut, $"Để sau → hỏi lại sau {60 * Tune(c).WaitFactor:0} phút");
                     return;
                 }
                 m.Keys.Add(ep.Item.Key);
@@ -552,7 +593,7 @@ public sealed partial class MiloEngine
         if (act == "snooze")
         {
             m.Snoozes++;
-            m.SnoozedUntil = S.T + def.Snooze * 60 * m.Widen;
+            m.SnoozedUntil = S.T + def.Snooze * 60 * WaitFactor(c);
             ExitEp(Clip.ClimbOut, $"Để sau → nhắc lại lúc {Tm.Hm(m.SnoozedUntil)} nếu điều kiện vẫn đúng ({m.Snoozes}/2 lần hôm nay)");
             return;
         }
@@ -561,8 +602,9 @@ public sealed partial class MiloEngine
             m.Keys.Add(ep.Item.Key);
             m.Dismisses++;
             if (m.Dismisses >= 2) m.Widen = 3;
-            m.DismissedUntil = S.T + def.Dismiss * 60 * m.Widen;
-            ExitEp(Clip.ClimbOutShort, $"Không cần → ẩn case {def.Dismiss * m.Widen} phút" + (m.Widen > 1 ? " (từ chối lần 2 → giãn ×3)" : ""));
+            m.DismissedUntil = S.T + def.Dismiss * 60 * WaitFactor(c);
+            ExitEp(Clip.ClimbOutShort, $"Không cần → ẩn case {def.Dismiss * WaitFactor(c):0} phút" + (m.Widen > 1 ? " (từ chối lần 2 → giãn ×3)" : "")
+                + (Tune(c).WaitFactor > 1 ? " (cá nhân hoá 7 ngày ×2)" : ""));
         }
     }
 
@@ -582,8 +624,11 @@ public sealed partial class MiloEngine
         text = (text ?? "").Trim();
         if (text.Length == 0) return;
         var it = Intents.FirstOrDefault(i => i.Re.IsMatch(text));
-        ep.Chat.Add(new ChatLine(text, it?.Say ?? "Milo nghe rồi nè. Bạn chọn một nút bên trên giúp Milo nhé."));
-        Log($"Chat \"{text}\" → ý định: " + (it?.Key ?? "không rõ (sẽ gọi LLM nếu có)"), LogKind.User);
+        var askLlm = it is null && ChatWanted is not null && !S.Instant;
+        ep.Chat.Add(new ChatLine(text, it?.Say ?? (askLlm ? Lines.ChatThinking : Lines.ChatFallback)));
+        Record(ep.C, Outcome.Chat);
+        Log($"Chat \"{text}\" → ý định: " + (it?.Key ?? (askLlm ? "không rõ → hỏi LLM (tối đa 2.5 giây)" : "không rõ (chưa bật LLM)")), LogKind.User);
+        if (askLlm) ChatWanted!(ep.Id, ep.Chat.Count - 1, new ChatRequest(ep.C, Catalog.Def(ep.C).Name, Lines.Facts(this, ep.C, ep.Data), text));
         var def = Catalog.Def(ep.C);
         ep.PhaseEnd = S.T + Dt(def.Timeout > 0 ? def.Timeout : Catalog.CareTimeout);
         ep.CardVer++;

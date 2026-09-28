@@ -18,6 +18,7 @@ public sealed class MinditfulOptions
     public WorkDayOptions WorkDay { get; set; } = new();
     public ConnectionOptions Sandbox { get; set; } = new();
     public ConnectionOptions Production { get; set; } = new();
+    public LlmOptions Llm { get; set; } = new();
 
     public ConnectionOptions For(AppEnvironment env) => env == AppEnvironment.Production ? Production : Sandbox;
 }
@@ -87,4 +88,21 @@ public sealed class AzureDevOpsOptions
     public string[] WorkItemTypes { get; set; } = ["Task", "Bug", "User Story", "Product Backlog Item", "Issue"];
     /// <summary>Trạng thái "đang làm" khi Seeder tạo work item mẫu (Agile: Active, Scrum: In Progress, Basic: Doing).</summary>
     public string SeedState { get; set; } = "Active";
+}
+
+/// <summary>Lớp 2 (§8b, §14): LLM viết lại câu chính và trả lời chat tự do. Tắt hoặc lỗi thì dùng template.</summary>
+public sealed class LlmOptions
+{
+    public bool Enabled { get; set; } = true;
+    /// <summary>Dùng cả trong Demo (ngày mẫu sẽ không còn giống hệt prototype từng chữ).</summary>
+    public bool UseInDemo { get; set; }
+    public string Model { get; set; } = "claude-opus-5";
+    /// <summary>Câu ngắn nên để effort thấp cho nhanh.</summary>
+    public string Effort { get; set; } = "low";
+    /// <summary>Spec: 2.5 giây, quá thì dùng template.</summary>
+    public int TimeoutMs { get; set; } = 2500;
+    /// <summary>Biến môi trường chứa API key nếu chưa nhập trong ứng dụng.</summary>
+    public string ApiKeyEnvVar { get; set; } = "ANTHROPIC_API_KEY";
+    /// <summary>Server-side fallback khi model từ chối (beta server-side-fallback-2026-07-01).</summary>
+    public bool RefusalFallback { get; set; } = true;
 }
