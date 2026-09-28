@@ -8,39 +8,138 @@ Cả **3 môi trường đều là cùng một app**: Milo sống trên desktop 
 | Môi trường | Dữ liệu | Milo hiện ở đâu | Dùng để |
 | --- | --- | --- | --- |
 | **Demo** | Ngày mẫu Thứ Năm 24/9 của prototype: giờ, lịch, email, task và thao tác người dùng theo kịch bản | **Desktop thật** (overlay trong suốt ở góc màn hình) + khay hệ thống + bảng điều khiển kịch bản | Chạy đủ 16 case của prototype trên app thật: tua 60×/120×/300×, nhảy 17 mốc, bật từng case, "Bạn thử làm" để bẻ kịch bản |
-| **Sandbox** | Microsoft account cá nhân + Azure DevOps org cá nhân (API thật) | Desktop thật (overlay trong suốt) + khay hệ thống + Bảng điều khiển | Thử tích hợp thật mà không đụng tenant công ty: tạo dữ liệu mẫu, giả lập tín hiệu, ép chạy từng case |
+| **Sandbox** | Tenant thử `mindiful.onmicrosoft.com` (Teams, Outlook) + Azure DevOps `mindiful-sandbox` — API thật | Desktop thật (overlay trong suốt) + khay hệ thống + Bảng điều khiển có công cụ test | Thử tích hợp thật mà không đụng tenant Bosch; ngưỡng hành vi rút gọn để test trong 1 buổi |
 | **Production** | Tenant Bosch: Teams presence, Outlook, Azure Boards | Desktop thật, ẩn khỏi share màn hình | Dùng hằng ngày |
 
-## Chạy nhanh
+## Cài đặt từ đầu
 
-Yêu cầu: Windows 10 1809+ / Windows 11, [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) (hoặc Visual Studio 2022 17.8+).
+Làm theo thứ tự dưới đây trên **máy Windows 10 (1809+) hoặc Windows 11**. App là WPF nên chỉ **chạy** được trên Windows. macOS/Linux build được và chạy được `dotnet test`, nhưng không mở được app.
+
+### Bước 1. Cài công cụ
+
+| Công cụ | Bắt buộc? | Cài | Kiểm tra |
+| --- | --- | --- | --- |
+| **Git** | Có | [git-scm.com/download/win](https://git-scm.com/download/win) hoặc `winget install Git.Git` | `git --version` |
+| **.NET 8 SDK** (x64) | Có | [dotnet.microsoft.com/download/dotnet/8.0](https://dotnet.microsoft.com/download/dotnet/8.0) hoặc `winget install Microsoft.DotNet.SDK.8` | `dotnet --list-sdks` có dòng `8.0.x` |
+| Visual Studio 2022 (17.8+), workload **.NET desktop development** | Không (tiện để debug) | [visualstudio.microsoft.com](https://visualstudio.microsoft.com/) | Mở được `Minditful.sln` |
+| VS Code + extension **C# Dev Kit** | Không (thay cho VS) | [code.visualstudio.com](https://code.visualstudio.com/) | — |
+| Microsoft Teams (desktop hoặc web) | Chỉ Sandbox/Prod | — | Cần đang mở thì mới có presence và DND |
+
+Cài xong .NET SDK, **mở lại** cửa sổ PowerShell/Terminal để nhận lệnh `dotnet`.
+
+### Bước 2. Lấy code và build
 
 ```powershell
-dotnet test                                                # 87 test (chạy được cả trên macOS/Linux)
-dotnet run --project src/Minditful.App                     # mở màn hình chọn môi trường
-dotnet run --project src/Minditful.App -- --env Demo       # vào thẳng Demo (không cần tài khoản)
-dotnet run --project src/Minditful.App -- --env Sandbox
-dotnet run --project src/Minditful.App -- --env Production
+git clone https://github.com/Killig3110/mindiful.git
+cd mindiful
+dotnet restore          # tải package NuGet (lần đầu ~1–2 phút)
+dotnet build            # phải ra: Build succeeded · 0 Warning(s) · 0 Error(s)
+dotnet test             # phải ra: Passed! - Failed: 0, Passed: 87
 ```
 
-Đóng gói 1 file exe: `dotnet publish src/Minditful.App -c Release -r win-x64 --self-contained -p:PublishSingleFile=true`.
+Cấu trúc thư mục sau khi clone:
 
-Ở màn hình chọn môi trường có ô "Nhớ lựa chọn". Muốn quay lại màn hình này thì giữ **Shift** khi mở app.
-Sandbox/Production chạy nền và có biểu tượng chóp đuôi ở khay hệ thống. Chuột phải vào biểu tượng để mở dashboard, bảng điều khiển, đăng nhập hoặc thoát.
+```
+mindiful/
+├─ .env.sample            ← mẫu biến môi trường (được commit)
+├─ Minditful.sln
+├─ docs/                  ← KIEN-TRUC.md, KET-NOI-SANDBOX.md, Kịch bản hành vi Milo.md
+├─ src/Minditful.Core/    ← bộ não (không phụ thuộc Windows)
+├─ src/Minditful.Integrations/  ← Graph, Azure DevOps, Claude, SQLite
+├─ src/Minditful.App/     ← app WPF + appsettings.json
+└─ tests/Minditful.Core.Tests/
+```
+
+### Bước 3. Tạo file `.env`
+
+```powershell
+Copy-Item .env.sample .env      # PowerShell  (cmd: copy .env.sample .env)
+notepad .env                    # hoặc mở bằng VS Code
+```
+
+- `.env` nằm ở **gốc repo**, cạnh `.env.sample`. Git đã bỏ qua file này (`.gitignore`), nên **không bao giờ commit** nó.
+- App tự tìm `.env` khi chạy bằng `dotnet run` từ repo.
+- Nếu chạy file exe đã đóng gói: đặt `.env` cạnh `Minditful.exe`, hoặc ở `%LOCALAPPDATA%\Minditful\.env`.
+- Dòng để trống = dùng giá trị mặc định trong `src/Minditful.App/appsettings.json`. Vì vậy chỉ cần điền những dòng liên quan tới môi trường bạn dùng.
+
+**Cần điền gì cho từng môi trường:**
+
+| Môi trường | Điền trong `.env` | Ghi chú |
+| --- | --- | --- |
+| **Demo** | *Không cần gì* | Chạy được ngay, không cần mạng |
+| **Sandbox** | `MINDITFUL_SANDBOX_ADO_PAT=<PAT>` | TenantId, ClientId, org `mindiful-sandbox`, project, team **đã có sẵn** trong appsettings.json. PAT do **thulu@** tạo ở `https://dev.azure.com/mindiful-sandbox` → *User settings → Personal access tokens*, scope *Work Items (Read & write)* + *Project and Team (Read)*. Chi tiết: [docs/KET-NOI-SANDBOX.md](docs/KET-NOI-SANDBOX.md) |
+| **Production** | `MINDITFUL__Minditful__Production__AzureDevOps__Organization=…`<br>`…__Project=…` · `…__Team=…`<br>`MINDITFUL_PROD_ADO_PAT=<PAT>` | TenantId/ClientId Bosch đã có trong appsettings.json; IT cần duyệt quyền (xem mục *Production* bên dưới) |
+| Tuỳ chọn · Claude | `ANTHROPIC_API_KEY=sk-ant-…` rồi bật từng tính năng `…Llm__Features__Mood=Hybrid`, `…Features__Meetings=Llm` | Không có key thì app dùng luật + câu mẫu, vẫn chạy đủ |
+| Tuỳ chọn · mở thẳng môi trường | `MINDITFUL_ENV=Scenario` / `Sandbox` / `Prod` | Để trống = hiện màn hình chọn |
+| Tuỳ chọn · lưu trữ | `…Storage__RetentionPeriod=Week` hoặc `Month` | Mặc định tự xoá dữ liệu cá nhân theo tuần |
+
+Ví dụ `.env` tối thiểu để chạy Sandbox:
+
+```ini
+MINDITFUL_SANDBOX_ADO_PAT=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+PAT và API key cũng có thể dán vào ô **Lưu PAT / Lưu key** trong Bảng điều khiển khi app đang chạy. Khi đó chúng được lưu mã hoá DPAPI trên máy, không cần ghi vào `.env`.
+
+### Bước 4. Chạy
+
+**Dòng lệnh** (từ thư mục gốc repo):
+
+```powershell
+dotnet run --project src/Minditful.App                       # màn hình chọn môi trường
+dotnet run --project src/Minditful.App -- --env Scenario     # Demo
+dotnet run --project src/Minditful.App -- --env Sandbox
+dotnet run --project src/Minditful.App -- --env Prod
+```
+
+**Visual Studio:** mở `Minditful.sln` → chọn startup project **Minditful.App** → chọn launch profile ở thanh công cụ: `Scenario (Demo)`, `Sandbox`, `Prod`, hoặc `Chọn môi trường` → F5.
+
+**File exe để gửi người khác** (không cần cài .NET):
+
+```powershell
+dotnet publish src/Minditful.App -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
+# kết quả: src/Minditful.App/bin/Release/net8.0-windows10.0.19041.0/win-x64/publish/Minditful.exe (+ appsettings.json)
+```
+
+Gửi kèm `appsettings.json`. Người nhận tự tạo `.env` của họ cạnh file exe; **không gửi `.env` của bạn**, vì trong đó có PAT/API key.
+
+**Lần đầu chạy Sandbox/Prod:**
+- Trình duyệt mở trang đăng nhập Microsoft. Chọn đúng tài khoản: Sandbox là **thulu@mindiful.onmicrosoft.com**, Prod là tài khoản Bosch.
+- Bảng điều khiển phải hiện *Đã đăng nhập …* và Azure Boards *N work item đang làm*.
+- Những lần sau app đăng nhập im lặng, không hỏi lại.
+
+Khi chạy, Milo ở **góc phải dưới màn hình** và có biểu tượng chóp đuôi ở **khay hệ thống**; chuột phải vào biểu tượng để mở menu, *Thoát Milo* để tắt. Nếu lần trước đã tick "Nhớ lựa chọn", giữ **Shift** khi mở app để chọn lại môi trường.
+
+### Bước 5. Cập nhật code mới
+
+```powershell
+git pull
+dotnet build
+dotnet test
+```
+
+`.env` và dữ liệu local (`%LOCALAPPDATA%\Minditful`) không bị ảnh hưởng. Khi `.env.sample` có dòng mới, chép những dòng đó sang `.env`.
+
+### Lỗi hay gặp khi cài
+
+| Hiện tượng | Nguyên nhân | Cách sửa |
+| --- | --- | --- |
+| `'dotnet' is not recognized` | Chưa cài SDK hoặc chưa mở lại terminal | Cài .NET 8 SDK, mở terminal mới |
+| `NETSDK1045` / không tìm thấy SDK 8 | Chỉ có runtime, hoặc SDK cũ | Cài **SDK** 8.0 (không phải Runtime) |
+| `dotnet restore` báo lỗi mạng / 407 trên mạng Bosch | Proxy công ty chặn nuget.org | Đặt `HTTPS_PROXY` hoặc cấu hình proxy trong `%APPDATA%\NuGet\NuGet.Config`, hoặc restore ngoài mạng công ty |
+| App không mở trên macOS/Linux | WPF chỉ chạy trên Windows | Dùng máy Windows; trên Mac chỉ chạy được `dotnet build` và `dotnet test` |
+| Chạy exe bị Windows SmartScreen chặn | Exe chưa ký số | *More info → Run anyway*; bản phát hành chính thức nên ký số |
+| Sandbox báo "Chưa kết nối Azure Boards (chưa có PAT)" | `.env` thiếu PAT hoặc đặt sai chỗ | Kiểm tra `.env` ở gốc repo (hoặc cạnh exe), đúng tên `MINDITFUL_SANDBOX_ADO_PAT` |
+| Đăng nhập báo lỗi AADSTS… | Cấu hình app registration | Bảng điều khiển ghi lý do bằng tiếng Việt; xem [KET-NOI-SANDBOX.md](docs/KET-NOI-SANDBOX.md) mục 8 |
 
 ## Hướng dẫn test 3 môi trường (dành cho người mới và khi present)
 
 > Tài liệu kiến trúc chi tiết (flow, sequence, dữ liệu, API): **[docs/KIEN-TRUC.md](docs/KIEN-TRUC.md)**.
 > Kết nối tenant sandbox: **[docs/KET-NOI-SANDBOX.md](docs/KET-NOI-SANDBOX.md)**. Hành vi gốc của Milo: **[docs/Kịch bản hành vi Milo.md](docs/Kịch%20bản%20hành%20vi%20Milo.md)**.
 
-### 0. Chuẩn bị (làm 1 lần)
+### 0. Chuẩn bị
 
-| Bước | Lệnh / thao tác | Kết quả mong đợi |
-| --- | --- | --- |
-| 1 | Cài Windows 10 1809+ hoặc 11, [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) | `dotnet --version` in ra 8.x |
-| 2 | `git clone` repo, rồi `copy .env.sample .env` | Có file `.env` (không commit) |
-| 3 | `dotnet test` | `Passed! … 87` |
-| 4 | `dotnet run --project src/Minditful.App` | Hiện màn hình **Chạy Milo ở môi trường nào?** với 3 thẻ |
+Làm xong mục **[Cài đặt từ đầu](#cài-đặt-từ-đầu)** ở trên: `dotnet test` ra `Passed! … 87`, và `.env` đã điền cho môi trường cần test.
 
 Mở thẳng một môi trường: `--env Scenario` (= Demo), `--env Sandbox`, `--env Prod`. Nếu đã tick "Nhớ lựa chọn", **giữ Shift** khi mở app để hiện lại màn hình chọn.
 
