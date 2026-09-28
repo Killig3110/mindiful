@@ -87,6 +87,15 @@ internal static class DashboardRenderer
             if (m.Next is { } n) Add(Row(n));
             Add(Link("Xem cả tuần →", () => onAct("week")));
         }
+        if (m.Insight is { } ins)
+        {
+            var box = new Border
+            {
+                Background = Br("#EFE7FA"), CornerRadius = new CornerRadius(10), Padding = new Thickness(10, 7, 10, 7),
+                Child = Text(ins, 12, "#3B2E66"),
+            };
+            Add(box, 8);
+        }
         if (m.StatusNote is { } note)
         {
             var t = Text(note, 11, "#9C8672");
@@ -119,10 +128,24 @@ internal static class DashboardRenderer
         name.VerticalAlignment = VerticalAlignment.Center;
         var time = Text(r.Time, 12, "#5B4A3C", wrap: false);
         time.VerticalAlignment = VerticalAlignment.Center;
+        // Mức nặng cuộc họp 1–5 (luật hoặc Claude); rê chuột để xem nhận xét
+        FrameworkElement load = new Border();
+        if (r.Load is { } l)
+        {
+            var dots = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(6, 0, 0, 0) };
+            for (var i = 1; i <= 5; i++)
+            {
+                var d = Dot(l >= 4 ? "#D1495B" : l == 3 ? "#E8A33D" : "#7FA65A", 6);
+                d.Opacity = i <= l ? 1 : .2;
+                d.Margin = new Thickness(0, 0, 2, 0);
+                dots.Children.Add(d);
+            }
+            load = dots;
+        }
         return new Border
         {
-            Background = Brushes.White, CornerRadius = new CornerRadius(10), Padding = new Thickness(9, 6, 9, 6),
-            Child = Columns((time, Px(48)), (name, Star), (tag, Auto)),
+            Background = Brushes.White, CornerRadius = new CornerRadius(10), Padding = new Thickness(9, 6, 9, 6), ToolTip = r.Note,
+            Child = Columns((time, Px(48)), (name, Star), (load, Auto), (tag, Auto)),
         };
     }
 

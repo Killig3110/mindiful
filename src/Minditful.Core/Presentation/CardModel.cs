@@ -30,11 +30,12 @@ public sealed record CardModel(CardVariant Variant, IReadOnlyList<CardBlock> Blo
     public static readonly CardModel Empty = new(CardVariant.None, []);
 }
 
-public sealed record DashRow(string Time, string Name, string Tag, string TagBg, string TagFg);
+/// <summary>Dòng lịch trong dashboard. <see cref="Load"/> = mức nặng 1–5 của cuộc họp (đánh giá bằng luật hoặc Claude).</summary>
+public sealed record DashRow(string Time, string Name, string Tag, string TagBg, string TagFg, int? Load = null, string? Note = null);
 
 public sealed record DashboardModel(
     DashPage Page, int Score, string Phrase, string YesterdayLine, IReadOnlyList<DayScore> Days,
     IReadOnlyList<(string Big, string Small)> Tiles, DashRow? Next,
-    (int F, int E, int S) Vibe, SprintInfo? Sprint, IReadOnlyList<DashRow> Events, string? StatusNote);
+    (int F, int E, int S) Vibe, SprintInfo? Sprint, IReadOnlyList<DashRow> Events, string? StatusNote, string? Insight = null);
 
 public sealed record Caption(string Tag, string Text, string Ref);

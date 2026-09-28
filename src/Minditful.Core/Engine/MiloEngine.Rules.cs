@@ -173,6 +173,7 @@ public sealed partial class MiloEngine
             else S.OffActive = 0;
         }
         if (!(S.OffDuty && S.Locked)) ComputeMood();
+        MaybeAskMood();
         if (S.DayStarted)
         {
             S.Live = [];

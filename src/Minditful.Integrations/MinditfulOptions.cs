@@ -1,3 +1,5 @@
+using Minditful.Core.Engine;
+
 namespace Minditful.Integrations;
 
 public enum AppEnvironment
@@ -160,4 +162,26 @@ public sealed class LlmOptions
     public string ApiKeyEnvVar { get; set; } = "ANTHROPIC_API_KEY";
     /// <summary>Server-side fallback khi model từ chối (beta server-side-fallback-2026-07-01).</summary>
     public bool RefusalFallback { get; set; } = true;
+    /// <summary>Đánh giá mood/cuộc họp chạy nền nên được chờ lâu hơn câu thoại.</summary>
+    public int InsightTimeoutMs { get; set; } = 20000;
+    public LlmFeatures Features { get; set; } = new();
+}
+
+/// <summary>Bật/tắt từng tính năng LLM. Không có API key thì mọi thứ tự về luật.</summary>
+public sealed class LlmFeatures
+{
+    /// <summary>Claude viết câu chính của thẻ nhắc.</summary>
+    public bool Lines { get; set; } = true;
+    /// <summary>Claude trả lời chat tự do khi từ khoá không khớp.</summary>
+    public bool Chat { get; set; } = true;
+    /// <summary>Rules | Hybrid | Llm — xem MoodMode.</summary>
+    public string Mood { get; set; } = "Rules";
+    /// <summary>Rules | Llm — đánh giá mức nặng từng cuộc họp.</summary>
+    public string Meetings { get; set; } = "Rules";
+    public int MoodIntervalMinutes { get; set; } = 30;
+    /// <summary>Gửi kèm câu người dùng tự gõ cho Milo để Claude đọc cảm xúc (mặc định tắt).</summary>
+    public bool IncludeChatInMood { get; set; }
+
+    public MoodMode MoodMode => Enum.TryParse<MoodMode>(Mood, true, out var m) ? m : MoodMode.Rules;
+    public MeetingMode MeetingMode => Enum.TryParse<MeetingMode>(Meetings, true, out var m) ? m : MeetingMode.Rules;
 }

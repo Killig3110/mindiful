@@ -45,6 +45,7 @@ public sealed partial class MiloEngine
         Script = script;
         Day = day ?? DateOnly.FromDateTime(DateTime.Now);
         S = NewState(startT ?? cfg.DayOpen);
+        AssessMeetings();
     }
 
     private DayState NewState(double t0)
@@ -66,6 +67,7 @@ public sealed partial class MiloEngine
         var auto = S.Auto;
         S = NewState(t0);
         S.Auto = auto;
+        AssessMeetings();
     }
 
     /// <summary>Dữ liệu Graph/Azure DevOps vừa làm mới. Giữ lại cờ đã xử lý của email/task.</summary>
@@ -75,6 +77,7 @@ public sealed partial class MiloEngine
         foreach (var e in S.Emails.Where(e => e.Handled)) S.HandledMail.Add(e.Id);
         S.Emails = snap.Emails.Select(CloneMail).ToList();
         foreach (var e in S.Emails) e.Handled = S.HandledMail.Contains(e.Id);
+        AssessMeetings();
         var done = S.Tasks.Where(x => x.Done).Select(x => x.Id).ToHashSet();
         S.Tasks = snap.Tasks.Select(CloneTask).ToList();
         foreach (var x in S.Tasks) x.Done = done.Contains(x.Id);
@@ -230,9 +233,18 @@ public sealed partial class MiloEngine
         p["stress"] = S.Stress;
         var bonus = Math.Min(12, S.AcceptedBreaks * 3) + Math.Min(6, S.TasksDone * 2) + Math.Min(8, S.FocusDone * 4) + Math.Min(3, S.ExtraBonus);
         var sum = p.Values.Sum();
+        S.RuleScore = (int)Tm.Clamp(Tm.JsRound(92 - sum + bonus), 0, 100);
+        var insight = Cfg.MoodMode == MoodMode.Rules ? null : FreshInsight();
+        if (insight is not null && Cfg.MoodMode == MoodMode.Hybrid && insight.Adjust != 0)
+        {
+            p["llm"] = -Math.Clamp(insight.Adjust, -10, 10); // Claude chỉnh tối đa ±10 điểm
+            sum = p.Values.Sum();
+        }
         S.Pen = p;
         S.Bonus = bonus;
-        S.Score = (int)Tm.Clamp(Tm.JsRound(92 - sum + bonus), 0, 100);
+        S.Score = insight is { Score: { } llmScore } && Cfg.MoodMode == MoodMode.Llm
+            ? Math.Clamp(llmScore, 0, 100)
+            : (int)Tm.Clamp(Tm.JsRound(92 - sum + bonus), 0, 100);
 
         int[] min = [80, 60, 40, 0];
         int i = S.BandIdx, before = i;
@@ -252,6 +264,8 @@ public sealed partial class MiloEngine
             (int)Tm.Clamp(Tm.JsRound(5 * Math.Min(1, focusLen / 90) * (sw > 4 ? Math.Max(0, 1 - (sw - 4) / 12.0) : 1)), 0, 5),
             (int)Tm.Clamp(Tm.JsRound(S.Score / 20.0), 0, 5),
             (int)Tm.Clamp(Tm.JsRound((p["meet"] + p["chain"] + p["ot"] + p["work"] + p["stuck"] + p["email"] + p["rest"] + p["stress"]) / 40 * 5), 0, 5));
+        if (insight is not null)
+            S.Vibe = (Math.Clamp(insight.Focus ?? S.Vibe.F, 0, 5), Math.Clamp(insight.Energy ?? S.Vibe.E, 0, 5), Math.Clamp(insight.Stress ?? S.Vibe.S, 0, 5));
     }
 
     public DayRecord BuildDayRecord() => new(Day, S.Score, MeetingMin(), S.AcceptedBreaks, S.FocusMinDone, S.TasksDone, S.OtMin,

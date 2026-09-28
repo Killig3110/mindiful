@@ -34,10 +34,10 @@ internal sealed class DemoSession : IMiloSession
         {
             var key = new SecretStore(AppEnvironment.Demo, "claude-api-key");
             var writer = new ClaudeLineWriter(opt.Llm, () => key.Read() ?? Environment.GetEnvironmentVariable(opt.Llm.ApiKeyEnvVar));
-            LlmBridge.Attach(Engine, writer, Application.Current.Dispatcher);
-            LlmStatus = writer.Available ? $"Câu thoại: Claude {opt.Llm.Model}" : "Câu thoại: câu mẫu (chưa có API key Claude)";
+            LlmBridge.Attach(Engine, writer, Application.Current.Dispatcher, opt.Llm.Features);
+            LlmStatus = "Lớp 2: " + LlmBridge.ApplyModes(Engine, writer, opt.Llm);
         }
-        else LlmStatus = "Câu thoại: câu mẫu như prototype";
+        else LlmStatus = "Lớp 2 tắt trong Demo (Llm.UseInDemo = false): câu mẫu, mood và đánh giá cuộc họp theo luật — giống prototype.";
     }
 
     public void Pump(double realDt)

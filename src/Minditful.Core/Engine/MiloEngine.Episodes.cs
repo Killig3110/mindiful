@@ -623,6 +623,7 @@ public sealed partial class MiloEngine
         var ep = S.Ep!;
         text = (text ?? "").Trim();
         if (text.Length == 0) return;
+        S.ChatHistory.Add(text);
         var it = Intents.FirstOrDefault(i => i.Re.IsMatch(text));
         var askLlm = it is null && ChatWanted is not null && !S.Instant;
         ep.Chat.Add(new ChatLine(text, it?.Say ?? (askLlm ? Lines.ChatThinking : Lines.ChatFallback)));

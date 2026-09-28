@@ -308,8 +308,8 @@ public static class Present
             (tasks, "đang làm"),
         };
         var next = n is null ? null : new DashRow(Hm(n.Start), n.Subject, $"còn {JsRound((n.Start - s.T) / 60)} phút", "#EFE3D0", "#5B4A3C");
-        var events = e.Meetings.Select(x => (x.Start, x.Subject, Tag: x.Role))
-            .Concat(s.Holds.Select(h => (h.Start, h.Label, Tag: h.Kind == "focus" ? "Tập trung" : "Nghỉ")))
+        var events = e.Meetings.Select(x => (x.Start, x.Subject, Tag: x.Role, A: e.Assessment(x.Id)))
+            .Concat(s.Holds.Select(h => (h.Start, h.Label, Tag: h.Kind == "focus" ? "Tập trung" : "Nghỉ", A: (MeetingAssessment?)null)))
             .OrderBy(x => x.Start)
             .Select(x =>
             {
@@ -321,9 +321,11 @@ public static class Present
                     "Tập trung" => ("#DDEBF7", "#0B4F8A"),
                     _ => ("#ECE6DB", "#5B4A3C"),
                 };
-                return new DashRow(Hm(x.Start), x.Item2, x.Tag, bg, fg);
+                return new DashRow(Hm(x.Start), x.Item2, x.Tag, bg, fg, x.A?.Load,
+                    x.A is { } a ? $"{a.Kind} · nặng {a.Load}/5 · nên nghỉ {a.RecoveryMin}' sau đó · {a.Note} ({a.Source})" : null);
             }).ToList();
-        return new DashboardModel(ep.Page, s.Score, BandPhrase(s.BandIdx), yLine, days, tiles, next, s.Vibe, e.Snap.Sprint, events, e.Snap.StatusNote);
+        var insight = e.Cfg.MoodMode != MoodMode.Rules && s.MoodInsight is { } mi ? $"Milo nhận xét: {mi.Insight}" : null;
+        return new DashboardModel(ep.Page, s.Score, BandPhrase(s.BandIdx), yLine, days, tiles, next, s.Vibe, e.Snap.Sprint, events, e.Snap.StatusNote, insight);
     }
 
     public static string BandPhrase(int idx) =>
@@ -348,6 +350,6 @@ public static class Present
     public static readonly IReadOnlyDictionary<string, string> PenaltyLabels = new Dictionary<string, string>
     {
         ["meet"] = "Họp", ["chain"] = "Chuỗi họp", ["streak"] = "Làm liền", ["ot"] = "Quá giờ", ["rest"] = "Thiếu nghỉ",
-        ["frag"] = "Phân mảnh", ["work"] = "Workload", ["stuck"] = "Task kẹt", ["email"] = "Email chờ", ["stress"] = "Giả lập",
+        ["frag"] = "Phân mảnh", ["work"] = "Workload", ["stuck"] = "Task kẹt", ["email"] = "Email chờ", ["stress"] = "Giả lập", ["llm"] = "Claude",
     };
 }

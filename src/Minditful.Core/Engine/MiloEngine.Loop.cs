@@ -268,6 +268,7 @@ public sealed partial class MiloEngine
             Tick();
         }
         S.Instant = false;
+        AssessMeetings();
         if (S.Ep is { } ep)
         {
             ep.PhaseEnd = Math.Max(ep.PhaseEnd, S.T);
@@ -281,6 +282,7 @@ public sealed partial class MiloEngine
         var auto = S.Auto;
         S = NewState(Cfg.DayOpen);
         S.Auto = auto;
+        AssessMeetings();
     }
 
     // ================= API cho UI & tín hiệu thật =================

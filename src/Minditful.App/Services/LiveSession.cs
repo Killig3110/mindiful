@@ -109,7 +109,8 @@ internal sealed class LiveSession : IMiloSession
         Engine.SetAuto(false);
         Engine.ActionRequested += a => _ = Sink.HandleAsync(a);
         Engine.OutcomeRecorded += (c, o) => Outcomes.Append(new OutcomeEvent(Engine.Day, Engine.S.T, c, o, Engine.S.Score));
-        LlmBridge.Attach(Engine, Writer, Application.Current.Dispatcher);
+        LlmBridge.Attach(Engine, Writer, Application.Current.Dispatcher, opt.Llm.Features);
+        LlmBridge.ApplyModes(Engine, Writer, opt.Llm);
         ApplyTuning();
         if (ov is not null) Engine.LogExternal("Ngưỡng rút gọn cho Sandbox: " + ov.Describe(), LogKind.Sig);
 
@@ -188,13 +189,16 @@ internal sealed class LiveSession : IMiloSession
     }
 
     public string LlmStatus =>
-        !Llm.Enabled ? "Đã tắt trong appsettings.json (Llm.Enabled) → dùng câu mẫu"
-        : !Writer.Available ? $"Chưa có API key (nhập bên dưới hoặc đặt biến {Llm.ApiKeyEnvVar}) → dùng câu mẫu"
-        : $"Đang dùng {Llm.Model} · effort {Llm.Effort} · timeout {Llm.TimeoutMs} ms" + (Writer.LastError is { } e ? " · lần gần nhất: " + e : "");
+        (!Llm.Enabled ? "Đã tắt (Llm.Enabled = false)."
+            : !Writer.Available ? $"Chưa có API key (nhập bên dưới hoặc đặt {Llm.ApiKeyEnvVar} trong .env)."
+            : $"Đang dùng {Llm.Model} · effort {Llm.Effort}.")
+        + "\n" + LlmBridge.Describe(Engine, Llm, Llm.Enabled && Writer.Available)
+        + (Writer.LastError is { } e ? "\nLần gọi gần nhất: " + e : "");
 
     public void SaveClaudeKey(string? key)
     {
         _claudeKey.Write(key);
+        LlmBridge.ApplyModes(Engine, Writer, Llm); // có key rồi thì bật ngay các chế độ Claude đã cấu hình
         Changed?.Invoke();
     }
 

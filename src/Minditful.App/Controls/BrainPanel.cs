@@ -25,6 +25,7 @@ public sealed class BrainPanel : Border
     private readonly Border _bandBox;
     private readonly WrapPanel _pen = new();
     private readonly Grid _signals = new();
+    private readonly System.Windows.Controls.TextBlock _moodSource = new() { FontSize = 11.5, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 6, 0, 0) };
     private readonly StackPanel _log = new();
     private string? _logKey, _stateKey;
 
@@ -45,7 +46,7 @@ public sealed class BrainPanel : Border
         _signals.ColumnDefinitions.Add(new ColumnDefinition { Width = Star });
         _signals.ColumnDefinitions.Add(new ColumnDefinition { Width = Auto });
         _pen.Margin = new Thickness(0, 8, 0, 8);
-        Section(root, "MOOD ENGINE (MỤC 11)", new StackPanel { Children = { new StackPanel { Orientation = Orientation.Horizontal, Children = { _score, _bandBox } }, _pen, _signals } });
+        Section(root, "MOOD ENGINE (MỤC 11)", new StackPanel { Children = { new StackPanel { Orientation = Orientation.Horizontal, Children = { _score, _bandBox } }, _moodSource, _pen, _signals } });
         Section(root, "NHẬT KÝ QUYẾT ĐỊNH", _log);
 
         Child = new ScrollViewer { Style = (Style)Application.Current.FindResource("ThinScroll"), Content = root };
@@ -114,6 +115,13 @@ public sealed class BrainPanel : Border
         _band.Foreground = Br(band.Fg);
         _bandBox.Background = Br(band.Bg);
 
+        _moodSource.Foreground = Br("#C5B7EC");
+        _moodSource.Text = e.Cfg.MoodMode switch
+        {
+            MoodMode.Rules => "Nguồn: luật",
+            _ when s.MoodInsight is { } mi => $"Nguồn: {(e.Cfg.MoodMode == MoodMode.Hybrid ? $"luật {s.RuleScore} + Claude {mi.Adjust:+#;-#;0}" : $"Claude (luật {s.RuleScore})")} · {mi.Label}\n“{mi.Insight}”",
+            _ => $"Nguồn: luật {s.RuleScore} (đang chờ Claude đánh giá)",
+        };
         _pen.Children.Clear();
         foreach (var (k, v) in s.Pen)
             if (v >= .5) _pen.Children.Add(PenChip($"{Present.PenaltyLabels[k]} −{Tm.JsRound(v)}", false));

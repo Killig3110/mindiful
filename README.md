@@ -16,7 +16,7 @@ Cả **3 môi trường đều là cùng một app**: Milo sống trên desktop 
 Yêu cầu: Windows 10 1809+ / Windows 11, [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) (hoặc Visual Studio 2022 17.8+).
 
 ```powershell
-dotnet test                                                # 64 test (chạy được cả trên macOS/Linux)
+dotnet test                                                # 81 test (chạy được cả trên macOS/Linux)
 dotnet run --project src/Minditful.App                     # mở màn hình chọn môi trường
 dotnet run --project src/Minditful.App -- --env Demo       # vào thẳng Demo (không cần tài khoản)
 dotnet run --project src/Minditful.App -- --env Sandbox
@@ -144,6 +144,33 @@ Khi một case vào hàng đợi, Milo gọi Claude ngay lúc đó để viết 
   - Bật sẵn *server-side refusal fallback* (`fallbacks: "default"`). Tắt bằng `RefusalFallback: false`.
 - **API key:** đặt `ANTHROPIC_API_KEY` trong `.env`, hoặc nhập trong Bảng điều khiển (lưu mã hoá DPAPI).
 - **Demo:** mặc định dùng câu mẫu để giống prototype từng chữ. Đặt `Llm.UseInDemo: true` để bật Claude trong Demo.
+
+### Đánh giá cảm xúc và đánh giá cuộc họp: 2 hướng, luật hoặc Claude
+
+| Tính năng | `Rules` (mặc định, không cần key) | Claude |
+| --- | --- | --- |
+| **Mood** (`Features.Mood`) | Mood Engine theo §11 | `Hybrid`: luật làm nền, Claude chỉnh **±10 điểm** và viết 1 câu nhận xét. `Llm`: Claude chấm điểm 0–100, quá 2 chu kỳ không có nhận xét mới thì về điểm luật. Cả hai đều đặt lại 3 chỉ số Office Vibe (Tập trung / Năng lượng / Căng thẳng) |
+| **Cuộc họp** (`Features.Meetings`) | Mức nặng 1–5 tính từ độ dài, số người, trình bày, vị trí trong chuỗi, ngoài giờ/đè trưa | `Llm`: Claude đánh giá mức nặng, loại họp và số phút nên nghỉ sau đó |
+
+- **Claude nhận gì:** Mood chỉ nhận số liệu cả ngày (điểm luật, phút họp, làm liền, nghỉ, quá giờ, task, email…). Cuộc họp chỉ nhận độ dài, số người, vai trò, vị trí trong chuỗi. **Không bao giờ gửi tiêu đề**, có test kiểm tra. `IncludeChatInMood: true` thì gửi kèm tối đa 5 câu bạn tự gõ cho Milo để Claude đọc cảm xúc; mặc định tắt.
+- **Kết quả hiện ở đâu:**
+  - Mức nặng cuộc họp là 5 chấm trong dashboard (tab *Tuần này*); rê chuột vào dòng để xem nhận xét.
+  - Câu nhận xét mood nằm ở tab *Hôm nay*.
+  - Bảng Bộ não ghi rõ nguồn điểm, ví dụ "luật 72 + Claude −4".
+- **Cách gọi Claude:** dùng structured output (JSON theo schema), timeout riêng `InsightTimeoutMs` (mặc định 20 giây) vì chạy nền. Mood hỏi mỗi `MoodIntervalMinutes` phút (mặc định 30).
+
+**Bật tắt** trong `.env` (hoặc mục `Llm` của appsettings.json):
+
+```ini
+ANTHROPIC_API_KEY=sk-ant-...
+MINDITFUL__Minditful__Llm__Features__Mood=Hybrid      # Rules | Hybrid | Llm
+MINDITFUL__Minditful__Llm__Features__Meetings=Llm     # Rules | Llm
+MINDITFUL__Minditful__Llm__Features__Lines=true       # câu thoại
+MINDITFUL__Minditful__Llm__Features__Chat=true        # chat tự do
+MINDITFUL__Minditful__Llm__Enabled=false              # công tắc tổng
+```
+
+Chưa có key, hoặc `Enabled=false`, thì mọi tính năng tự chạy bằng luật và câu mẫu. Nhập key trong Bảng điều khiển thì các chế độ Claude bật ngay, không cần mở lại app.
 
 ## Clip hoạt ảnh (§12)
 

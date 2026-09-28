@@ -61,4 +61,10 @@ public sealed class DayState
     /// <summary>Case do Sandbox ép vào hàng đợi: không bị bỏ khi điều kiện không đúng.</summary>
     public readonly HashSet<CaseId> Forced = [];
     public readonly Dictionary<CaseId, int> VariantCounter = [];
+    public readonly Dictionary<string, MeetingAssessment> Assessments = [];
+    public MoodInsight? MoodInsight;
+    public double LastMoodAsk = -1e9;
+    public readonly List<string> ChatHistory = [];
+    /// <summary>Điểm Mood Engine theo luật, trước khi Claude chỉnh.</summary>
+    public int RuleScore = 92;
 }

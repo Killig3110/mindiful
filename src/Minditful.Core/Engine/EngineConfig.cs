@@ -35,6 +35,14 @@ public sealed class EngineConfig
     /// <summary>Ghé ngang mỗi 30–60 phút (spec §9.3).</summary>
     public double VisitMinMinutes { get; init; } = 30;
     public double VisitMaxMinutes { get; init; } = 60;
+
+    // ---- Lớp 2 (LLM). Host hạ về Rules khi không có API key. ----
+    public MoodMode MoodMode { get; set; } = MoodMode.Rules;
+    public MeetingMode MeetingMode { get; set; } = MeetingMode.Rules;
+    /// <summary>Bao lâu hỏi Claude về mood 1 lần (Hybrid/Llm).</summary>
+    public double MoodIntervalMinutes { get; set; } = 30;
+    /// <summary>Gửi kèm tối đa 5 câu người dùng tự gõ cho Milo hôm nay để Claude đọc cảm xúc (mặc định tắt).</summary>
+    public bool IncludeChatInMood { get; set; }
 }
 
 /// <summary>Hành động Milo cần làm ra thế giới thật (Teams, Outlook, Azure Boards). Demo chỉ ghi log.</summary>
