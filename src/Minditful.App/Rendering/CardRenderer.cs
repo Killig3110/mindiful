@@ -97,7 +97,7 @@ internal sealed class CardRenderer(Action<string, string?> onAct)
         };
         var pill = Pill(t.Pill, t.Bg, t.Fg, icon: icon);
         FrameworkElement right = t.Stamp
-            ? new Border { Background = Br("#7FA65A"), CornerRadius = new CornerRadius(999), Padding = new Thickness(10, 3, 10, 3), Child = Text("Đã giữ", 11, "#FFFFFF", FontWeights.Bold, false) }
+            ? new Border { Background = Br("#7FA65A"), CornerRadius = new CornerRadius(6), Padding = new Thickness(10, 3, 10, 3), Child = Text("Đã giữ", 11, "#FFFFFF", FontWeights.Bold, false) }
             : Text(t.Meta ?? "", 11.5, "#9C8672", wrap: false);
         right.HorizontalAlignment = HorizontalAlignment.Right;
         right.VerticalAlignment = VerticalAlignment.Center;

@@ -42,7 +42,7 @@ public sealed class BrainPanel : Border
 
         _score = new System.Windows.Controls.TextBlock { FontFamily = Serif, FontSize = 40, Foreground = Br("#FBF3E7"), VerticalAlignment = VerticalAlignment.Center };
         _band = new System.Windows.Controls.TextBlock { FontSize = 11.5, FontWeight = FontWeights.Bold };
-        _bandBox = new Border { CornerRadius = new CornerRadius(999), Padding = new Thickness(9, 3, 9, 3), Margin = new Thickness(10, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center, Child = _band };
+        _bandBox = new Border { CornerRadius = new CornerRadius(6), Padding = new Thickness(9, 3, 9, 3), Margin = new Thickness(10, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center, Child = _band };
         _signals.ColumnDefinitions.Add(new ColumnDefinition { Width = Star });
         _signals.ColumnDefinitions.Add(new ColumnDefinition { Width = Auto });
         _pen.Margin = new Thickness(0, 8, 0, 8);
@@ -66,7 +66,7 @@ public sealed class BrainPanel : Border
 
     private static Border Chip(string text, bool on, bool soft = false) => new()
     {
-        CornerRadius = new CornerRadius(soft ? 999 : 9), Margin = new Thickness(0, 0, 5, 5), Padding = soft ? new Thickness(9, 3, 9, 3) : new Thickness(7, 6, 7, 6),
+        CornerRadius = new CornerRadius(soft ? 6 : 8), Margin = new Thickness(0, 0, 5, 5), Padding = soft ? new Thickness(9, 3, 9, 3) : new Thickness(7, 6, 7, 6),
         Background = on ? Br("#E8A33D") : soft ? Brushes.Transparent : Br("#3A2D23"),
         BorderBrush = soft ? (on ? Br("#E8A33D") : Br("#4A3A2E")) : null, BorderThickness = new Thickness(soft ? 1 : 0),
         Child = new System.Windows.Controls.TextBlock

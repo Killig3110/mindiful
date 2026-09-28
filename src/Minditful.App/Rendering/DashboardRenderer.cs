@@ -38,14 +38,22 @@ internal static class DashboardRenderer
             for (var i = 0; i < m.Days.Count; i++)
             {
                 var w = m.Days[i];
-                var size = 24 + w.Score / 100.0 * 18;
+                var ghost = w.Score < 0;
+                var size = ghost ? 24 : 24 + w.Score / 100.0 * 18;
                 var col = new StackPanel { VerticalAlignment = VerticalAlignment.Bottom };
-                var grape = new Border
-                {
-                    Width = size, Height = size, CornerRadius = new CornerRadius(size / 2), Background = GrapeBrush(w.Score),
-                    BorderBrush = i == m.Days.Count - 1 ? Br("#F0A33D") : null, BorderThickness = new Thickness(i == m.Days.Count - 1 ? 3 : 0),
-                    Margin = new Thickness(0, 0, 0, 4), ToolTip = $"{w.Score} điểm",
-                };
+                FrameworkElement grape = ghost
+                    ? new System.Windows.Shapes.Ellipse
+                    {
+                        Width = size, Height = size, Fill = Br("#F4EEE6"), Stroke = Br("#CDBFAE"), StrokeThickness = 1.5,
+                        StrokeDashArray = [2, 2], Margin = new Thickness(0, 0, 0, 4), ToolTip = "Chưa có dữ liệu",
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                    }
+                    : new Border
+                    {
+                        Width = size, Height = size, CornerRadius = new CornerRadius(size / 2), Background = GrapeBrush(w.Score),
+                        BorderBrush = i == m.Days.Count - 1 ? Br("#F0A33D") : null, BorderThickness = new Thickness(i == m.Days.Count - 1 ? 3 : 0),
+                        Margin = new Thickness(0, 0, 0, 4), ToolTip = $"{w.Score} điểm",
+                    };
                 col.Children.Add(grape);
                 var lbl = Text(w.Label, 11, "#5B4A3C", wrap: false);
                 lbl.HorizontalAlignment = HorizontalAlignment.Center;
@@ -128,7 +136,7 @@ internal static class DashboardRenderer
 
     private static FrameworkElement Row(DashRow r)
     {
-        var tag = new Border { Background = Br(r.TagBg), CornerRadius = new CornerRadius(999), Padding = new Thickness(8, 2, 8, 2), Child = Text(r.Tag, 10.5, r.TagFg, FontWeights.Bold, false), Margin = new Thickness(8, 0, 0, 0) };
+        var tag = new Border { Background = Br(r.TagBg), CornerRadius = new CornerRadius(6), Padding = new Thickness(8, 2, 8, 2), Child = Text(r.Tag, 10.5, r.TagFg, FontWeights.Bold, false), Margin = new Thickness(8, 0, 0, 0) };
         var name = Text(r.Name, 12, "#3A2A1E", wrap: false);
         name.VerticalAlignment = VerticalAlignment.Center;
         var time = Text(r.Time, 12, "#5B4A3C", wrap: false);
@@ -186,6 +194,7 @@ internal sealed class GrapeCluster(IReadOnlyList<DayScore> days) : FrameworkElem
     private static readonly Pen Outline = Freeze(new Pen(Br("#2E1A10"), 3));
     private static readonly Pen Stem = Freeze(new Pen(Br("#5A3A22"), 5.5) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round });
     private static readonly Pen Ring = Freeze(new Pen(Br("#F0A33D"), 3.5) { DashStyle = new DashStyle([1.4, 1.4], 0) });
+    private static readonly Pen GhostPen = Freeze(new Pen(Br("#CDBFAE"), 2) { DashStyle = new DashStyle([2, 2], 0) });
 
     private static Pen Freeze(Pen p)
     {
@@ -205,6 +214,11 @@ internal sealed class GrapeCluster(IReadOnlyList<DayScore> days) : FrameworkElem
         for (var i = 0; i < past.Count; i++)
         {
             var p = Pos[i];
+            if (past[i].Score < 0)
+            {
+                dc.DrawEllipse(Br("#F4EEE6"), GhostPen, p, 18, 18); // ngày chưa có dữ liệu
+                continue;
+            }
             dc.DrawEllipse(DashboardRenderer.GrapeBrush(past[i].Score), Outline, p, 20, 20);
             DrawShine(dc, shine, new Point(p.X - 6, p.Y - 7), 5.5, 3.5);
         }
@@ -236,7 +250,7 @@ internal sealed class GrapeCluster(IReadOnlyList<DayScore> days) : FrameworkElem
         var past = days.Take(days.Count - 1).TakeLast(6).ToList();
         string? tip = null;
         for (var i = 0; i < past.Count; i++)
-            if ((Pos[i] - p).Length <= 20) tip = $"{past[i].Label}: {past[i].Score} điểm";
+            if ((Pos[i] - p).Length <= 20) tip = past[i].Score < 0 ? "Chưa có dữ liệu" : $"{past[i].Label}: {past[i].Score} điểm";
         if (days.Count > 0 && (new Point(100, 176) - p).Length <= 23) tip = $"Hôm nay: {days[^1].Score} điểm";
         ToolTip = tip;
     }

@@ -295,9 +295,11 @@ public static class Present
         if (s.Ep is not { C: CaseId.Dashboard, Card: true } ep) return null;
         var n = e.NextMeeting();
         var today = new DayScore("Nay", s.Score);
-        var days = e.Snap.Week.Concat([today]).ToList();
+        // Luôn đủ 7 vị trí để chùm nho giữ hình dạng; ngày chưa có dữ liệu là quả mờ (điểm -1)
+        var past = e.Snap.Week.TakeLast(6).ToList();
+        var days = Enumerable.Repeat(new DayScore("·", -1), 6 - past.Count).Concat(past).Append(today).ToList();
         var y = e.Snap.YesterdayScore;
-        var worst = e.Snap.Week.Count > 0 ? e.Snap.Week.MinBy(w => w.Score) : null;
+        var worst = past.Count > 0 ? past.MinBy(w => w.Score) : null;
         var yLine = (y is { } yy ? $"Hôm qua {yy}" : "Chưa có dữ liệu hôm qua") + (worst is { Score: < 40 } ? $" · quả vàng là {WeekdayName(worst.Label)} mệt" : "");
         var mail = e.Snap.MailAvailable ? $"{e.WaitingEmails().Count} email" : "— email";
         var tasks = e.Snap.BoardsAvailable ? $"{e.InProgress()} task" : "— task";

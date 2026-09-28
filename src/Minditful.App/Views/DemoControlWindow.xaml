@@ -41,7 +41,7 @@
                     <WrapPanel Margin="0,12,0,0">
                         <Button x:Name="PlayBtn" Style="{StaticResource Primary}" Content="Tạm dừng" Margin="0,0,6,6" Click="Play_Click" />
                         <Button Style="{StaticResource Round}" Content="Làm lại" Margin="0,0,6,6" Click="Reset_Click" />
-                        <Border Background="{StaticResource Panel2}" CornerRadius="999" Padding="3" Margin="0,0,0,6">
+                        <Border Background="{StaticResource Panel2}" CornerRadius="10" Padding="3" Margin="0,0,0,6">
                             <StackPanel x:Name="SpeedSeg" Orientation="Horizontal">
                                 <Button Style="{StaticResource Round}" Content="60×" Tag="60" MinHeight="26" Padding="10,0" Click="Speed_Click" />
                                 <Button Style="{StaticResource Round}" Content="120×" Tag="120" MinHeight="26" Padding="10,0" Click="Speed_Click" />

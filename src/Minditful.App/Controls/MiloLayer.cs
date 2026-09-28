@@ -31,6 +31,8 @@ public sealed class MiloLayer : Grid
     private readonly Button _miloHit, _tail, _dotPill;
     private readonly System.Windows.Shapes.Path _tailBody, _tailTip;
     private readonly ScaleTransform _tailFlip = new(1, 1, 17, 17);
+    private readonly Canvas _tailArt;
+    private readonly Ellipse _halo;
     private readonly TranslateTransform _tailDrag = new();
     private Point? _dragStart;
     private bool _dragging;
@@ -98,12 +100,13 @@ public sealed class MiloLayer : Grid
         _region = new Canvas { Width = RegionW, Height = RegionH, ClipToBounds = true, IsHitTestVisible = false, Children = { _milo } };
         Place(_region, 0, 0);
 
-        _miloHit = new Button { Width = 150, Height = 150, Style = (Style)Application.Current.FindResource("Bare"), ToolTip = "Bấm vào Milo" };
+        _miloHit = new Button { Width = 150, Height = 150, Style = (Style)Application.Current.FindResource("Bare") };
+        System.Windows.Automation.AutomationProperties.SetName(_miloHit, "Bấm vào Milo");
         _miloHit.Click += (_, _) => Act(e => e.MiloClick());
         Place(_miloHit, 40, 0);
 
         // Chóp đuôi (mục 9.1): quầng thở 5s + đuôi cáo, màu theo mood
-        var halo = new Ellipse { Width = 40, Height = 40, Fill = Br("#FFE3C4"), RenderTransformOrigin = new Point(.5, .5), RenderTransform = new ScaleTransform(), IsHitTestVisible = false };
+        var halo = _halo = new Ellipse { Width = 40, Height = 40, Fill = Br("#FFE3C4"), RenderTransformOrigin = new Point(.5, .5), RenderTransform = new ScaleTransform(), IsHitTestVisible = false };
         StartHalo(halo);
         Canvas.SetLeft(halo, 3);
         Canvas.SetTop(halo, 40 - 40 + 14);
@@ -117,7 +120,7 @@ public sealed class MiloLayer : Grid
             Data = Geometry.Parse("M16 9 C20 6 24 4 27 5 C24 8 23 11 24 14 C26 11 29 10 31 11 C28 14 26 17 25 20 C22 17 18 13 16 9 Z"),
             Stroke = Br("#45231F"), StrokeThickness = 2, StrokeLineJoin = PenLineJoin.Round,
         };
-        var tailArt = new Canvas { Width = 34, Height = 34, Children = { _tailBody, _tailTip }, RenderTransform = _tailFlip };
+        var tailArt = _tailArt = new Canvas { Width = 34, Height = 34, Children = { _tailBody, _tailTip }, RenderTransform = _tailFlip };
         Canvas.SetLeft(tailArt, 6);
         Canvas.SetTop(tailArt, 6);
         _badgeText = new System.Windows.Controls.TextBlock { FontSize = 10.5, FontWeight = FontWeights.Bold, Foreground = Br("#2B211A"), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
@@ -125,7 +128,8 @@ public sealed class MiloLayer : Grid
         Canvas.SetLeft(_badge, 34);
         Canvas.SetTop(_badge, -4);
         var tailBox = new Canvas { Width = 46, Height = 40, Children = { halo, tailArt, _badge } };
-        _tail = new Button { Width = 46, Height = 40, Content = tailBox, Style = (Style)Application.Current.FindResource("Bare"), ToolTip = "Chóp đuôi Milo: rê chuột để Milo ló đầu, bấm để mở dashboard" };
+        _tail = new Button { Width = 46, Height = 40, Content = tailBox, Style = (Style)Application.Current.FindResource("Bare") };
+        System.Windows.Automation.AutomationProperties.SetName(_tail, "Chóp đuôi Milo: rê chuột để Milo ló đầu, bấm để mở dashboard");
         _tail.RenderTransform = _tailDrag;
         // Kéo chóp đuôi sang góc khác (§9.1); bấm không kéo thì vẫn là mở dashboard
         _tail.PreviewMouseLeftButtonDown += (_, e) =>
@@ -186,7 +190,7 @@ public sealed class MiloLayer : Grid
         _whisperText = new System.Windows.Controls.TextBlock { FontSize = 12.5, Foreground = Br("#FBF3E7"), VerticalAlignment = VerticalAlignment.Center };
         _whisper = new Border
         {
-            Background = Br("#3A2A1E"), CornerRadius = new CornerRadius(999), Padding = new Thickness(10, 9, 14, 9), IsHitTestVisible = false,
+            Background = Br("#3A2A1E"), CornerRadius = new CornerRadius(14), Padding = new Thickness(10, 9, 14, 9), IsHitTestVisible = false,
             Effect = new DropShadowEffect { BlurRadius = 20, ShadowDepth = 8, Direction = 270, Opacity = .25 },
             Child = new StackPanel { Orientation = Orientation.Horizontal, Children = { _whisperDot, _whisperText } }, Visibility = Visibility.Collapsed,
         };
@@ -295,6 +299,9 @@ public sealed class MiloLayer : Grid
 
         // ---- chóp đuôi ----
         _tail.Visibility = Present.TailVisible(e) ? Visibility.Visible : Visibility.Collapsed;
+        // Lúc ló đầu Milo đã hiện cả đuôi thật → ẩn hình chóp đuôi, nhưng giữ nút để chuột vẫn đang "rê" trên đuôi
+        var peeking = e.Presence() == PresenceState.Peek;
+        _tailArt.Visibility = _halo.Visibility = peeking ? Visibility.Hidden : Visibility.Visible;
         if (Math.Abs(sat - _sat) > .001)
         {
             _sat = sat;

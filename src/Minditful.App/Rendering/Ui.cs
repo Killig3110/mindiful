@@ -56,7 +56,7 @@ internal static class Ui
             sp.Children.Add(icon);
         }
         sp.Children.Add(Text(text, size, fg, FontWeights.Bold, wrap: false));
-        return new Border { Background = Br(bg), CornerRadius = new CornerRadius(999), Padding = new Thickness(10, 5, 10, 5), Child = sp, HorizontalAlignment = HorizontalAlignment.Left };
+        return new Border { Background = Br(bg), CornerRadius = new CornerRadius(6), Padding = new Thickness(10, 5, 10, 5), Child = sp, HorizontalAlignment = HorizontalAlignment.Left };
     }
 
     public static Border Dot(string color, double size)

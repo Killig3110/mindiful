@@ -74,6 +74,24 @@ public class InsightTests
         Assert.All(rows, r => Assert.Contains("nặng", r.Note));
     }
 
+    [Fact]
+    public void Grape_cluster_always_has_7_slots_even_without_history()
+    {
+        var e = new MiloEngine(new EngineConfig(), new WorkSnapshot(), null, DemoScenario.Day, T("11:00"));
+        e.SetAuto(false);
+        e.SetLocked(false);
+        for (var i = 0; i < 200 && e.S.Ep is not { Phase: Phase.Show }; i++) e.Advance(0.25, false);
+        e.UserReply("gotIt");
+        for (var i = 0; i < 200 && e.S.Ep is not null; i++) e.Advance(0.25, false);
+        e.TailClick();
+        for (var i = 0; i < 40 && e.S.Ep is not { C: CaseId.Dashboard, Phase: Phase.Show }; i++) e.Advance(0.25, false);
+        var d = Present.Dashboard(e)!;
+        Assert.Equal(7, d.Days.Count);
+        Assert.Equal(6, d.Days.Count(x => x.Score < 0));   // máy mới: 6 quả mờ + quả hôm nay
+        Assert.Equal("Nay", d.Days[^1].Label);
+        Assert.Contains("Chưa có dữ liệu hôm qua", d.YesterdayLine);
+    }
+
     // ================= đánh giá cảm xúc (mood) =================
     [Fact]
     public void Rules_mode_never_asks_claude()
