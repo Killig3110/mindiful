@@ -165,7 +165,7 @@ internal abstract partial class ControlShell
         // ---- công tắc ----
         var status = Status(() => llm is null ? ("idle", "Chưa cấu hình AI.")
             : !(opts?.Enabled ?? false) ? ("idle", "AI đang tắt (Llm.Enabled = false).")
-            : llm.Available ? ("ok", $"Sẵn sàng: {llm.Name} · đã gửi {LlmBridge.Requests} request từ lúc mở app")
+            : llm.Available ? ("ok", $"Sẵn sàng: {llm.Name}{Keys(llm)} · đã gửi {LlmBridge.Requests} request từ lúc mở app")
             : ("warn", $"Chưa dùng được {llm.Name}: " + (llm.LastError ?? "thiếu API key hoặc BaseUrl. Xem README mục Chọn AI để test.")));
         var hint = Text("", 12, P.Bad);
         void Pick(MoodMode? mood, MeetingMode? meeting)
@@ -318,4 +318,8 @@ internal abstract partial class ControlShell
     }
 
     protected static Border Spacer(double h) => new() { Height = h };
+
+    /// <summary>Nhiều key xoay vòng: cho biết còn bao nhiêu key chưa hết lượt.</summary>
+    private static string Keys(IMiloLlm llm) =>
+        llm is OpenAiCompatibleWriter { KeyStatus: { Total: > 1 } k } ? $" ({k.Ready}/{k.Total} key còn lượt)" : "";
 }

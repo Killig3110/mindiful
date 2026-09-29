@@ -9,16 +9,59 @@ namespace Minditful.Integrations.Llm;
 /// <summary>
 /// Lớp 2 qua API chuẩn OpenAI Chat Completions — dùng được với Ollama (chạy trên máy, miễn phí, không giới hạn),
 /// Groq, Google Gemini (endpoint tương thích OpenAI), OpenRouter… Cùng lời nhắc và cùng cách đọc kết quả như bản Claude.
+/// Nhiều key (ngăn bởi dấu phẩy): key nào báo hết lượt (429) hoặc sai (401/403) thì tạm nghỉ và chuyển ngay sang key kế tiếp.
 /// </summary>
 public sealed class OpenAiCompatibleWriter(LlmOptions opt, Func<string?> apiKey) : IMiloLlm
 {
     private static readonly HttpClient Http = new() { Timeout = Timeout.InfiniteTimeSpan };
     private string? _lastLine;
+    private readonly object _gate = new();
+    private readonly Dictionary<string, DateTime> _restUntil = [];
+    private int _next;
 
     public string Name => $"{Host()} · {opt.Model}";
 
     /// <summary>Máy chủ chạy trên máy (Ollama, LM Studio) không cần API key.</summary>
-    public bool Available => opt.Enabled && !string.IsNullOrWhiteSpace(opt.BaseUrl) && (IsLocal || !string.IsNullOrWhiteSpace(apiKey()));
+    public bool Available => opt.Enabled && !string.IsNullOrWhiteSpace(opt.BaseUrl) && (IsLocal || Keys().Length > 0);
+
+    /// <summary>Key đang dùng được / tổng số key (key hết lượt được nghỉ tới khi dịch vụ cho phép gọi lại).</summary>
+    public (int Ready, int Total) KeyStatus
+    {
+        get
+        {
+            var keys = Keys();
+            lock (_gate) return (keys.Count(k => !Resting(k)), keys.Length);
+        }
+    }
+
+    /// <summary>LLM_API_KEY có thể chứa nhiều key: gsk_a,gsk_b,gsk_c (dấu phẩy, chấm phẩy hoặc khoảng trắng).</summary>
+    private string[] Keys() =>
+        (apiKey() ?? "").Split([',', ';', ' ', '\n', '\r', '\t'], StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray();
+
+    private bool Resting(string key) => _restUntil.TryGetValue(key, out var t) && t > DateTime.UtcNow;
+
+    /// <summary>Lần lượt từng key còn dùng được, bắt đầu từ key kế tiếp (chia đều lượt cho các key).</summary>
+    private List<string?> KeyOrder()
+    {
+        var keys = Keys();
+        if (keys.Length == 0) return [null];
+        lock (_gate)
+        {
+            var start = _next++ % keys.Length;
+            return Enumerable.Range(0, keys.Length).Select(i => keys[(start + i) % keys.Length]).Where(k => !Resting(k)).Cast<string?>().ToList();
+        }
+    }
+
+    private void Rest(string? key, TimeSpan span)
+    {
+        if (key is null) return;
+        lock (_gate) _restUntil[key] = DateTime.UtcNow + span;
+    }
+
+    private static TimeSpan RetryAfter(HttpResponseMessage res) =>
+        res.Headers.RetryAfter?.Delta is { } d ? d
+        : res.Headers.RetryAfter?.Date is { } at ? at - DateTimeOffset.UtcNow
+        : TimeSpan.FromSeconds(60);
 
     public string? LastError { get; private set; }
 
@@ -88,28 +131,46 @@ public sealed class OpenAiCompatibleWriter(LlmOptions opt, Func<string?> apiKey)
             ["max_tokens"] = 600,
         };
         if (json) body["response_format"] = new { type = "json_object" };
-        using var req = new HttpRequestMessage(HttpMethod.Post, opt.BaseUrl.TrimEnd('/') + "/chat/completions")
+        var payload = JsonSerializer.Serialize(body);
+        var order = KeyOrder();
+        if (order.Count == 0)
         {
-            Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json"),
-        };
-        if (apiKey() is { Length: > 0 } key) req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", key);
+            LastError = $"Cả {Keys().Length} key {Host()} đang hết lượt → dùng {(json ? "luật" : "câu mẫu")}, tự thử lại khi dịch vụ cho phép";
+            return null;
+        }
         try
         {
-            using var res = await Http.SendAsync(req, cts.Token);
-            var text = await res.Content.ReadAsStringAsync(cts.Token);
-            if (res.StatusCode == HttpStatusCode.TooManyRequests)
+            foreach (var key in order)
             {
-                LastError = $"{Host()} báo hết lượt (429) → dùng luật/câu mẫu. Gói miễn phí giới hạn số request mỗi phút/ngày";
-                return null;
+                using var req = new HttpRequestMessage(HttpMethod.Post, opt.BaseUrl.TrimEnd('/') + "/chat/completions")
+                {
+                    Content = new StringContent(payload, Encoding.UTF8, "application/json"),
+                };
+                if (key is not null) req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", key);
+                using var res = await Http.SendAsync(req, cts.Token);
+                var text = await res.Content.ReadAsStringAsync(cts.Token);
+                if (res.StatusCode == HttpStatusCode.TooManyRequests)
+                {
+                    Rest(key, RetryAfter(res));
+                    LastError = $"{Host()} báo hết lượt (429) → dùng luật/câu mẫu. Gói miễn phí giới hạn số request mỗi phút/ngày";
+                    continue; // thử key kế tiếp
+                }
+                if (res.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden && key is not null)
+                {
+                    Rest(key, TimeSpan.FromHours(1));
+                    LastError = $"{Host()} từ chối 1 key ({(int)res.StatusCode}) — key sai hoặc đã bị thu hồi";
+                    continue;
+                }
+                if (!res.IsSuccessStatusCode)
+                {
+                    LastError = $"{Host()} lỗi {(int)res.StatusCode}: {text[..Math.Min(160, text.Length)]}";
+                    return null;
+                }
+                var content = JsonDocument.Parse(text).RootElement.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString();
+                LastError = null;
+                return content;
             }
-            if (!res.IsSuccessStatusCode)
-            {
-                LastError = $"{Host()} lỗi {(int)res.StatusCode}: {text[..Math.Min(160, text.Length)]}";
-                return null;
-            }
-            var content = JsonDocument.Parse(text).RootElement.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString();
-            LastError = null;
-            return content;
+            if (order.Count > 1) LastError = $"Cả {order.Count} key {Host()} đều hết lượt hoặc bị từ chối → dùng {(json ? "luật" : "câu mẫu")}";
         }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested)
         {

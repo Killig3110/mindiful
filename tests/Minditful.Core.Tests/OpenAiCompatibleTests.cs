@@ -21,6 +21,8 @@ public sealed class OpenAiCompatibleTests : IDisposable
     private HttpStatusCode _status = HttpStatusCode.OK;
     public string? LastBody;
     public string? LastAuth;
+    private readonly HashSet<string> _limited = [];
+    private readonly List<string?> _auths = [];
 
     public OpenAiCompatibleTests()
     {
@@ -42,8 +44,11 @@ public sealed class OpenAiCompatibleTests : IDisposable
             try { ctx = await _server.GetContextAsync(); } catch { return; }
             using (var r = new StreamReader(ctx.Request.InputStream)) LastBody = await r.ReadToEndAsync();
             LastAuth = ctx.Request.Headers["Authorization"];
-            ctx.Response.StatusCode = (int)_status;
-            var body = _status == HttpStatusCode.OK
+            lock (_auths) _auths.Add(LastAuth);
+            var status = LastAuth is { } a && _limited.Contains(a) ? HttpStatusCode.TooManyRequests : _status;
+            if (status == HttpStatusCode.TooManyRequests) ctx.Response.AddHeader("Retry-After", "600");
+            ctx.Response.StatusCode = (int)status;
+            var body = status == HttpStatusCode.OK
                 ? JsonSerializer.Serialize(new { choices = new[] { new { message = new { role = "assistant", content = _reply } } } })
                 : "{\"error\":\"rate limit\"}";
             var bytes = Encoding.UTF8.GetBytes(body);
@@ -113,5 +118,31 @@ public sealed class OpenAiCompatibleTests : IDisposable
         Assert.True(MiloLlm.Create(new LlmOptions { Provider = "OpenAI", BaseUrl = "https://api.groq.com/openai/v1" }, () => "k").Available);
         Assert.Equal("LLM_API_KEY", new LlmOptions { Provider = "OpenAI" }.KeyEnvVar);
         Assert.Equal("ANTHROPIC_API_KEY", new LlmOptions().KeyEnvVar);
+    }
+
+    [Fact]
+    public async Task Several_keys_rotate_and_a_rate_limited_key_rests()
+    {
+        var w = (OpenAiCompatibleWriter)Writer("gsk_a, gsk_b,gsk_c");
+        _reply = "{\"score\":70,\"adjust\":0,\"focus\":3,\"energy\":3,\"stress\":2,\"label\":\"Cân bằng\",\"insight\":\"Hôm nay bạn giữ nhịp khá ổn đó, nghỉ 5 phút nha.\"}";
+        for (var i = 0; i < 3; i++) Assert.NotNull(await w.AssessMoodAsync(new MoodRequest(80, "x", [])));
+        Assert.Equal(["Bearer gsk_a", "Bearer gsk_b", "Bearer gsk_c"], _auths); // chia đều lượt cho các key
+
+        _auths.Clear();
+        _limited.Add("Bearer gsk_a");
+        Assert.NotNull(await w.AssessMoodAsync(new MoodRequest(80, "x", []))); // key a hết lượt → tự chuyển sang b trong cùng lần gọi
+        Assert.Equal(["Bearer gsk_a", "Bearer gsk_b"], _auths);
+        Assert.Equal((2, 3), w.KeyStatus);
+
+        _auths.Clear();
+        for (var i = 0; i < 4; i++) await w.AssessMoodAsync(new MoodRequest(80, "x", []));
+        Assert.DoesNotContain("Bearer gsk_a", _auths); // key đang nghỉ không bị gọi lại
+
+        _limited.UnionWith(["Bearer gsk_b", "Bearer gsk_c"]);
+        Assert.Null(await w.AssessMoodAsync(new MoodRequest(80, "x", [])));
+        Assert.Equal((0, 3), w.KeyStatus);
+        Assert.Null(await w.AssessMoodAsync(new MoodRequest(80, "x", [])));
+        Assert.Contains("hết lượt", w.LastError); // hết cả 3 → dùng luật, không gửi request thừa
+        Assert.DoesNotContain("gsk_", w.LastError!); // không bao giờ lộ key trong log
     }
 }

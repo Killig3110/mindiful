@@ -531,6 +531,13 @@ Giới hạn gói miễn phí thay đổi thường xuyên; con số trên chỉ
 3. Điền 3 dòng trên vào `.env`, mở lại Milo.
 4. Kiểm tra: trang *Mood Engine* phải ghi "Sẵn sàng: Ollama · qwen2.5:7b".
 
+**Dùng nhiều key Groq xoay vòng:** điền các key vào `LLM_API_KEY`, ngăn bằng dấu phẩy: `LLM_API_KEY=gsk_aaa,gsk_bbb,gsk_ccc`.
+- Mỗi lần gọi dùng key kế tiếp, nên lượt được chia đều cho các key.
+- Key nào báo hết lượt (429) thì nghỉ đúng khoảng thời gian dịch vụ yêu cầu; key bị từ chối (401/403) nghỉ 1 giờ. App tự chuyển ngay sang key khác trong cùng lần gọi.
+- Hết cả mấy key thì Milo chấm bằng luật, không gửi request thừa.
+- Trang *Mood Engine* hiện số key còn lượt, vd. "(2/3 key còn lượt)".
+- Lưu ý: Groq tính giới hạn theo **tổ chức (organization)**, không theo key. Nhiều key trong cùng 1 tổ chức dùng chung một hạn mức, nên xoay vòng không tăng thêm lượt. Hãy đọc điều khoản của Groq trước khi dùng key từ nhiều tài khoản.
+
 **Mỗi lần dùng tốn bao nhiêu request:**
 - Bộ kiểm chứng AI: `10 ngày mẫu × số lần hỏi lại` → 20 hoặc 30 request/lượt.
 - Demo tua nhanh nên chỉ chấm mood bằng AI tối đa 1 lần/phút thật (`Llm.DemoMoodMinSeconds`).
