@@ -13,9 +13,6 @@ namespace Minditful.App.Services;
 /// </summary>
 internal sealed class DemoSession : IMiloSession
 {
-    /// <summary>Khoảng trống an toàn của ngày mẫu (giữa Lịch kín 12:55 và Email chờ 13:10) để bật thử 1 case.</summary>
-    private static readonly double FreeMoment = Tm.T("13:02");
-
     public AppEnvironment Env => AppEnvironment.Demo;
     public MiloEngine Engine { get; } = DemoScenario.CreateEngine();
     public bool ContentProtection => false;
@@ -75,8 +72,15 @@ internal sealed class DemoSession : IMiloSession
     /// <summary>Bật ngay 1 case. Nếu lúc đó Milo không được phép nói (khoá máy, họp, tập trung) thì tua tới khoảng trống 13:02 trước.</summary>
     public void RunCase(CaseId c)
     {
-        if (Engine.HardGate() is not null || Engine.S.Ended) Engine.RunTo(FreeMoment);
-        Engine.ForceCase(c);
+        DemoTour.RunCase(Engine, c);
+        Playing = true;
+        Changed?.Invoke();
+    }
+
+    /// <summary>Kịch bản trình diễn: áp 1 bước (tua tới mốc / cho Milo làm case / trình chiếu / mood realtime).</summary>
+    public void RunTourStep(TourStep step)
+    {
+        DemoTour.Apply(Engine, step);
         Playing = true;
         Changed?.Invoke();
     }

@@ -197,6 +197,11 @@ public sealed partial class MiloEngine
         }
         else if (v.Phase == VisitPhase.Look)
         {
+            if (S.HoldVisit && HardGate() is null)
+            {
+                v.End = S.T + Dt(8); // đang giữ Milo đứng ngoài: nhìn quanh tiếp
+                return;
+            }
             v.Phase = VisitPhase.Out;
             var dig = S.BandIdx == 3 && S.Rnd.Next() < 0.04;
             v.Clip = dig ? Clip.DigExhausted : Clip.ClimbOutShort;
@@ -388,6 +393,37 @@ public sealed partial class MiloEngine
     }
 
     public void MarkTaskDone(string? id = null, string? title = null) => CompleteTask(id, title);
+
+    /// <summary>
+    /// Demo · Mood realtime: gọi Milo ra đứng ở góc (không bóng thoại) để thấy dáng, màu, chữ z đổi theo điểm ngay.
+    /// <paramref name="hold"/> = false thì Milo ghé nốt rồi đi như bình thường.
+    /// </summary>
+    public void CallMilo(bool hold)
+    {
+        S.HoldVisit = hold;
+        if (hold && S.Visit is null && S.Ep is null && Presence() is PresenceState.Hidden or PresenceState.Peek)
+        {
+            S.Peek = false;
+            S.Visit = new Visit { Phase = VisitPhase.In, End = S.T + Dt(Catalog.ClipLength(Clip.PeekIn)), Clip = Clip.PeekIn };
+            Log("Gọi Milo ra đứng ở góc để xem mood thay đổi", LogKind.User);
+        }
+        else if (!hold && S.Visit is { Phase: VisitPhase.Look } v) v.End = S.T;
+    }
+
+    /// <summary>Demo · Mood realtime: mức căng thẳng giả lập (trừ thẳng vào điểm, 0–60).</summary>
+    public void SetStressLevel(double penalty)
+    {
+        S.Stress = Math.Clamp(Math.Round(penalty), 0, 60);
+        ComputeMood();
+    }
+
+    /// <summary>Demo · Mood realtime: coi như vừa nghỉ cùng Milo 1 lần (+3 điểm, tối đa +12).</summary>
+    public void SimulateBreak()
+    {
+        S.AcceptedBreaks++;
+        Log("Nghỉ cùng Milo 1 lần → +3 điểm", LogKind.User);
+        ComputeMood();
+    }
 
     public void ToggleStress()
     {

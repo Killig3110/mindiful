@@ -14,6 +14,8 @@ Cả **3 môi trường đều là cùng một app**: Milo sống trên desktop 
 | **Sandbox** | Tenant thử `mindiful.onmicrosoft.com` (Teams, Outlook) + Azure DevOps `mindiful-sandbox` — API thật | Desktop thật (overlay trong suốt) + khay hệ thống + Bảng điều khiển có công cụ test | Thử tích hợp thật mà không đụng tenant Bosch; ngưỡng hành vi rút gọn để test trong 1 buổi |
 | **Production** | Tenant Bosch: Teams presence, Outlook, Azure Boards | Desktop thật, ẩn khỏi share màn hình | Dùng hằng ngày |
 
+**Đi present?** Kịch bản từng bước: **[Demo](docs/KICH-BAN-DEMO.md)** (đủ 19 tình huống, ~15 phút) · **[Sandbox chạy như Production](docs/KICH-BAN-SANDBOX.md)** (đổi dữ liệu thật trên Teams/Outlook/Azure Boards, Milo phản ứng).
+
 **Mới dùng app?** Đọc **[Hướng dẫn sử dụng](docs/HUONG-DAN-SU-DUNG.md)**: Milo trên màn hình, bảng điều khiển từng trang, từng tính năng, cách dùng ở 3 môi trường, vì sao Milo không hiện. README này dành cho cài đặt, cấu hình và test.
 
 ## Cài đặt từ đầu
@@ -145,7 +147,7 @@ dotnet test
 
 ### 0. Chuẩn bị
 
-Làm xong mục **[Cài đặt từ đầu](#cài-đặt-từ-đầu)** ở trên: `dotnet test` ra `Passed! … 127`, và `.env` đã điền cho môi trường cần test.
+Làm xong mục **[Cài đặt từ đầu](#cài-đặt-từ-đầu)** ở trên: `dotnet test` ra `Passed! … 131`, và `.env` đã điền cho môi trường cần test.
 
 Mở thẳng một môi trường: `--env Scenario` (= Demo), `--env Sandbox`, `--env Prod`. Nếu đã tick "Nhớ lựa chọn", **giữ Shift** khi mở app để hiện lại màn hình chọn.
 
@@ -158,6 +160,12 @@ Cả 3 môi trường đều là **cùng một app**:
 ### 1. Demo (Scenario): không cần tài khoản, không cần mạng
 
 Dùng để present và để kiểm tra đủ 16 case của prototype. Giờ, lịch, email, task và thao tác của người dùng đều theo **ngày mẫu Thứ Năm 24/9**.
+
+**Cách nhanh nhất để xem đủ mọi case:** trang **Kịch bản trình diễn** → bật *Tự chạy qua các bước*. 23 bước (12 bước theo ngày mẫu, rồi 8 case còn lại, trình chiếu, mood realtime, đồng phục Bosch), có gợi ý câu nói từng bước. Chi tiết: [docs/KICH-BAN-DEMO.md](docs/KICH-BAN-DEMO.md).
+
+**Mood realtime:** trang *Bắt đầu* (và *Kịch bản trình diễn*) có thẻ **Mood realtime**:
+- Kéo *Căng thẳng giả lập* 0–60, hoặc bấm *Nghỉ cùng Milo (+3)* / *Xong 1 task (+2)*: điểm tính lại ngay.
+- Bật *Gọi Milo ra đứng ở góc*: Milo đứng ngoài, dáng và màu đổi theo điểm tức thì (kiệt sức thì có chữ z).
 
 **1a. Để ngày mẫu tự chạy** (trang *Bắt đầu*: bật công tắc "Người dùng mẫu tự bấm nút", tốc độ *Vừa 120×*):
 

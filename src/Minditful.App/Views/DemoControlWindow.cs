@@ -27,6 +27,7 @@ internal sealed class DemoControlWindow : ControlShell
     {
         _session = session;
         AddPage("home", IcHome, "Bắt đầu", Home);
+        AddPage("tour", IcPlay, "Kịch bản trình diễn", Tour, "đủ 19 tình huống · ~15 phút");
         AddPage("day", IcTimeline, "Ngày mẫu", Day, "nhảy tới từng mốc");
         AddPage("try", IcTry, "Thử tình huống", Try, "cho Milo làm ngay");
         AddPage("milo", IcMilo, "Milo của bạn", Milo, "tủ đồ, góc màn hình");
@@ -86,12 +87,219 @@ internal sealed class DemoControlWindow : ControlShell
         return Page("Chào bạn!",
             "Milo đang sống ở góc phải dưới màn hình của bạn. Cửa sổ này để điều khiển ngày mẫu và thử từng tình huống. Nhìn góc màn hình để xem Milo phản ứng.",
             player, today,
+            MoodCard(),
             TipBox(
+                "Đi present? Mở trang \"Kịch bản trình diễn\": Milo làm lần lượt đủ 19 tình huống, có gợi ý câu nói cho từng bước.",
                 "Rê chuột lên chóp đuôi cam ở góc màn hình khoảng nửa giây: Milo ló đầu thì thầm điểm mood.",
                 "Bấm chóp đuôi: mở dashboard 4 quả. Bấm \"Chi tiết\" để xem bảng nhỏ hôm nay / tuần này.",
                 "Kéo chóp đuôi sang góc khác để đổi chỗ Milo. Esc để đóng dashboard.",
                 "Thẻ của Milo có ô chat: gõ \"mệt quá\", \"đang bận\", \"về thôi\" để xem Milo hiểu ý."),
             llm);
+    }
+
+    // ================= Mood realtime =================
+    /// <summary>Kéo mức căng thẳng / bấm nghỉ, xong task → điểm tính lại ngay, Milo đứng ở góc đổi dáng và màu theo.</summary>
+    private Border MoodCard()
+    {
+        var e = Engine;
+        var slider = new Slider
+        {
+            Minimum = 0, Maximum = 60, Width = 320, TickFrequency = 10, IsSnapToTickEnabled = false, SmallChange = 5, LargeChange = 10,
+            Foreground = Br(P.Accent), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 12, 8),
+        };
+        System.Windows.Automation.AutomationProperties.SetName(slider, "Mức căng thẳng giả lập");
+        var syncing = false;
+        slider.ValueChanged += (_, ev) =>
+        {
+            if (syncing) return;
+            e.SetStressLevel(ev.NewValue);
+            RefreshMilo();
+        };
+        var value = Text("", 12.5, P.Ink2, FontWeights.SemiBold, false);
+        value.VerticalAlignment = VerticalAlignment.Center;
+        Tick(() =>
+        {
+            value.Text = $"−{e.S.Stress:0} điểm";
+            if (slider.IsMouseCaptureWithin || Math.Abs(slider.Value - e.S.Stress) < .5) return;
+            syncing = true;
+            slider.Value = e.S.Stress;
+            syncing = false;
+        });
+        var look = Text("", 12.5, P.Ink);
+        Tick(() => look.Text = e.S.BandIdx switch
+        {
+            0 => "Milo tươi tắn, màu cam đậm, dáng khoẻ.",
+            1 => "Milo cân bằng, màu bình thường.",
+            2 => "Milo nhạt màu, dáng uể oải, đuôi cụp.",
+            _ => "Milo kiệt sức: nhạt hẳn màu, dáng mệt, có chữ z bay.",
+        });
+        return Card(new StackPanel
+        {
+            Children =
+            {
+                Row(Tile(() => e.S.Score.ToString(), "điểm mood lúc này", P.Accent, () => e.CurrentBand.Label),
+                    Switch("Gọi Milo ra đứng ở góc", "Milo ở ngoài để người xem thấy dáng và màu đổi theo điểm. Tắt để Milo đi.",
+                        () => e.S.HoldVisit, () => e.CallMilo(!e.S.HoldVisit))),
+                Label("Căng thẳng giả lập (kéo sang phải = ngày nặng hơn)"),
+                Spacer(4),
+                Row(slider, value),
+                Row(Btn("Nghỉ cùng Milo (+3)", () =>
+                {
+                    e.SimulateBreak();
+                    RefreshMilo();
+                }), Btn("Xong 1 task (+2)", () =>
+                {
+                    e.MarkTaskDone();
+                    RefreshMilo();
+                }), Btn("Về 0", () =>
+                {
+                    e.SetStressLevel(0);
+                    RefreshMilo();
+                }, BtnKind.Ghost)),
+                look,
+            },
+        }, "Mood realtime", "Điểm mood tính lại ngay khi có gì thay đổi. Milo không bật popup mà đổi dáng để bạn tự nhận ra. Chi tiết từng khoản ở trang Bộ não Milo.");
+    }
+
+    // ================= Kịch bản trình diễn =================
+    private int _tourIndex = -1;
+    private bool _tourAuto, _sawBusy;
+    private DateTime _stepStarted;
+    private DateTime? _quietSince;
+
+    private void RunStep(int i)
+    {
+        if (i < 0 || i >= DemoTour.Steps.Length)
+        {
+            _tourAuto = false;
+            return;
+        }
+        _tourIndex = i;
+        var step = DemoTour.Steps[i];
+        if (_tourAuto && !Engine.S.Auto) Engine.SetAuto(true); // tự chạy thì người dùng mẫu tự bấm nút trên thẻ
+        _session.RunTourStep(step);
+        if (step.Kind == TourKind.Wardrobe) ((App)Application.Current).Companion?.SetAccessory("bosch");
+        _stepStarted = DateTime.Now;
+        _sawBusy = false;
+        _quietSince = null;
+        RefreshMilo();
+        Refresh();
+    }
+
+    /// <summary>Tự chạy: bước có Milo thì chờ Milo xong việc rồi 2,5 giây sau sang bước kế; bước không có Milo thì 12 giây.</summary>
+    protected override void OnRefresh()
+    {
+        if (!_tourAuto || _tourIndex < 0) return;
+        var step = DemoTour.Steps[_tourIndex];
+        var now = DateTime.Now;
+        var elapsed = (now - _stepStarted).TotalSeconds;
+        if (step.Kind == TourKind.Mood)
+        {
+            // Tự kéo mức căng thẳng lên rồi xuống để người xem thấy Milo đổi dáng
+            var target = elapsed < 3 ? 0 : elapsed < 6 ? 30 : elapsed < 9 ? 60 : 0;
+            if (Math.Abs(Engine.S.Stress - target) > .5) Engine.SetStressLevel(target);
+        }
+        bool done;
+        if (!step.ExpectMilo) done = elapsed > 12;
+        else if (Engine.Busy)
+        {
+            _sawBusy = true;
+            _quietSince = null;
+            done = elapsed > 180;
+        }
+        else
+        {
+            if (_sawBusy) _quietSince ??= now;
+            done = (_quietSince is { } q && (now - q).TotalSeconds > 2.5) || elapsed > 180;
+        }
+        if (!done) return;
+        if (_tourIndex + 1 < DemoTour.Steps.Length) RunStep(_tourIndex + 1);
+        else _tourAuto = false;
+    }
+
+    private FrameworkElement Tour()
+    {
+        var steps = DemoTour.Steps;
+        var title = Text("", 20, P.Ink, FontWeights.Bold);
+        var show = Text("", 13, P.Ink);
+        var say = Text("", 13, "#3B2E66");
+        var sayBox = new Border { Background = Br("#F3EDFF"), CornerRadius = new CornerRadius(4, 14, 14, 14), Padding = new Thickness(12, 9, 12, 9), Margin = new Thickness(0, 8, 0, 12), Child = say };
+        var prev = Btn("‹ Bước trước", () => RunStep(Math.Max(0, _tourIndex - 1)), BtnKind.Ghost);
+        var run = Btn("Bắt đầu kịch bản", () => RunStep(Math.Max(0, _tourIndex)), BtnKind.Soft, IcPlay);
+        var next = Btn("Bước tiếp ›", () => RunStep(_tourIndex + 1), BtnKind.Primary);
+        Tick(() =>
+        {
+            var i = _tourIndex;
+            var s = i >= 0 ? steps[i] : null;
+            title.Text = s is null ? "Chưa bắt đầu" : $"Bước {i + 1}/{steps.Length} · {s.Title}";
+            show.Text = s is null ? "Bấm \"Bắt đầu kịch bản\" rồi nhìn góc phải dưới màn hình. Mỗi bước Milo làm 1 tình huống."
+                : "Người xem thấy: " + s.Show;
+            say.Text = s is null ? "Gợi ý mở đầu: “Milo là chú cáo sống ở góc màn hình, chỉ ló ra đúng lúc để giúp bạn làm việc khoẻ hơn.”" : "Bạn nói: “" + s.Say + "”";
+            ((TextBlock)((StackPanel)run.Content).Children[1]).Text = i < 0 ? "Bắt đầu kịch bản" : "Chạy lại bước này";
+            prev.IsEnabled = i > 0;
+            next.IsEnabled = i < steps.Length - 1;
+        });
+        var current = Card(new StackPanel
+        {
+            Children =
+            {
+                title, Spacer(6), show, sayBox,
+                Row(prev, run, next),
+                Switch("Tự chạy qua các bước", "Milo xong việc ở bước này thì tự sang bước sau (bước không có Milo chờ 12 giây). Tắt để tự bấm từng bước.",
+                    () => _tourAuto, () =>
+                    {
+                        _tourAuto = !_tourAuto;
+                        if (_tourAuto && _tourIndex < 0) RunStep(0);
+                    }),
+            },
+        }, padding: new Thickness(20, 18, 20, 18));
+
+        var list = new StackPanel();
+        var rows = new List<Border>();
+        for (var i = 0; i < steps.Length; i++)
+        {
+            var s = steps[i];
+            var kind = s.Kind switch
+            {
+                TourKind.Milestone => $"ngày mẫu {s.Time}",
+                TourKind.Case => "cho Milo làm",
+                TourKind.Presenting => "giả vờ trình chiếu",
+                TourKind.Mood => "mood realtime",
+                _ => "tủ đồ",
+            };
+            var num = Text($"{i + 1}", 13, P.Accent, FontWeights.Bold, false);
+            var name = Text(s.Title, 13, P.Ink, FontWeights.SemiBold, false);
+            name.Margin = new Thickness(10, 0, 10, 0);
+            var tag = Text(kind, 11, P.Muted, null, false);
+            var row = new Border
+            {
+                CornerRadius = new CornerRadius(10), Padding = new Thickness(12, 8, 12, 8), Margin = new Thickness(0, 0, 0, 3), Cursor = Cursors.Hand,
+                BorderThickness = new Thickness(1), Focusable = true, Child = Columns((num, Px(26)), (name, Star), (tag, Auto)),
+            };
+            System.Windows.Automation.AutomationProperties.SetName(row, $"Bước {i + 1}: {s.Title}");
+            var idx = i;
+            row.MouseLeftButtonUp += (_, _) => RunStep(idx);
+            row.KeyDown += (_, ev) =>
+            {
+                if (ev.Key is Key.Enter or Key.Space) RunStep(idx);
+            };
+            row.MouseEnter += (_, _) => row.BorderBrush = Br(P.Accent);
+            row.MouseLeave += (_, _) => row.BorderBrush = null;
+            rows.Add(row);
+            list.Children.Add(row);
+        }
+        Tick(() =>
+        {
+            for (var i = 0; i < rows.Count; i++)
+            {
+                rows[i].Background = Br(i == _tourIndex ? "#FFF1DE" : "#00000000");
+                rows[i].Opacity = _tourIndex >= 0 && i < _tourIndex ? .6 : 1;
+            }
+        });
+
+        return Page("Kịch bản trình diễn",
+            "23 bước đi qua đủ 19 tình huống của Milo cùng các tính năng mới, khoảng 15 phút. 12 bước đầu theo ngày mẫu Thứ Năm 24/9, các bước sau cho Milo làm từng tình huống còn lại. Kịch bản lời nói đầy đủ: docs/KICH-BAN-DEMO.md.",
+            current, MoodCard(), Card(list, "Tất cả bước", "Bấm 1 bước để chạy ngay bước đó."));
     }
 
     // ================= Ngày mẫu =================

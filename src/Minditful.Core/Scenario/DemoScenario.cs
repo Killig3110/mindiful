@@ -101,6 +101,9 @@ public static class DemoScenario
             [CaseId.EodWrapup] = [(6, "extend")],
             [CaseId.EodNudge] = [(4, "goHome")],
             [CaseId.Dashboard] = [(4, "week"), (9, "close")],
+            // Không có trong ngày mẫu (tắt sẵn); dùng khi Kịch bản trình diễn cho Milo làm từng case
+            [CaseId.FocusPlan] = [(6, "accept")],
+            [CaseId.WeekReport] = [(6, "gotIt")],
         },
     };
 

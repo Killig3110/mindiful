@@ -72,6 +72,8 @@ public sealed class DayState
     /// <summary>Tự đánh giá cuối ngày (<see cref="Feeling"/>), 0 = chưa trả lời.</summary>
     public int Feeling;
     public double? TomorrowHoldAt;
+    /// <summary>Demo · Mood realtime: giữ Milo đứng ngoài (ghé ngang kéo dài) để người xem thấy dáng/màu đổi theo điểm.</summary>
+    public bool HoldVisit;
     public double LastMicro = -1e9;
     public int MicroCount;
     /// <summary>Điểm Mood Engine theo luật, trước khi Claude chỉnh.</summary>
