@@ -94,7 +94,10 @@ Khi có chuyện cần nói, Milo leo lên và hiện **thẻ** phía trên đ�
 
 Có API key Claude thì câu khó hiểu cũng được trả lời tự nhiên. Không có thì Milo nhắc bạn chọn nút.
 
-**Chấm chờ:** lúc Milo phải im lặng (đang họp…), lời nhắc dồn lại thành 1 viên nhỏ "2 lời nhắc đang chờ" ở góc. Bấm vào thì thẻ bung ra ngay, kể cả đang họp.
+**Chấm chờ:**
+- Lúc Milo phải im lặng (đang họp, tập trung, toàn màn hình…), **chóp đuôi mờ đi** để bạn biết Milo vẫn chạy.
+- Lời nhắc dồn lại thành 1 viên nhỏ "2 lời nhắc đang chờ" ở góc.
+- Bấm vào viên đó thì chỉ thẻ bung ra ở sát góc, Milo vẫn ẩn để không chen vào cuộc họp.
 
 ## 4. Bảng điều khiển
 
@@ -112,6 +115,7 @@ Cửa sổ riêng, tông kem như thẻ của Milo. **Đóng cửa sổ này th�
 | **Ngày mẫu** | 17 mốc của ngày Thứ Năm 24/9. Bấm 1 mốc để tua tới ngay trước lúc đó. Mốc đang diễn ra tô cam |
 | **Thử tình huống** | *Cho Milo làm ngay*: 19 thẻ tình huống chia 4 nhóm, bấm là Milo làm luôn. *Giả vờ bạn đang…*: công tắc gõ phím, rời máy, khoá máy, toàn màn hình, Không làm phiền, trình chiếu, ngày căng thẳng; và nút 1 lần (rời cuộc họp, nhảy việc, xong 1 task, mở dashboard) |
 | **Milo của bạn** | Tủ đồ (bấm món để Milo mặc ngay), chọn góc màn hình |
+| **Mood Engine** | Công tắc chấm mood *Luật* / *Luật + AI* / *AI chấm hẳn* và đánh giá cuộc họp *Luật* / *AI*. **3 bộ kiểm chứng**: luật hợp lý, AI hợp lý và ổn định, so sánh luật với AI. *Lưu báo cáo* ra Desktop |
 | **Bộ não Milo** | Nâng cao: trạng thái, điều gì đang khiến Milo im lặng, lời nhắc đang chờ, điểm mood được tính thế nào, nhật ký từng quyết định |
 
 Lúc Milo ẩn, đồng hồ kịch bản tua nhanh. Lúc Milo xuất hiện, thời gian chạy thật để bạn xem trọn hoạt ảnh.
@@ -123,6 +127,7 @@ Lúc Milo ẩn, đồng hồ kịch bản tua nhanh. Lúc Milo xuất hiện, th
 | **Tổng quan** | 3 thẻ kết nối: *Microsoft 365*, *Azure Boards*, *Claude*. **Chấm xanh** là ổn, **vàng** là cần làm thêm 1 bước, **đỏ** là lỗi (dòng chữ cạnh chấm ghi lý do bằng tiếng Việt). Phần *Milo đang thấy*: số cuộc họp, email chờ, task, sprint, điểm mood, cuộc họp kế tiếp, giờ làm hôm nay |
 | **Kết nối** | *Đăng nhập / Đăng xuất Microsoft*, *Làm mới dữ liệu*. Ô dán **PAT** Azure DevOps (*Lưu PAT / Xoá PAT*). Ô dán **API key Claude** (*Lưu key*). Tất cả lưu mã hoá trên máy |
 | **Thử tình huống** (chỉ Sandbox ở chế độ test) | *Chuẩn bị*: Reset ngày (chào sáng lại), đặt giờ về (*Giờ về = bây giờ + 2 phút*), *Tạo dữ liệu mẫu* trong tenant. *Cho Milo làm ngay* và *Giả vờ bạn đang…* như Demo |
+| **Mood Engine** | Như Demo: công tắc luật ↔ AI và 3 bộ kiểm chứng |
 | **Kiểm chứng điểm** | 5 câu WHO-5 mỗi tuần, bảng so sánh điểm Milo với WHO-5, hệ số tương quan *r*, nút *Xuất CSV ẩn danh* (mục 5.5) |
 | **Milo của bạn** | Tủ đồ, góc màn hình, *Milo chăm sóc bạn thế nào* (tính năng nào đang Bật/Tắt), *Riêng tư & dữ liệu* (Milo tự điều chỉnh theo 7 ngày ra sao, dữ liệu giữ trên máy, nút **Xoá toàn bộ dữ liệu thống kê ngay**) |
 | **Bộ não Milo** | Như Demo |
@@ -267,7 +272,7 @@ Nhìn dải trên cùng của bảng điều khiển, hoặc trang **Bộ não M
 | Dải trên cùng ghi | Lý do | Milo sẽ… |
 | --- | --- | --- |
 | Milo đang nghỉ | Chưa tới giờ làm, máy khoá, hoặc đã tan tầm | Chào sáng lần mở máy đầu tiên của ngày mai |
-| Milo đang im lặng · vì đang họp | Teams báo đang trong cuộc gọi, hoặc lịch đang có họp | Hết họp chờ 2 phút rồi mới nói |
+| Milo đang im lặng · vì đang họp | Teams báo đang trong cuộc gọi, hoặc lịch đang có họp. Chóp đuôi mờ đi | Hết họp chờ 2 phút rồi mới nói |
 | … vì toàn màn hình / không làm phiền / giờ tập trung | Bạn đang cần tập trung | Dồn lời nhắc thành chấm chờ |
 | Milo đang trốn | Bạn đang trình chiếu | Hiện lại khi thôi trình chiếu |
 | Milo đang ẩn ở góc màn hình | Không có gì cần nói, hoặc đã nhắc đủ số lần (tối đa 3 lần/giờ, 10 lần/ngày, cách nhau ≥ 15 phút) | Chờ đúng lúc |

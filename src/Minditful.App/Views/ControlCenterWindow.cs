@@ -138,7 +138,7 @@ internal sealed class ControlCenterWindow : ControlShell
             {
                 ConnCard("Microsoft 365 · Teams, Outlook", GraphShort, Btn("Đăng nhập Microsoft", async () => await _session.SignInAsync(true), BtnKind.Primary)),
                 ConnCard("Azure Boards · task, sprint", BoardsState, Btn("Nhập PAT", () => Show("connect"))),
-                ConnCard("Claude · lời thoại (tuỳ chọn)", ClaudeState, Btn("Nhập API key", () => Show("connect"), BtnKind.Ghost)),
+                ConnCard("AI · lời thoại, chấm mood (tuỳ chọn)", ClaudeState, Btn("Nhập API key", () => Show("connect"), BtnKind.Ghost)),
             },
         };
 
@@ -215,7 +215,7 @@ internal sealed class ControlCenterWindow : ControlShell
         }, "Azure Boards", $"Task đang làm, task kẹt, sprint. Org {_session.Conn.AzureDevOps.Organization} · project {_session.Conn.AzureDevOps.Project}.");
 
         var key = new PasswordBox();
-        System.Windows.Automation.AutomationProperties.SetName(key, "API key Claude");
+        System.Windows.Automation.AutomationProperties.SetName(key, "API key AI");
         var llm = Text("", 11.5, P.Ink2);
         Tick(() => llm.Text = _session.LlmStatus);
         var claude = Card(new StackPanel
@@ -234,7 +234,7 @@ internal sealed class ControlCenterWindow : ControlShell
                 llm,
                 Text("Claude chỉ nhận tên tình huống và số liệu, không bao giờ nhận tiêu đề hay nội dung email, cuộc họp, task.", 11.5, P.Muted),
             },
-        }, "Claude (tuỳ chọn)", "Viết lời thoại tự nhiên hơn, trả lời chat, chấm mood và đánh giá cuộc họp. Bật từng phần trong .env (README mục Tham chiếu biến .env).");
+        }, "AI (tuỳ chọn)", "Claude hoặc AI tương thích OpenAI (Ollama trên máy, Groq, Gemini…): viết lời thoại, trả lời chat, chấm mood, đánh giá cuộc họp. Chọn nhà cung cấp trong .env (README mục Chọn AI để test); bật/tắt chấm mood bằng AI ở trang Mood Engine.");
 
         return Page("Kết nối", "PAT và API key được lưu mã hoá trên máy này (DPAPI), không ghi vào file nào.", ms, boards, claude);
     }

@@ -8,7 +8,7 @@ Tóm tắt 4 ý:
 3. **Chứng minh công thức đúng với mọi dữ liệu:** bộ test tự sinh **20.000 bộ số liệu ngẫu nhiên** và hàng chục ngày làm việc ngẫu nhiên, kiểm tra công thức luôn giữ đúng các kết luận nghiên cứu. Bộ test đã tìm ra 1 giới hạn thật (mục 6).
 4. **Kiểm chứng với người thật:** mỗi tuần người dùng tự trả lời 5 câu **WHO-5** (thang đo của Tổ chức Y tế Thế giới). App tính tương quan với điểm Milo để hiệu chỉnh trọng số. Việc này cần chạy thử với nhóm thật trong khoảng 4 tuần.
 
-Không cần LLM hay API trả phí cho bất kỳ bước nào (mục 7).
+Không cần LLM hay API trả phí để chứng minh luật (mục 8). Muốn kiểm AI thì dùng 3 bộ kiểm chứng trong app (mục 7), chạy được miễn phí với Ollama trên máy.
 
 ---
 
@@ -121,14 +121,49 @@ Nếu sau này ai đổi trọng số mà làm công thức đi ngược nghiên
 - **Khác biệt cá nhân:** JD-R ghi nhận cùng áp lực nhưng mỗi người chịu khác nhau [1]. Milo có cá nhân hoá 7 ngày cho lời nhắc, còn trọng số điểm hiện vẫn dùng chung.
 - **Nguồn [8]** là khảo sát thực tiễn, không qua bình duyệt, chỉ dùng làm bằng chứng phụ cho khoản "họp nhiều".
 
-## 7. Vì sao không cần LLM
+## 7. Ba bộ kiểm chứng trong app: luật, AI, so sánh
+
+Bảng điều khiển → **Mood Engine** (Demo, Sandbox, Production). Mã nguồn: `src/Minditful.Core/Engine/MoodEvaluation.cs`.
+
+Cả 3 bộ dùng chung **10 ngày làm việc mẫu**: nhẹ, bình thường, họp nhiều, họp liền không nghỉ, ngồi liền không nghỉ, quá giờ 2 tiếng, cả tuần 55 giờ, nhảy việc, nghỉ đủ và tập trung tốt, kiệt sức. Kèm **9 cặp ngày** mà nghiên cứu cho biết ngày nào phải nặng hơn (vd. "họp liền" nặng hơn "bình thường" theo [3]).
+
+| Bộ | Kiểm tra gì | Đạt khi | Cần |
+| --- | --- | --- | --- |
+| **1 · Luật hợp lý** | Như mục 4, rút gọn 5.000 bộ số ngẫu nhiên + xếp đúng 9 cặp ngày | Mọi kiểm tra đạt | Không cần mạng |
+| **2 · AI hợp lý và ổn định** | Hỏi AI chấm từng ngày mẫu 2–3 lần (chỉ gửi con số, **không gửi điểm luật** để AI chấm độc lập) | ≥ 95% câu trả lời đúng dạng; hỏi lại lệch ≤ 10 điểm (độ lệch chuẩn ≤ 5); xếp đúng 9 cặp (cho phép sai số 3 điểm) | 1 AI; 20–30 request |
+| **3 · So sánh luật và AI** | Trên cùng 10 ngày | Lệch trung bình ≤ 15 điểm; tương quan r ≥ 0,7; ≥ 60% cùng mức mood; cùng thứ tự 9 cặp | Dùng lại kết quả bộ 2 |
+
+- **Kiểm tra chính bộ kiểm chứng:** `MoodEvaluationTests` chạy 3 bộ với AI giả. AI giả chấm giống luật thì phải đạt hết. AI giả chấm lung tung, chấm ngược hay hay lỗi thì phải bị bắt. Nhờ vậy kết quả "đạt / chưa đạt" khi chạy với AI thật là đáng tin.
+- **Lưu báo cáo** ra Markdown để đính kèm bài trình bày.
+
+**Điểm luật của 10 ngày mẫu** (bộ 1):
+
+| Ngày mẫu | Điểm luật |
+| --- | --- |
+| Nhẹ | 100 (Mọng) |
+| Bình thường | 95 (Mọng) |
+| Họp nhiều | 71 (Cân bằng) |
+| Họp liền không nghỉ | 67 (Cân bằng) |
+| Ngồi liền không nghỉ | 64 (Cân bằng) |
+| Quá giờ 2 tiếng | 57 (Mệt dần) |
+| Cả tuần 55 giờ | 47 (Mệt dần) |
+| Nhảy việc | 83 (Mọng) |
+| Nghỉ đủ, tập trung tốt | 100 (Mọng) |
+| Kiệt sức | 0 (Kiệt sức) |
+
+**Điểm cần hiệu chỉnh (nói thẳng):**
+- "Ngày bình thường" được 95, hơi rộng tay so với chuẩn dân số WHO-5 (~68).
+- Ngày nhẹ và ngày nghỉ đủ cùng chạm trần 100 (hiệu ứng trần).
+- Đây đúng là việc đợt pilot WHO-5 (mục 5) và bộ 3 sẽ chỉ ra. Chỉnh xong thì chạy lại bộ 1 để chắc vẫn đúng chiều nghiên cứu.
+
+## 8. Vì sao không cần LLM để chứng minh luật
 
 - **LLM không chứng minh được công thức đúng.** Nó chỉ đưa ra nhận xét theo cảm nhận, mỗi lần chạy có thể khác nhau. Không lặp lại được thì không phải bằng chứng.
 - **Property-based test** (mục 4) kiểm hàng nghìn trường hợp, chạy lại ra y hệt, miễn phí, và chạy tự động mỗi lần build.
 - **Bằng chứng thực tế** chỉ có thể đến từ **người thật** (mục 5), không từ mô hình AI.
-- Claude (nếu có API key) vẫn là tuỳ chọn để viết lời thoại tự nhiên hơn và chỉnh điểm tối đa ±10. Không có key, mọi phần trong tài liệu này vẫn chạy đủ.
+- AI (Claude, hoặc Ollama / Groq / Gemini qua đường tương thích OpenAI) vẫn là tuỳ chọn: viết lời thoại tự nhiên hơn, chỉnh điểm tối đa ±10, hoặc chấm hẳn. Bộ 2 và 3 (mục 7) kiểm tra AI có đáng tin trước khi bật. Không có AI, mọi phần khác vẫn chạy đủ.
 
-## 8. Liên kết nguồn
+## 9. Liên kết nguồn
 
 1. Bakker, Demerouti & Sanz-Vergel (2023) — https://doi.org/10.1146/annurev-orgpsych-120920-053933
 2. Sonnentag, Cheng & Parker (2022) — https://doi.org/10.1146/annurev-orgpsych-012420-091355

@@ -83,6 +83,15 @@ Milo làm từng tình huống ngay, không chờ tới giờ.
 - Tự chạy: app tự kéo mức căng thẳng 0 → 30 → 60 → 0.
 - Tự làm: dùng thẻ **Mood realtime** ngay dưới bước hiện tại. Nhìn dải trên cùng bảng điều khiển để đọc điểm.
 
+### Tuỳ chọn · AI chấm mood và bộ kiểm chứng (2 phút, cần AI)
+
+Trang **Mood Engine**:
+1. Chọn **Luật + AI**. Dải trên cùng hiện điểm luật, phần AI chỉnh thêm và câu nhận xét của AI.
+2. Bấm **1 · Chứng minh luật hợp lý**: 14/14 kiểm tra đạt ngay.
+3. Nếu có AI (Ollama chạy sẵn trên máy là chắc chắn nhất): bấm **2 + 3**. Kết quả: AI có ổn định không, có xếp đúng ngày nặng/nhẹ không, lệch luật bao nhiêu điểm.
+
+Nói: *"Luật được chứng minh bằng test. AI được kiểm trước khi bật: hỏi lại nhiều lần vẫn ra gần như nhau, và phải đồng ý với nghiên cứu về ngày nào nặng hơn."*
+
 ### Kết (30 giây)
 
 > "Một bộ não chạy chung cho cả 3 môi trường:
@@ -124,6 +133,7 @@ Chữ nhỏ ở góc mỗi quả là nguồn dữ liệu: T = Teams, O = Outlook
 
 | Hỏi | Trả lời |
 | --- | --- |
+| AI chấm có ổn định không? | Trang *Mood Engine* → bộ 2: hỏi AI mỗi ngày mẫu 3 lần, lệch ≤ 10 điểm mới đạt; bộ 3 so với luật (lệch trung bình, tương quan) |
 | Điểm mood lấy từ đâu, sao tin được? | Mô hình Job Demands–Resources (Bakker et al., 2023): áp lực trừ điểm, hồi phục cộng điểm. Mỗi khoản dựa trên nghiên cứu từ 2021 tới nay (họp trực tuyến gây mệt, nghỉ ngắn giảm mệt, đa nhiệm gây stress, > 48 giờ/tuần có rủi ro). Bộ test chứng minh với 20.000 bộ số liệu ngẫu nhiên rằng công thức luôn đúng chiều các nghiên cứu. Con số tuyệt đối được hiệu chỉnh bằng khảo sát WHO-5 của WHO khi chạy thử với nhóm thật. Chi tiết: [CO-SO-KHOA-HOC.md](CO-SO-KHOA-HOC.md) |
 | Có làm phiền không? | Tối đa 1 lời nhắc chủ động mỗi 15 phút, 3 lần/giờ, 10 lần/ngày. Im lặng khi họp, trình chiếu, toàn màn hình, tập trung. Bạn hay bấm "Không cần" case nào thì Milo tự thưa case đó (cá nhân hoá 7 ngày) |
 | Dữ liệu đi đâu? | Chỉ lưu số liệu trên máy (SQLite), tự xoá theo tuần. Không có server riêng. AI (Claude) chỉ nhận con số, không nhận tiêu đề hay nội dung |

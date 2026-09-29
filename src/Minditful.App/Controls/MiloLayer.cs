@@ -313,7 +313,11 @@ public sealed class MiloLayer : Grid
         _tail.Visibility = Present.TailVisible(e) ? Visibility.Visible : Visibility.Collapsed;
         // Lúc ló đầu Milo đã hiện cả đuôi thật → ẩn hình chóp đuôi, nhưng giữ nút để chuột vẫn đang "rê" trên đuôi
         var peeking = e.Presence() == PresenceState.Peek;
-        _tailArt.Visibility = _halo.Visibility = peeking ? Visibility.Hidden : Visibility.Visible;
+        _tailArt.Visibility = peeking ? Visibility.Hidden : Visibility.Visible;
+        // Đang im lặng (họp, tập trung, toàn màn hình…): chóp đuôi mờ, không quầng thở — Milo vẫn chạy nhưng không làm phiền
+        var dimmed = Present.TailDimmed(e);
+        _halo.Visibility = peeking || dimmed ? Visibility.Hidden : Visibility.Visible;
+        _tailArt.Opacity = dimmed ? .45 : 1;
         if (Math.Abs(sat - _sat) > .001)
         {
             _sat = sat;

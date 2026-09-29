@@ -507,6 +507,49 @@ tests/Minditful.Core.Tests    Ngày mẫu khớp mục 13 (08:58 chào sáng …
 | §14 Lời thoại, cá nhân hoá | `Lines` (template + ràng buộc), `ClaudeLineWriter` (Claude API), `Personalizer` + `OutcomeStore` |
 | §9.1 Góc neo | `MiloLayer.Corner` + kéo chóp đuôi, `CompanionWindow.SetCorner` |
 
+## Chọn AI để test (miễn phí)
+
+App gọi AI qua 2 đường:
+- **Claude:** SDK Anthropic, cần `ANTHROPIC_API_KEY`.
+- **Mọi dịch vụ tương thích OpenAI:** đặt `…Llm__Provider=OpenAI`, `…Llm__BaseUrl`, `…Llm__Model`, và key trong `LLM_API_KEY` (hoặc ô *Lưu key* ở trang Kết nối).
+
+Code không cần sửa gì khi đổi dịch vụ.
+
+| Dịch vụ | Chi phí / giới hạn | Điền vào `.env` | Hợp với |
+| --- | --- | --- | --- |
+| **Ollama** (chạy trên máy) — **khuyên dùng để test** | Miễn phí, **không giới hạn**, dữ liệu không rời máy. Cần máy khá (card NVIDIA càng tốt) và tải model vài GB | `Provider=OpenAI` · `BaseUrl=http://localhost:11434/v1` · `Model=qwen2.5:7b` · không cần key | Chạy bộ kiểm chứng nhiều lần, demo không lo hết lượt |
+| **Groq** | Gói miễn phí có giới hạn theo phút và theo ngày (khoảng 1.000 request/ngày cho model mở, tuỳ model) | `Provider=OpenAI` · `BaseUrl=https://api.groq.com/openai/v1` · `Model=openai/gpt-oss-20b` · `LLM_API_KEY=gsk_…` | Rất nhanh, đủ cho vài lượt kiểm chứng/ngày |
+| **Google Gemini** | Gói miễn phí: model *Flash-Lite* thường nhiều lượt/ngày hơn *Flash*; Google đổi giới hạn thường xuyên, xem số thật trong AI Studio | `Provider=OpenAI` · `BaseUrl=https://generativelanguage.googleapis.com/v1beta/openai/` · `Model=gemini-2.5-flash-lite` · `LLM_API_KEY=…` | Khi đã có key Gemini |
+| **OpenRouter** | Model `:free`: khoảng 50 request/ngày khi tài khoản chưa nạp tiền | `Provider=OpenAI` · `BaseUrl=https://openrouter.ai/api/v1` · `Model=<tên model>:free` | Thử nhiều model khác nhau |
+| **Claude** | Trả phí theo lượng dùng | `ANTHROPIC_API_KEY=sk-ant-…` (Provider để trống) | Chất lượng tiếng Việt tốt nhất, dùng khi lên Production |
+
+Giới hạn gói miễn phí thay đổi thường xuyên; con số trên chỉ để ước lượng, luôn xem trang quản lý của từng dịch vụ.
+
+**Cài Ollama trên Windows (khoảng 10 phút):**
+1. Tải bản cài ở ollama.com rồi cài.
+2. Mở PowerShell: `ollama pull qwen2.5:7b`. Qwen đọc và viết tiếng Việt khá tốt.
+3. Điền 3 dòng trên vào `.env`, mở lại Milo.
+4. Kiểm tra: trang *Mood Engine* phải ghi "Sẵn sàng: Ollama · qwen2.5:7b".
+
+**Mỗi lần dùng tốn bao nhiêu request:**
+- Bộ kiểm chứng AI: `10 ngày mẫu × số lần hỏi lại` → 20 hoặc 30 request/lượt.
+- Demo tua nhanh nên chỉ chấm mood bằng AI tối đa 1 lần/phút thật (`Llm.DemoMoodMinSeconds`).
+- Trang *Mood Engine* hiện số request đã dùng.
+
+**Riêng tư:** AI chỉ nhận con số (không tiêu đề, không nội dung). Gói miễn phí của một số dịch vụ có thể dùng dữ liệu gửi lên để cải thiện sản phẩm. Với dữ liệu Bosch thật, chỉ dùng Ollama trên máy hoặc dịch vụ trả phí đã được duyệt.
+
+### Trang Mood Engine (bảng điều khiển Demo, Sandbox, Production)
+
+- **Luật hay AI:**
+  - Chấm mood: *Luật* / *Luật + AI (±10 điểm)* / *AI chấm hẳn*.
+  - Đánh giá cuộc họp: *Luật* / *AI*.
+  - Đổi ngay lúc đang chạy. Nút *Hỏi AI chấm ngay*. Dòng trạng thái ghi điểm luật và điểm AI.
+- **3 bộ kiểm chứng:**
+  1. **Chứng minh luật hợp lý:** chạy ngay, không cần mạng.
+  2. **AI hợp lý và ổn định:** trả lời đúng dạng, hỏi lại lệch ≤ 10 điểm, xếp đúng thứ tự ngày nặng/nhẹ.
+  3. **So sánh luật với AI:** lệch trung bình, tương quan, cùng mức mood, cùng thứ tự.
+- *Lưu báo cáo* ra file Markdown trên Desktop để đưa vào bài trình bày. Chi tiết cách chấm: [docs/CO-SO-KHOA-HOC.md](docs/CO-SO-KHOA-HOC.md).
+
 ## Lớp 2 · Claude viết lời thoại (§14)
 
 Khi một case vào hàng đợi, Milo gọi Claude ngay lúc đó để viết sẵn câu chính. Nhờ vậy khi thẻ hiện lên thì không phải chờ.

@@ -89,7 +89,7 @@ internal sealed class FruitDashboardView : Canvas
     {
         var b = new Button
         {
-            Style = (Style)Application.Current.FindResource("Flat"), Content = text, Foreground = Br("#B85A34"), FontWeight = FontWeights.Bold,
+            Style = (Style)Application.Current.FindResource("SoftLink"), Content = text, Foreground = Br("#B85A34"), FontWeight = FontWeights.Bold,
             FontSize = 12, Padding = new Thickness(4, 2, 4, 2), Background = Brushes.Transparent,
         };
         b.Click += (_, _) => click();

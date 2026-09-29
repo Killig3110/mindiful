@@ -109,6 +109,33 @@
         </Setter>
     </Style>
 
+    <!-- Nút chữ trên nền sáng (thanh dashboard của Milo): rê chuột chỉ tô nền kem nhạt, chữ giữ nguyên màu -->
+    <Style x:Key="SoftLink" TargetType="Button">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="b" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="b" Property="Background" Value="#F3E3CF" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="b" Property="Background" Value="#EAD3B6" />
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="b" Property="Background" Value="#F3E3CF" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- Mục trên thanh bên của bảng điều khiển (tông sáng) -->
     <Style x:Key="NavItem" TargetType="Button">
         <Setter Property="Background" Value="Transparent" />
@@ -242,7 +269,7 @@
         </Style.Triggers>
     </Style>
 
-    <!-- Vùng cuộn của các bảng: thanh cuộn nằm đè mép phải, ẩn đi và chỉ hiện (mờ dần) khi rê chuột vào -->
+    <!-- Vùng cuộn của các bảng: không vẽ thanh cuộn, cuộn bằng con lăn chuột / bàn phím / chạm -->
     <Style x:Key="ThinScroll" TargetType="ScrollViewer">
         <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
         <Setter Property="HorizontalScrollBarVisibility" Value="Disabled" />
@@ -251,31 +278,8 @@
             <Setter.Value>
                 <ControlTemplate TargetType="ScrollViewer">
                     <Grid Background="{TemplateBinding Background}">
-                        <ScrollContentPresenter x:Name="PART_ScrollContentPresenter" Margin="0,0,10,0"
-                                                CanContentScroll="{TemplateBinding CanContentScroll}" />
-                        <ScrollBar x:Name="PART_VerticalScrollBar" HorizontalAlignment="Right" Orientation="Vertical" Opacity="0"
-                                   Value="{Binding VerticalOffset, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}"
-                                   Maximum="{TemplateBinding ScrollableHeight}" ViewportSize="{TemplateBinding ViewportHeight}"
-                                   Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}" />
+                        <ScrollContentPresenter x:Name="PART_ScrollContentPresenter" CanContentScroll="{TemplateBinding CanContentScroll}" />
                     </Grid>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Trigger.EnterActions>
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="PART_VerticalScrollBar" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.15" />
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </Trigger.EnterActions>
-                            <Trigger.ExitActions>
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="PART_VerticalScrollBar" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.4" />
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </Trigger.ExitActions>
-                        </Trigger>
-                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

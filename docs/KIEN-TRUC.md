@@ -67,7 +67,7 @@ flowchart LR
 
 | Project | Chứa gì | Vì sao tách |
 | --- | --- | --- |
-| **Minditful.Core** | Toàn bộ "bộ não": luật, hàng đợi, điều phối, episode, mood, cá nhân hoá, nội dung thẻ, keyframes hoạt ảnh, ngày mẫu | Không phụ thuộc Windows, UI hay mạng → **test được trên mọi OS** (146 test), và 3 môi trường dùng chung đúng một bộ não |
+| **Minditful.Core** | Toàn bộ "bộ não": luật, hàng đợi, điều phối, episode, mood, cá nhân hoá, nội dung thẻ, keyframes hoạt ảnh, ngày mẫu | Không phụ thuộc Windows, UI hay mạng → **test được trên mọi OS** (155 test), và 3 môi trường dùng chung đúng một bộ não |
 | **Minditful.Integrations** | Nói chuyện với thế giới ngoài: Entra/MSAL, Graph, Azure DevOps, Claude, SQLite, cấu hình, `.env` | Tách I/O khỏi logic; đổi nhà cung cấp mà không đụng bộ não |
 | **Minditful.App** | WPF: cửa sổ, overlay, vẽ Milo, khay hệ thống, tín hiệu Windows, vòng lặp thời gian của từng môi trường | Phần duy nhất cần Windows |
 
@@ -705,7 +705,15 @@ Xác thực: PAT (header `Basic base64(":"+PAT)`) hoặc Entra (Bearer). PAT sai
 | `GET …/iterations/{id}/workitems` | 3 phút | Tiến độ sprint (điểm hoặc số item) |
 | `GET {org}/_apis/connectionData` · `POST …/workitems/$Task?bypassRules=true` | Chỉ "Tạo dữ liệu mẫu" | Tạo 6 task mẫu đã Active lùi ngày |
 
-### 8.4 Claude API (Lớp 2, tuỳ chọn)
+### 8.4 LLM (Lớp 2, tuỳ chọn)
+
+`IMiloLlm` có 2 bản:
+- `ClaudeLineWriter`: SDK Anthropic, structured output.
+- `OpenAiCompatibleWriter`: HTTP `POST {BaseUrl}/chat/completions` với `response_format: json_object`, dùng cho Ollama, Groq, Gemini, OpenRouter.
+
+Cả 2 dùng chung lời nhắc và cách đọc JSON. Chọn bằng `Llm.Provider`. `LlmBridge` đếm request và giãn nhịp chấm mood trong Demo (`DemoMoodMinSeconds`). Trang *Mood Engine* đổi `Cfg.MoodMode` / `MeetingMode` lúc chạy (`LlmBridge.SetModes`) và chạy `MoodEvaluation` (3 bộ kiểm chứng).
+
+#### Claude API
 
 Qua **Anthropic C# SDK** (`client.Beta.Messages.Create`), model mặc định `claude-opus-5`, `effort: low`, không retry, header beta `server-side-fallback-2026-07-01` + `fallbacks: "default"` (khi model từ chối thì server tự chuyển model).
 
@@ -896,7 +904,7 @@ Lỗi AADSTS được dịch sang tiếng Việt (admin consent, sai tenant, red
 
 ## 13. Kiểm thử
 
-`dotnet test` chạy 146 test trên Core + Integrations (không cần Windows, không gọi mạng):
+`dotnet test` chạy 155 test trên Core + Integrations (không cần Windows, không gọi mạng):
 
 | File | Kiểm tra |
 | --- | --- |
@@ -911,6 +919,8 @@ Lỗi AADSTS được dịch sang tiếng Việt (admin consent, sai tenant, red
 | `ExtendedFeaturesTests` | Giữ giờ tập trung (đề nghị, tới giờ bật DND), báo cáo tuần thứ Hai, nghỉ ngắn, trốn khi trình chiếu, "Hôm nay thấy sao?", nghỉ giữa chuỗi họp ngày mai, tủ đồ, bảng chi tiết dashboard |
 | `MoodEvidenceTests` | Chứng minh công thức mood đúng chiều nghiên cứu với mọi dữ liệu: 20.000 bộ số ngẫu nhiên (JD-R: thêm áp lực không tăng điểm, thêm hồi phục không giảm điểm; nghỉ có lợi hơn khi việc nặng; > 48 giờ/tuần; nhảy việc) + lịch ngẫu nhiên chạy qua engine (họp cách 10' ≥ họp liền; thêm nghỉ không giảm điểm) |
 | `ValidationTests` | WHO-5 (tổng × 4), tương quan Pearson, cặp số kiểm chứng giữ 12 tuần qua đợt tự xoá hằng tuần |
+| `MoodEvaluationTests` | 3 bộ kiểm chứng (luật / AI / so sánh) chạy với AI giả: AI giống luật đạt hết; AI chấm lung tung, chấm ngược, hay lỗi đều bị bắt |
+| `SilentAndDotTests` | Đang im lặng thì chóp đuôi mờ (trình chiếu thì ẩn hẳn); thẻ mở từ chấm chờ không kéo Milo ra đè lên thẻ |
 | `DemoTourTests` | Kịch bản trình diễn phủ đủ mọi `CaseId`; chạy từng bước thì Milo giao đúng case; trình chiếu ẩn Milo; mood realtime giữ Milo đứng ngoài và đổi dáng ngay |
 | `SandboxModeTests` | Chế độ test ↔ như Production: ngưỡng rút gọn / chuẩn đổi lúc đang chạy, không bật lại tính năng đã tắt |
 

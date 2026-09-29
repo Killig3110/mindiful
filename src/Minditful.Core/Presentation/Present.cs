@@ -11,7 +11,8 @@ public static class Present
     {
         var s = e.S;
         Clip clip;
-        if (s.Ep is { } ep) clip = ep.Clip ?? Clip.Idle;
+        if (s.Ep is { FromDot: true }) clip = Clip.Gone; // bấm chấm chờ lúc đang họp: chỉ thẻ bung ra, Milo vẫn ẩn
+        else if (s.Ep is { } ep) clip = ep.Clip ?? Clip.Idle;
         else if (s.Visit is { } v) clip = v.Clip == Clip.LookAround ? (s.BandIdx >= 2 ? Clip.IdleTired : Clip.LookAround) : v.Clip;
         else if (s.Peek) clip = Clip.HoverPeek;
         else clip = Clip.Gone;
@@ -38,7 +39,11 @@ public static class Present
             : $"Nho hôm nay héo quá · {s.Score} · nghỉ chút nha";
     }
 
-    public static bool TailVisible(MiloEngine e) => e.Presence() is PresenceState.Hidden or PresenceState.Peek;
+    /// <summary>Chóp đuôi hiện khi Milo ẩn / ló đầu, và hiện mờ khi đang im lặng (họp, tập trung…) để biết Milo vẫn chạy. Trình chiếu thì ẩn hẳn.</summary>
+    public static bool TailVisible(MiloEngine e) => e.Presence() is PresenceState.Hidden or PresenceState.Peek or PresenceState.Silent;
+
+    /// <summary>Chóp đuôi mờ: đang im lặng.</summary>
+    public static bool TailDimmed(MiloEngine e) => e.Presence() == PresenceState.Silent;
 
     public static string? TailBadge(MiloEngine e)
     {
