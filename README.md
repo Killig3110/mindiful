@@ -634,7 +634,7 @@ Milo chớp mắt 4.5 giây/lần, khi mệt thì nhắm lâu hơn (§9.4). Chuy
 
 ## Tính năng chăm sóc mở rộng (mục `Wellbeing`)
 
-7 tính năng thêm ngoài prototype. Sandbox/Production bật theo `Wellbeing` trong `appsettings.json` hoặc `.env`. Demo tắt sẵn để ngày mẫu giữ đúng các mốc của tài liệu; bật thử từng cái ở trang **Thử tình huống** → nhóm *Mới thêm* của bảng điều khiển Demo.
+8 tính năng thêm ngoài prototype. Sandbox/Production bật theo `Wellbeing` trong `appsettings.json` hoặc `.env`. Demo tắt sẵn để ngày mẫu giữ đúng các mốc của tài liệu; bật thử từng cái ở trang **Thử tình huống** → nhóm *Mới thêm* của bảng điều khiển Demo.
 
 | Tính năng | Khi nào | Milo làm gì | Cấu hình |
 | --- | --- | --- | --- |
@@ -643,6 +643,7 @@ Milo chớp mắt 4.5 giây/lần, khi mệt thì nhắm lâu hơn (§9.4). Chuy
 | Hôm nay thấy sao? | Thẻ Tan tầm (và Nhắc lại tan tầm nếu chưa trả lời) | 3 nút Vui / Bình thường / Mệt. Chỉ lưu trên máy; "Mệt" trừ 6 điểm, "Vui" cộng 3; gửi cho Claude khi bật Mood Hybrid/Llm; thống kê tuần có "Bạn tự thấy" | `EveningCheck` |
 | Nghỉ giữa chuỗi họp ngày mai | Thẻ Tan tầm, khi mai có ≥ 3 cuộc họp liền | *Giữ 10' nghỉ lúc HH:mm* tạo sự kiện tentative trong lịch ngày mai | `EveningCheck` |
 | Nghỉ ngắn (uống nước, vươn vai) | Mỗi 50 phút ngồi máy liên tục (không tính giờ họp), tối đa 6 lần/ngày | Ló lên 5 giây với 1 bóng thoại, không nút, không tính ngân sách lời nhắc. Rời máy ≥ 5 phút thì đếm lại | `MicroBreakEveryMinutes` (0 = tắt), `MicroBreakMaxPerDay` |
+| Milo ngủ khi bạn tập trung | Đang trong khối tập trung (cổng *Giờ tập trung*) và Milo không có việc gì | Thay vì chỉ còn chóp đuôi mờ, 1 Milo nhỏ ngủ trên chóp đuôi (mắt nhắm, thở chậm, chữ "z"), vẫn mặc bộ đồ đang chọn. Rê chuột: "Bạn đang tập trung tới HH:MM". Họp, trình chiếu, toàn màn hình vẫn chỉ chóp đuôi mờ | Luôn bật |
 | Trốn khi trình chiếu | Teams presence = Presenting | Trốn hẳn, kể cả chóp đuôi và chấm chờ; thẻ đang mở thu lại | `HideWhenPresenting` |
 | Tủ đồ · phối đồ | Về đúng giờ (quá giờ < 15 phút) nhiều ngày liền, nghỉ cùng Milo, tập trung sâu, và theo mùa (Tết, Trung thu, Halloween, Noel) | 14 món chia 5 ô (mũ, kẹp tóc, kính, cổ, tay cầm), phối nhiều món, lưu 4 bộ, ngẫu nhiên. **Đồng phục Bosch** vẫn là phần thưởng cao nhất (15 ngày). Mở ngay trên Milo: chuột phải → *Thay đồ*, link *Tủ đồ* trên dashboard, menu khay, hoặc chat. Chi tiết: [HUONG-DAN-SU-DUNG.md mục 3.5](docs/HUONG-DAN-SU-DUNG.md) | `Wardrobe` |
 

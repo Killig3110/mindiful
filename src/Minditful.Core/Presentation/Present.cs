@@ -46,6 +46,15 @@ public static class Present
     /// <summary>Chóp đuôi hiện khi Milo ẩn / ló đầu, và hiện mờ khi đang im lặng (họp, tập trung…) để biết Milo vẫn chạy. Trình chiếu thì ẩn hẳn.</summary>
     public static bool TailVisible(MiloEngine e) => e.Presence() is PresenceState.Hidden or PresenceState.Peek or PresenceState.Silent;
 
+    /// <summary>
+    /// Bạn đang trong khối tập trung và Milo không có việc gì: Milo nằm ngủ trên chóp đuôi (thay vì chỉ còn chóp đuôi mờ).
+    /// Họp, trình chiếu, toàn màn hình… vẫn chỉ chóp đuôi mờ như cũ.
+    /// </summary>
+    public static bool Sleeping(MiloEngine e) => e.Presence() == PresenceState.Silent && e.HardGate() == Gate.Focus;
+
+    public static string? SleepText(MiloEngine e) =>
+        Sleeping(e) && e.S.FocusUntil is { } until ? $"Bạn đang tập trung tới {Hm(until)} · Milo ngủ để không làm phiền" : null;
+
     /// <summary>Chóp đuôi mờ: đang im lặng.</summary>
     public static bool TailDimmed(MiloEngine e) => e.Presence() == PresenceState.Silent;
 

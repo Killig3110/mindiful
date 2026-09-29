@@ -30,6 +30,8 @@ public sealed class MiloLayer : Grid
     private readonly RotateTransform _rotate = new();
     private readonly TranslateTransform _translate = new();
     private readonly Button _miloHit, _tail, _dotPill;
+    private readonly Image _sleeper;
+    private readonly ScaleTransform _sleeperFlip = new();
     private readonly System.Windows.Shapes.Path _tailBody, _tailTip;
     private readonly ScaleTransform _tailFlip = new(1, 1, 17, 17);
     private readonly Canvas _tailArt;
@@ -207,6 +209,15 @@ public sealed class MiloLayer : Grid
         };
         Place(_tail, 96, 0);
 
+        // Milo ngủ trên chóp đuôi lúc bạn tập trung (không bấm được: bấm/rê vẫn vào chóp đuôi bên dưới)
+        _sleeper = new Image
+        {
+            Width = 70, Height = 70, IsHitTestVisible = false, Visibility = Visibility.Collapsed,
+            RenderTransformOrigin = new Point(.5, .5), RenderTransform = _sleeperFlip,
+        };
+        RenderOptions.SetBitmapScalingMode(_sleeper, BitmapScalingMode.HighQuality);
+        Place(_sleeper, 86, 20);
+
         _whisperDot = new Ellipse { Width = 14, Height = 14, StrokeThickness = 2, Stroke = Br("#E8A33D"), Margin = new Thickness(0, 0, 8, 0) };
         _whisperText = new System.Windows.Controls.TextBlock { FontSize = 12.5, Foreground = Br("#FBF3E7"), VerticalAlignment = VerticalAlignment.Center };
         _whisper = new Border
@@ -328,7 +339,16 @@ public sealed class MiloLayer : Grid
         // Đang im lặng (họp, tập trung, toàn màn hình…): chóp đuôi mờ, không quầng thở — Milo vẫn chạy nhưng không làm phiền
         var dimmed = Present.TailDimmed(e);
         _halo.Visibility = peeking || dimmed ? Visibility.Hidden : Visibility.Visible;
-        _tailArt.Opacity = dimmed ? .45 : 1;
+        var sleeping = Present.Sleeping(e);
+        _tailArt.Opacity = sleeping ? .8 : dimmed ? .45 : 1;
+        _sleeper.Visibility = sleeping ? Visibility.Visible : Visibility.Collapsed;
+        if (sleeping)
+        {
+            _sleeperFlip.ScaleX = LeftSide ? -1 : 1;
+            _sleeperFlip.ScaleY = TopSide ? -1 : 1;
+            _sleeper.Source = MiloSkin.Frame(Pose.Breathe, MiloRig.Sleep, MiloRig.FrameIndex(MiloRig.Sleep, Now), false, sat, Accessory(e, MClip.Gone));
+        }
+        _tail.ToolTip = Present.SleepText(e);
         if (Math.Abs(sat - _sat) > .001)
         {
             _sat = sat;
@@ -482,7 +502,8 @@ public sealed class MiloLayer : Grid
     {
         var visible = clip != MClip.Gone;
         var paws = clip == MClip.HangPull && elapsed < 1.8;
-        var key = $"{clip}:{paws}:{(e.S.BandIdx == 3 && visible)}:{_corner}";
+        var sleeping = Present.Sleeping(e);
+        var key = $"{clip}:{paws}:{(e.S.BandIdx == 3 && visible)}:{sleeping}:{_corner}";
         if (key != _fxKey)
         {
             _fxKey = key;
@@ -490,6 +511,7 @@ public sealed class MiloLayer : Grid
             _fxAnims.Clear();
             _fxTexts.Clear();
             BuildFx(clip, paws, e.S.BandIdx == 3 && visible);
+            if (sleeping) BuildSleepFx();
         }
         foreach (var (tb, text) in _fxTexts) tb.Text = text(elapsed);
         foreach (var (el, anim, delay) in _fxAnims)
@@ -607,6 +629,19 @@ public sealed class MiloLayer : Grid
                     return (op, 14 * p, -30 * p, 1, 1);
                 }, d);
         }
+    }
+
+    /// <summary>Chữ "z" nhỏ bay lên từ Milo đang ngủ trên chóp đuôi.</summary>
+    private void BuildSleepFx()
+    {
+        (double R, double B, double S, double D)[] zs = [(112, 84, 13, 0), (104, 94, 11, 1), (96, 104, 9, 2)];
+        foreach (var (r, b, s, d) in zs)
+            AddFx(new TextBlock { Text = "z", FontFamily = Serif, FontSize = s, FontWeight = FontWeights.Bold, Foreground = Br("#7A6455") }, r, b, t =>
+            {
+                var p = t % 3 / 3;
+                var op = p < .3 ? p / .3 : 1 - (p - .3) / .7;
+                return (op, -8 * p, -18 * p, 1, 1);
+            }, d);
     }
 
     // ================= hiệu ứng clip hài =================

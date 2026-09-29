@@ -48,6 +48,8 @@ public static class MiloRig
     public static readonly Rig Cobweb = new("cobweb", 11, 2, Loop: false);
     public static readonly Rig Sip = new("sip", 11, 3);
     public static readonly Rig Zombie = new("zombie", 8, 3, PingPong: true);
+    /// <summary>Ngủ trên chóp đuôi lúc bạn tập trung: thở chậm, đầu gục, tai cụp.</summary>
+    public static readonly Rig Sleep = new("sleep", 8, 1.6, PingPong: true);
 
     public static Rig For(Clip clip, bool tired) => clip switch
     {
@@ -168,6 +170,12 @@ public static class MiloRig
                 break;
             case "peek":
                 Sym("earL", "earR", 8 - 4 * frame);         // vểnh tai khi ngóc đầu
+                break;
+            case "sleep":
+                moves.Add(new("head", 12 + 2 * p, 0, 4 + 2 * p));   // đầu gục, nhấp nhô theo nhịp thở
+                Sym("earL", "earR", -18);
+                Sym("armL", "armR", 6);
+                moves.Add(new("tail", 6 * s));
                 break;
             // ---------- clip hài ----------
             case "slay":

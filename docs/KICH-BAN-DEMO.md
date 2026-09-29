@@ -60,7 +60,7 @@ Milo làm từng tình huống ngay, không chờ tới giờ.
 | --- | --- | --- | --- |
 | 13 | Chưa nghỉ trưa | Thẻ xanh lá: Đi ăn thôi / Khoá 30' nghỉ trưa | "Quá trưa chưa rời máy, Milo rủ đi ăn." |
 | 14 | Làm liền quá lâu | Thẻ Làm liền → thở 1 phút | "Ngồi 2 tiếng không rời máy." |
-| 15 | Nhảy việc liên tục | Thẻ Bị cắt vụn → tập trung 30 phút | "Chuyển app quá nhiều trong 1 giờ, Milo đề nghị gom việc." |
+| 15 | Nhảy việc liên tục | Thẻ Bị cắt vụn → tập trung 30 phút → Milo **nằm ngủ trên chóp đuôi**, chữ "z" bay | "Chuyển app quá nhiều trong 1 giờ, Milo đề nghị gom việc. Bạn tập trung thì Milo ngủ trên chóp đuôi: vẫn ở đó, nhưng không làm phiền." |
 | 16 | Quá giờ | Thẻ Quá giờ → chốt việc, về thôi | "Vẫn làm sau giờ về 30 phút." |
 | 17 | Chào hỏi | Thẻ nhỏ khen → Cảm ơn Milo | "Lúc bạn làm tốt Milo cũng ghé hỏi thăm, không đòi gì." |
 | 18 | Giữ giờ tập trung | Thẻ "từ 16:15 tới 17:45 bạn trống 1h30" → Giữ | "Milo tìm khoảng trống dài nhất trong ngày và giữ để tập trung." |

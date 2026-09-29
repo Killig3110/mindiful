@@ -96,7 +96,8 @@ Khi có chuyện cần nói, Milo leo lên và hiện **thẻ** phía trên đ�
 Có AI (Claude, Groq, Ollama…) thì câu khó hiểu cũng được trả lời tự nhiên, và AI biết đúng tên nút chính trên thẻ. Không có thì Milo nhắc bạn chọn nút.
 
 **Chấm chờ:**
-- Lúc Milo phải im lặng (đang họp, tập trung, toàn màn hình…), **chóp đuôi mờ đi** để bạn biết Milo vẫn chạy.
+- Lúc Milo phải im lặng (đang họp, toàn màn hình, không làm phiền…), **chóp đuôi mờ đi** để bạn biết Milo vẫn chạy.
+- Lúc bạn đang trong **giờ tập trung**, Milo **nằm ngủ trên chóp đuôi**: mắt nhắm, đầu gục, có chữ "z" bay lên. Rê chuột lên đuôi để xem tập trung tới mấy giờ. Hết giờ tập trung thì Milo tỉnh dậy báo "xong rồi".
 - Lời nhắc dồn lại thành 1 viên nhỏ "2 lời nhắc đang chờ" ở góc.
 - Bấm vào viên đó thì chỉ thẻ bung ra ở sát góc, Milo vẫn ẩn để không chen vào cuộc họp.
 
@@ -356,7 +357,8 @@ Nhìn dải trên cùng của bảng điều khiển, hoặc trang **Bộ não M
 | --- | --- | --- |
 | Milo đang nghỉ | Chưa tới giờ làm, máy khoá, hoặc đã tan tầm | Chào sáng lần mở máy đầu tiên của ngày mai |
 | Milo đang im lặng · vì đang họp | Teams báo đang trong cuộc gọi, hoặc lịch đang có họp. Chóp đuôi mờ đi | Hết họp chờ 2 phút rồi mới nói |
-| … vì toàn màn hình / không làm phiền / giờ tập trung | Bạn đang cần tập trung | Dồn lời nhắc thành chấm chờ |
+| … vì toàn màn hình / không làm phiền | Bạn đang cần tập trung | Dồn lời nhắc thành chấm chờ |
+| … vì giờ tập trung | Bạn đang trong khối tập trung (tự bấm *Tập trung 30 phút*, *Khoá 90 phút*, hoặc giờ đã giữ trong lịch). Milo ngủ trên chóp đuôi | Hết giờ thì tỉnh dậy, báo "… phút sâu xong rồi!" |
 | Milo đang trốn | Bạn đang trình chiếu | Hiện lại khi thôi trình chiếu |
 | Milo đang ẩn ở góc màn hình | Không có gì cần nói, hoặc đã nhắc đủ số lần (tối đa 3 lần/giờ, 10 lần/ngày, cách nhau ≥ 15 phút) | Chờ đúng lúc |
 
