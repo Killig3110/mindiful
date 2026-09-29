@@ -134,7 +134,7 @@ internal abstract partial class ControlShell
         var box = new Border
         {
             Background = Br(P.Card), BorderBrush = Br(P.Line), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(12),
-            Padding = new Thickness(12, 10, 12, 10), Margin = new Thickness(0, 0, 8, 8), Cursor = Cursors.Hand, Width = 300,
+            Padding = new Thickness(12, 10, 12, 10), Margin = new Thickness(0, 0, 8, 8), Cursor = Cursors.Hand, Width = 238,
             Child = Columns((track, Auto), (new StackPanel { Children = { name, desc } }, Star)), Focusable = true,
         };
         System.Windows.Automation.AutomationProperties.SetName(box, label);
@@ -176,7 +176,7 @@ internal abstract partial class ControlShell
         var box = new Border
         {
             Background = Br(P.Card), BorderBrush = Br(P.Line), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(12),
-            Padding = new Thickness(12, 10, 12, 10), Margin = new Thickness(0, 0, 8, 8), Cursor = Cursors.Hand, Width = 300, Focusable = true,
+            Padding = new Thickness(12, 10, 12, 10), Margin = new Thickness(0, 0, 8, 8), Cursor = Cursors.Hand, Width = 238, Focusable = true,
             Child = Columns((dot, Auto), (new StackPanel { Children = { name, desc } }, Star), (go, Auto)),
         };
         System.Windows.Automation.AutomationProperties.SetName(box, label);

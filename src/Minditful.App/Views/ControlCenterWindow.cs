@@ -25,18 +25,16 @@ internal sealed class ControlCenterWindow : ControlShell
 
     public ControlCenterWindow(LiveSession session)
         : base($"Minditful · {(session.Env == AppEnvironment.Sandbox ? "Sandbox" : "Production")}",
-            session.Env == AppEnvironment.Sandbox ? "SANDBOX · TENANT THỬ" : "PRODUCTION · BOSCH",
+            session.Env == AppEnvironment.Sandbox ? "SANDBOX" : "PRODUCTION · BOSCH",
             session.Env == AppEnvironment.Sandbox ? "#2E7D6B" : "#0F6CBD",
-            session.Env == AppEnvironment.Sandbox
-                ? "Tài khoản và dữ liệu thật của tenant thử. Ngưỡng được rút ngắn để test trong 1 buổi."
-                : "Teams, Outlook, Azure Boards thật của bạn. Ngưỡng chuẩn theo tài liệu.")
+            "Teams, Outlook, Azure Boards thật của bạn. Ngưỡng chuẩn theo tài liệu.")
     {
         _session = session;
         _sandbox = session.Env == AppEnvironment.Sandbox;
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
         AddPage("home", IcHome, "Tổng quan", Home);
         AddPage("connect", IcLink, "Kết nối", Connect, "Microsoft 365, Azure Boards, Claude");
-        if (_sandbox) AddPage("try", IcTry, "Thử tình huống", Try, "cho Milo làm ngay");
+        if (_sandbox) AddPage("try", IcTry, "Thử tình huống", Try, "ép Milo làm như Demo");
         AddPage("milo", IcMilo, "Milo của bạn", Milo, "tủ đồ, chăm sóc, dữ liệu");
         AddPage("brain", IcBrain, "Bộ não Milo", BrainPage, "nâng cao");
         _session.Changed += OnChanged;
@@ -46,12 +44,63 @@ internal sealed class ControlCenterWindow : ControlShell
 
     private void OnChanged() => Dispatcher.BeginInvoke(Refresh);
 
+    private bool? _shownMode;
+
+    /// <summary>Sandbox: nhãn môi trường và trang "Thử tình huống" đi theo chế độ đang chọn.</summary>
+    protected override void OnRefresh()
+    {
+        if (!_sandbox || _shownMode == _session.TestMode) return;
+        _shownMode = _session.TestMode;
+        if (_session.TestMode)
+            SetBadge("SANDBOX · CHẾ ĐỘ TEST", "#2E7D6B", "Tenant thử, dữ liệu thật. Có công cụ ép Milo làm từng tình huống như Demo, ngưỡng rút ngắn để test trong 1 buổi.");
+        else
+            SetBadge("SANDBOX · NHƯ PRODUCTION", "#0F6CBD", "Tenant thử nhưng Milo chạy y như Production: ngưỡng chuẩn, không có công cụ test, không giả lập tín hiệu.");
+        SetPageVisible("try", _session.TestMode);
+    }
+
+    /// <summary>Công tắc 2 chế độ của Sandbox: giao thoa giữa Demo (ép Milo làm) và Production (để Milo tự chạy).</summary>
+    private Border ModeCard()
+    {
+        var seg = Segmented([("Chế độ test (như Demo)", "test"), ("Chạy như Production", "prod")],
+            () => _session.TestMode ? "test" : "prod", v => _session.SetTestMode(v == "test"));
+        StackPanel Col(string title, string color, params string[] lines)
+        {
+            var sp = new StackPanel { Margin = new Thickness(0, 0, 16, 0) };
+            var h = Text(title, 12.5, color, FontWeights.Bold);
+            h.Margin = new Thickness(0, 0, 0, 4);
+            sp.Children.Add(h);
+            foreach (var l in lines)
+            {
+                var x = Text("• " + l, 12, P.Ink2);
+                x.Margin = new Thickness(0, 0, 0, 2);
+                sp.Children.Add(x);
+            }
+            return sp;
+        }
+        var compare = Grid2(
+            Col("Chế độ test", "#2E7D6B", "Có trang Thử tình huống: ép Milo làm bất kỳ tình huống nào ngay", "Giả vờ đang gõ, rời máy, trình chiếu…", "Ngưỡng rút ngắn: ngồi liền 20' đã nhắc, 3' giữa 2 lời nhắc", "Bảng điều khiển tự mở khi chạy app"),
+            Col("Như Production", "#0F6CBD", "Milo tự chạy theo lịch, email, task thật", "Ngưỡng chuẩn: ngồi liền 2 tiếng mới nhắc, 15' giữa 2 lời nhắc", "Bỏ mọi tín hiệu giả lập", "Dùng để xem bản Production trông thế nào trước khi lên tenant Bosch"));
+        compare.Margin = new Thickness(0, 4, 0, 0);
+        return Card(new StackPanel { Children = { seg, compare } }, "Chế độ Sandbox",
+            "Sandbox là giao thoa giữa Demo và Production. Đổi lúc nào cũng được, không cần mở lại app; menu khay cũng có công tắc này.");
+    }
+
     // ================= trạng thái kết nối =================
     private (string, string) GraphState()
     {
         var s = _session.GraphStatus;
         return s.StartsWith("Đã đăng nhập", StringComparison.Ordinal) ? (s.Contains("THIẾU") ? "warn" : "ok", s)
             : s.StartsWith("Lỗi", StringComparison.Ordinal) ? ("bad", s) : ("warn", s);
+    }
+
+    /// <summary>Bản ngắn cho trang Tổng quan: bỏ danh sách quyền, giữ phần THIẾU nếu có.</summary>
+    private (string, string) GraphShort()
+    {
+        var (lvl, s) = GraphState();
+        var i = s.IndexOf(" · quyền:", StringComparison.Ordinal);
+        if (i < 0) return (lvl, s);
+        var missing = s.IndexOf("THIẾU", StringComparison.Ordinal);
+        return (lvl, s[..i] + (missing >= 0 ? " · " + s[missing..] : ""));
     }
 
     private (string, string) BoardsState() =>
@@ -74,15 +123,15 @@ internal sealed class ControlCenterWindow : ControlShell
         Border ConnCard(string title, Func<(string, string)> state, Button action) =>
             new()
             {
-                Width = 290, Margin = new Thickness(0, 0, 10, 10), Padding = new Thickness(14, 12, 14, 12), CornerRadius = new CornerRadius(12),
-                Background = Br(P.Fill),
+                Width = 236, Margin = new Thickness(0, 0, 10, 10), Padding = new Thickness(14, 12, 14, 12), CornerRadius = new CornerRadius(12),
+                Background = Br("#FFFFFF"), BorderBrush = Br(P.Line), BorderThickness = new Thickness(1),
                 Child = new StackPanel { Children = { Text(title, 13.5, P.Ink, FontWeights.Bold), Spacer(6), Status(state), Spacer(10), action } },
             };
         var conns = new WrapPanel
         {
             Children =
             {
-                ConnCard("Microsoft 365 · Teams, Outlook", GraphState, Btn("Đăng nhập Microsoft", async () => await _session.SignInAsync(true), BtnKind.Primary)),
+                ConnCard("Microsoft 365 · Teams, Outlook", GraphShort, Btn("Đăng nhập Microsoft", async () => await _session.SignInAsync(true), BtnKind.Primary)),
                 ConnCard("Azure Boards · task, sprint", BoardsState, Btn("Nhập PAT", () => Show("connect"))),
                 ConnCard("Claude · lời thoại (tuỳ chọn)", ClaudeState, Btn("Nhập API key", () => Show("connect"), BtnKind.Ghost)),
             },
@@ -107,14 +156,17 @@ internal sealed class ControlCenterWindow : ControlShell
         };
         foreach (var c in seen.Children.OfType<FrameworkElement>().Skip(1)) c.Margin = new Thickness(0, 0, 0, 8);
 
+        var cards = new List<UIElement>();
+        if (_sandbox) cards.Add(ModeCard());
+        cards.Add(Card(conns, "Kết nối"));
         return Page(_sandbox ? "Milo đang chạy trên Sandbox" : "Milo đang làm việc cùng bạn",
             "Milo ở góc phải dưới màn hình. Trang này cho biết Milo đã kết nối được những gì và đang nhìn thấy dữ liệu nào. Chấm xanh là ổn, vàng là cần làm thêm 1 bước, đỏ là lỗi.",
-            Card(conns, "Kết nối"),
+            [.. cards,
             Card(seen, "Milo đang thấy", _session.WorkHoursText),
             TipBox(
                 "Rê chuột lên chóp đuôi ở góc màn hình: Milo ló đầu. Bấm: mở dashboard 4 quả, bấm \"Chi tiết\" để xem thêm.",
                 "Milo tự im lặng khi bạn đang họp, trình chiếu, toàn màn hình hoặc bật Không làm phiền.",
-                "Đóng cửa sổ này Milo vẫn chạy. Muốn tắt hẳn: chuột phải biểu tượng chóp đuôi ở khay → Thoát Milo."));
+                "Đóng cửa sổ này Milo vẫn chạy. Muốn tắt hẳn: chuột phải biểu tượng chóp đuôi ở khay → Thoát Milo.")]);
     }
 
     // ================= Kết nối =================
@@ -275,7 +327,7 @@ internal sealed class ControlCenterWindow : ControlShell
             },
         };
         return Page("Thử tình huống",
-            "Công cụ để test Sandbox nhanh. Các công tắc \"giả vờ\" đè lên tín hiệu thật của máy tới khi bạn tắt.",
+            "Ép Milo làm từng hành động như ở Demo, nhưng trên dữ liệu và tài khoản thật. Các công tắc \"giả vờ\" đè lên tín hiệu thật của máy tới khi bạn tắt. Muốn xem Milo tự chạy như Production: Tổng quan → Chế độ Sandbox → Chạy như Production.",
             prep, cases,
             Card(new StackPanel { Children = { you, Spacer(6), Label("Làm 1 lần"), Spacer(6), once } }, "Giả vờ bạn đang…"));
     }

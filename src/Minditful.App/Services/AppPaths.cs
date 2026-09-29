@@ -82,4 +82,12 @@ internal static class UiSettings
         System.IO.File.Exists(AccessoryFile(env)) ? System.IO.File.ReadAllText(AccessoryFile(env)).Trim() : "auto";
 
     public static void SaveAccessory(AppEnvironment env, string choice) => System.IO.File.WriteAllText(AccessoryFile(env), choice);
+
+    private static string TestModeFile(AppEnvironment env) => Path.Combine(AppPaths.For(env), "test-mode.txt");
+
+    /// <summary>Sandbox: người dùng đã chọn chế độ test hay chạy như Production (null = chưa chọn, theo appsettings).</summary>
+    public static bool? LoadTestMode(AppEnvironment env) =>
+        System.IO.File.Exists(TestModeFile(env)) && bool.TryParse(System.IO.File.ReadAllText(TestModeFile(env)).Trim(), out var on) ? on : null;
+
+    public static void SaveTestMode(AppEnvironment env, bool on) => System.IO.File.WriteAllText(TestModeFile(env), on.ToString());
 }

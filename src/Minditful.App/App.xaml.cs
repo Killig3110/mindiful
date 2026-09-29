@@ -101,7 +101,8 @@ public partial class App : Application
         _session = live;
         ShowMilo();
         CreateTray(env);
-        if (live.Conn.ShowControlCenter || !live.Auth.IsConfigured) ShowControlCenter();
+        // Sandbox ở chế độ test mở sẵn bảng điều khiển như Demo; chạy như Production thì chỉ có Milo ở góc màn hình
+        if (live.Conn.ShowControlCenter || live.TestMode || !live.Auth.IsConfigured) ShowControlCenter();
         await live.StartAsync();
     }
 
@@ -146,6 +147,18 @@ public partial class App : Application
         else if (_session is LiveSession live)
         {
             menu.Items.Add("Mở bảng điều khiển", null, (_, _) => ShowControlCenter());
+            if (live.CanTest)
+            {
+                var test = new WinForms.ToolStripMenuItem("Chế độ test (ép Milo làm như Demo)") { CheckOnClick = true, Checked = live.TestMode };
+                test.CheckedChanged += (_, _) =>
+                {
+                    live.SetTestMode(test.Checked);
+                    if (test.Checked) ShowControlCenter();
+                    Companion?.Refresh();
+                };
+                menu.Opening += (_, _) => test.Checked = live.TestMode;
+                menu.Items.Add(test);
+            }
             menu.Items.Add("Đăng nhập Microsoft", null, async (_, _) => await live.SignInAsync(true));
             menu.Items.Add("Làm mới dữ liệu", null, async (_, _) => await live.RefreshAsync());
         }

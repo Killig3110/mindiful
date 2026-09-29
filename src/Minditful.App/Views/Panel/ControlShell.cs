@@ -28,6 +28,8 @@ internal abstract partial class ControlShell : Window
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromMilliseconds(400) };
     private List<Action>? _building;
     private readonly List<Action> _headerUpdaters = [];
+    private readonly Border _envPill;
+    private readonly TextBlock _envPillText, _envNote;
     private string? _current;
 
     protected abstract MiloEngine Engine { get; }
@@ -54,12 +56,17 @@ internal abstract partial class ControlShell : Window
         names.Children.Add(Text("Milo", 17, P.Ink, FontWeights.Bold, false));
         names.Children.Add(Text("Minditful", 11.5, P.Muted, null, false));
         brand.Children.Add(new StackPanel { Orientation = Orientation.Horizontal, Children = { avatar, names } });
-        var env = Pill(envLabel, envColor, "#FFFFFF", 11);
-        env.Margin = new Thickness(0, 12, 0, 0);
-        brand.Children.Add(env);
-        var envHint = Text(envNote, 11.5, P.Ink2);
-        envHint.Margin = new Thickness(0, 6, 0, 0);
-        brand.Children.Add(envHint);
+        _envPillText = new TextBlock { FontSize = 11, FontWeight = FontWeights.Bold, Foreground = Brushes.White };
+        _envPill = new Border
+        {
+            CornerRadius = new CornerRadius(6), Padding = new Thickness(10, 4, 10, 4), Margin = new Thickness(0, 12, 0, 0),
+            HorizontalAlignment = HorizontalAlignment.Left, Child = _envPillText,
+        };
+        brand.Children.Add(_envPill);
+        _envNote = Text("", 11.5, P.Ink2);
+        _envNote.Margin = new Thickness(0, 6, 0, 0);
+        brand.Children.Add(_envNote);
+        SetBadge(envLabel, envColor, envNote);
 
         _navPanel.Margin = new Thickness(10, 0, 10, 0);
         var foot = Text("Đóng cửa sổ này thì Milo vẫn chạy ở góc màn hình. Mở lại bằng biểu tượng chóp đuôi ở khay hệ thống.", 11, P.Muted);
@@ -121,6 +128,22 @@ internal abstract partial class ControlShell : Window
         b.Click += (_, _) => Show(id);
         _nav[id] = b;
         _navPanel.Children.Add(b);
+    }
+
+    /// <summary>Đổi nhãn môi trường ở thanh bên (vd. Sandbox chuyển giữa chế độ test và như Production).</summary>
+    protected void SetBadge(string label, string color, string note)
+    {
+        _envPillText.Text = label;
+        _envPill.Background = Br(color);
+        _envNote.Text = note;
+    }
+
+    /// <summary>Ẩn/hiện 1 trang trên thanh bên. Đang mở trang bị ẩn thì quay về trang đầu.</summary>
+    protected void SetPageVisible(string id, bool visible)
+    {
+        if (!_nav.TryGetValue(id, out var b)) return;
+        b.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+        if (!visible && _current == id) Show(_pages[0].Id);
     }
 
     protected void Show(string id)

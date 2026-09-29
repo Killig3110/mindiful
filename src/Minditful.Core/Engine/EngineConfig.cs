@@ -8,13 +8,13 @@ public sealed class EngineConfig
     /// <summary>Chỉ dùng cho ngày mẫu: giờ bắt đầu/kết thúc mô phỏng.</summary>
     public double DayOpen { get; init; } = Tm.T("08:50");
     public double DayClose { get; init; } = Tm.T("18:45");
-    public double GapBudget { get; init; } = 15 * 60;
+    public double GapBudget { get; set; } = 15 * 60;
     public int PerHour { get; init; } = 3;
     public int PerDay { get; init; } = 10;
     public double TypingDefer { get; init; } = 300;
     public double Settle { get; init; } = 120;
     public double JumpWindow { get; init; } = 600;
-    public double ParkTtl { get; init; } = 1800;
+    public double ParkTtl { get; set; } = 1800;
     /// <summary>Số lần chuyển việc/giờ bắt đầu bị tính là phân mảnh (spec: 8).</summary>
     public int FragThreshold { get; init; } = 8;
     /// <summary>Chào sáng chỉ khi lần mở máy đầu tiên trước giờ này (null = luôn chào). Spec: sau 04:00.</summary>
@@ -23,18 +23,19 @@ public sealed class EngineConfig
     public bool Scripted { get; init; }
     public uint Seed { get; init; } = 24;
 
-    // ---- Ngưỡng hành vi (tài liệu mục 4, 7, 8, 9). Sandbox có thể rút gọn qua BehaviorOverrides để test trong 1 buổi. ----
+    // ---- Ngưỡng hành vi (tài liệu mục 4, 7, 8, 9). Sandbox có thể rút gọn qua BehaviorOverrides để test trong 1 buổi;
+    //      các ngưỡng này đổi được lúc đang chạy (Sandbox bật/tắt chế độ test). ----
     /// <summary>Task kẹt: số ngày làm việc ở Active (spec: 3).</summary>
-    public int StuckMinDays { get; init; } = 3;
+    public int StuckMinDays { get; set; } = 3;
     /// <summary>Email chờ không giao trước giờ này vì bản tin sáng đã báo (spec: 10:00).</summary>
-    public double EmailNotBefore { get; init; } = Tm.T("10:00");
+    public double EmailNotBefore { get; set; } = Tm.T("10:00");
     /// <summary>Làm liền: số phút không có lần nghỉ ≥ 5 phút (spec: 120).</summary>
-    public double NoBreakMin { get; init; } = 120;
+    public double NoBreakMin { get; set; } = 120;
     /// <summary>Họp liên tục: số cuộc họp liền nhau tối thiểu (spec: 3).</summary>
-    public int OverloadMinChain { get; init; } = 3;
+    public int OverloadMinChain { get; set; } = 3;
     /// <summary>Ghé ngang mỗi 30–60 phút (spec §9.3).</summary>
-    public double VisitMinMinutes { get; init; } = 30;
-    public double VisitMaxMinutes { get; init; } = 60;
+    public double VisitMinMinutes { get; set; } = 30;
+    public double VisitMaxMinutes { get; set; } = 60;
 
     // ---- Giờ làm linh hoạt (Bosch flexible time): bắt đầu = lần mở máy đầu ngày, kẹp trong [FlexEarliestStart, FlexLatestStart] ----
     /// <summary>null = khung cố định Start–End. Có giá trị = linh hoạt (vd. 08:00).</summary>
@@ -56,11 +57,11 @@ public sealed class EngineConfig
     /// <summary>Đề nghị giữ khoảng trống dài nhất trong ngày làm khối tập trung, tới giờ tự bật Không làm phiền.</summary>
     public bool FocusPlan { get; init; }
     /// <summary>Khoảng trống tối thiểu (phút) để đề nghị giữ giờ tập trung.</summary>
-    public double FocusPlanMinMinutes { get; init; } = 60;
+    public double FocusPlanMinMinutes { get; set; } = 60;
     /// <summary>Sáng thứ Hai: tóm tắt tuần trước kèm 1 mẹo (cần dữ liệu tuần trước trên máy).</summary>
     public bool WeekReport { get; init; }
     /// <summary>Nhắc uống nước / quy tắc 20-20-20 sau mỗi N phút làm liên tục (0 = tắt).</summary>
-    public double MicroBreakEveryMin { get; init; }
+    public double MicroBreakEveryMin { get; set; }
     public int MicroBreakMaxPerDay { get; init; } = 6;
     /// <summary>Hỏi "Hôm nay thấy sao?" trên thẻ tan tầm và gợi ý nghỉ giữa chuỗi họp ngày mai.</summary>
     public bool EveningCheck { get; init; } = true;

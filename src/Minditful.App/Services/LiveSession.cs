@@ -69,7 +69,9 @@ internal sealed class LiveSession : IMiloSession
         _day = opt.WorkDay;
         _well = opt.Wellbeing;
         var ov = Conn.BehaviorOverrides;
-        if (ov?.EmailMinBusinessDaysWaiting is { } mailDays) Conn.MailMinWaitDays = mailDays;
+        _mailWaitConfigured = Conn.MailMinWaitDays;
+        // Sandbox: chế độ test (như Demo) hay chạy như Production — lựa chọn trên máy thắng giá trị trong appsettings
+        TestMode = CanTest && (UiSettings.LoadTestMode(env) ?? Conn.TestMode);
         _secrets = new SecretStore(env);
         _claudeKey = new SecretStore(env, "claude-api-key");
         Llm = opt.Llm;
@@ -97,26 +99,22 @@ internal sealed class LiveSession : IMiloSession
             _presenceWatcher = new PresenceWatcher(Graph, Auth);
 
         var now = DateTime.Now;
-        var std = new EngineConfig();
-        var cfg = new EngineConfig
+        EngineConfig Build() => new()
         {
             Start = Tm.T(_day.Start), End = Tm.T(_day.End), FragThreshold = _day.FragmentationPerHour,
             FlexEarliestStart = _day.IsFlexible ? Tm.T(_day.FlexEarliestStart) : null,
             FlexLatestStart = Tm.T(_day.FlexLatestStart), FlexHours = _day.FlexHours,
             MorningHelloUntil = Tm.T("12:00"), Scripted = false, Seed = (uint)now.Ticks,
-            // Sandbox: ngưỡng rút gọn (docs/KET-NOI-SANDBOX.md mục 3.2); Prod không có khối này → ngưỡng chuẩn
-            StuckMinDays = ov?.StuckTaskMinBusinessDays ?? std.StuckMinDays,
-            EmailNotBefore = ov?.EmailNotBefore is { } nb ? Tm.T(nb) : std.EmailNotBefore,
-            NoBreakMin = ov?.NoBreakStreakMin ?? std.NoBreakMin,
-            OverloadMinChain = ov?.OverloadMinChainCount ?? std.OverloadMinChain,
-            GapBudget = ov?.BudgetGapMin is { } gap ? gap * 60 : std.GapBudget,
-            VisitMinMinutes = ov?.VisitEveryMin is [var vmin, _] ? vmin : std.VisitMinMinutes,
-            VisitMaxMinutes = ov?.VisitEveryMin is [_, var vmax] ? vmax : std.VisitMaxMinutes,
-            ParkTtl = ov?.ParkedReminderTtlMin is { } park ? park * 60 : std.ParkTtl,
             // Tính năng mở rộng (mục "Wellbeing" trong appsettings.json / .env)
             FocusPlan = _well.FocusPlan, FocusPlanMinMinutes = _well.FocusPlanMinMinutes, WeekReport = _well.WeekReport,
             MicroBreakEveryMin = _well.MicroBreakEveryMinutes, MicroBreakMaxPerDay = _well.MicroBreakMaxPerDay, EveningCheck = _well.EveningCheck,
         };
+        // _standard = ngưỡng chuẩn của tài liệu (Production, Sandbox "như Production");
+        // chế độ test của Sandbox đè ngưỡng rút gọn (docs/KET-NOI-SANDBOX.md mục 3.2) lên cfg đang chạy
+        _standard = Build();
+        var cfg = Build();
+        BehaviorProfile.Apply(cfg, _standard, ov, TestMode);
+        Conn.MailMinWaitDays = BehaviorProfile.MailMinWaitDays(_mailWaitConfigured, ov, TestMode);
         Engine = new MiloEngine(cfg, new WorkSnapshot(), null, DateOnly.FromDateTime(now), now.TimeOfDay.TotalSeconds);
         Engine.SetAuto(false);
         Engine.ActionRequested += a => _ = Sink.HandleAsync(a);
@@ -125,7 +123,8 @@ internal sealed class LiveSession : IMiloSession
         LlmBridge.Attach(Engine, Writer, Application.Current.Dispatcher, opt.Llm.Features);
         LlmBridge.ApplyModes(Engine, Writer, opt.Llm);
         ApplyTuning();
-        if (ov is not null) Engine.LogExternal("Ngưỡng rút gọn cho Sandbox: " + ov.Describe(), LogKind.Sig);
+        if (CanTest)
+            Engine.LogExternal(TestMode ? "Sandbox · chế độ test: ngưỡng rút gọn " + ov?.Describe() : "Sandbox · chạy như Production: ngưỡng chuẩn", LogKind.Sig);
 
         Monitor = new WindowsActivityMonitor(_day);
         Monitor.LockChanged += locked =>
@@ -389,7 +388,39 @@ internal sealed class LiveSession : IMiloSession
         _ = RefreshAsync();
     }
 
-    public string? OverridesText => Conn.BehaviorOverrides?.Describe();
+    public string? OverridesText => TestMode ? Conn.BehaviorOverrides?.Describe() : null;
+
+    // ---------- Sandbox: chế độ test (như Demo) ↔ chạy như Production ----------
+    private readonly EngineConfig _standard;
+    private readonly int _mailWaitConfigured;
+
+    /// <summary>Chỉ Sandbox mới có chế độ test. Production luôn chạy ngưỡng chuẩn, không có công cụ ép hành động.</summary>
+    public bool CanTest => Env == AppEnvironment.Sandbox;
+
+    /// <summary>Bật: công cụ "Thử tình huống" + ngưỡng rút gọn. Tắt: Sandbox chạy y như Production trên tenant thử.</summary>
+    public bool TestMode { get; private set; }
+
+    public void SetTestMode(bool on)
+    {
+        if (!CanTest || on == TestMode) return;
+        TestMode = on;
+        UiSettings.SaveTestMode(Env, on);
+        var ov = Conn.BehaviorOverrides;
+        BehaviorProfile.Apply(Engine.Cfg, _standard, ov, on);
+        Conn.MailMinWaitDays = BehaviorProfile.MailMinWaitDays(_mailWaitConfigured, ov, on);
+        if (!on)
+        {
+            // Như Production: bỏ mọi tín hiệu giả lập, lần đọc Windows/Teams kế tiếp trả về trạng thái thật
+            foreach (var signal in _pinned.ToList()) Toggle(signal);
+            _pinned.Clear();
+            if (Engine.S.Stress > 0) Engine.ToggleStress();
+        }
+        Engine.LogExternal(on
+            ? "Bật chế độ test: công cụ Thử tình huống + ngưỡng rút gọn (" + ov?.Describe() + ")"
+            : "Tắt chế độ test: Sandbox chạy như Production (ngưỡng chuẩn, bỏ tín hiệu giả lập)", LogKind.User);
+        _ = RefreshAsync();
+        Changed?.Invoke();
+    }
 
     public WellbeingOptions Wellbeing => _well;
 

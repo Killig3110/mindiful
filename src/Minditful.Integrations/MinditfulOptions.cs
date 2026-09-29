@@ -98,8 +98,13 @@ public sealed class ConnectionOptions
     public int MailMinWaitDays { get; set; } = 1;
     /// <summary>Sandbox: tính cả email tự gửi cho mình (dữ liệu mẫu do Seeder gửi).</summary>
     public bool IncludeSelfSentMail { get; set; }
-    /// <summary>Mở cửa sổ Bộ não Milo khi khởi động.</summary>
+    /// <summary>Mở bảng điều khiển khi khởi động.</summary>
     public bool ShowControlCenter { get; set; }
+    /// <summary>
+    /// Chỉ Sandbox: bật sẵn chế độ test (công cụ "Thử tình huống" như Demo + ngưỡng rút gọn). Tắt = chạy như Production.
+    /// Người dùng đổi được trong bảng điều khiển / menu khay; lựa chọn đó được nhớ và thắng giá trị này.
+    /// </summary>
+    public bool TestMode { get; set; }
     /// <summary>Baseline workload khi lịch sử local chưa đủ 5 ngày (null = WorkDay.AvgInProgressBaseline).</summary>
     public double? AvgInProgressFallback { get; set; }
     public PollingOptions Polling { get; set; } = new();
@@ -131,6 +136,10 @@ public sealed class BehaviorOverrides
     public int[]? VisitEveryMin { get; set; }
     /// <summary>Chấm "1" trên đuôi giữ bao lâu (chuẩn 30 phút).</summary>
     public int? ParkedReminderTtlMin { get; set; }
+    /// <summary>Nhắc uống nước / 20-20-20 sau N phút (chuẩn: Wellbeing.MicroBreakEveryMinutes). Không bật lại nếu Wellbeing đã tắt.</summary>
+    public int? MicroBreakEveryMin { get; set; }
+    /// <summary>Khoảng trống tối thiểu để đề nghị giữ giờ tập trung (chuẩn: Wellbeing.FocusPlanMinMinutes).</summary>
+    public int? FocusPlanMinMinutes { get; set; }
 
     public string Describe() => string.Join(" · ", new[]
     {
@@ -142,6 +151,8 @@ public sealed class BehaviorOverrides
         BudgetGapMin is { } g ? $"cách nhau {g}'" : null,
         VisitEveryMin is [var a, var z] ? $"ghé ngang {a}–{z}'" : null,
         ParkedReminderTtlMin is { } p ? $"chấm chờ {p}'" : null,
+        MicroBreakEveryMin is { } mb ? $"uống nước mỗi {mb}'" : null,
+        FocusPlanMinMinutes is { } fp ? $"giữ giờ tập trung từ {fp}' trống" : null,
     }.Where(x => x is not null));
 }
 
