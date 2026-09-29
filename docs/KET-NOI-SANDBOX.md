@@ -169,7 +169,9 @@ Trong Visual Studio: Project → Properties → Debug → *Command line argument
 }
 ```
 
-`BehaviorOverrides` chỉ có ở Sandbox. Nó rút ngắn các ngưỡng phải chờ lâu (task Active 3 ngày, email chờ 1 ngày, làm liền 2 giờ, ngân sách 15 phút) để test trong một buổi. Prod không có khối này, nên dùng đúng ngưỡng trong tài liệu (mục 4, 8, 11).
+`BehaviorOverrides` chỉ có ở Sandbox. Nó rút ngắn các ngưỡng phải chờ lâu (task Active 3 ngày, email chờ 1 ngày, làm liền 2 giờ, ngân sách 15 phút, nhắc uống nước 50 phút, khoảng trống giữ giờ tập trung 60 phút) để test trong một buổi. Prod không có khối này, nên dùng đúng ngưỡng trong tài liệu (mục 4, 8, 11).
+
+Ngưỡng rút gọn chỉ áp dụng khi Sandbox ở **chế độ test** (`"TestMode": true`, mặc định). Bảng điều khiển → *Tổng quan* → *Chế độ Sandbox* (hoặc menu khay → *Chế độ test*) chuyển sang **Chạy như Production**: về ngưỡng chuẩn, ẩn trang *Thử tình huống*, bỏ tín hiệu giả lập. Việc chuyển chế độ không cần mở lại app và được nhớ cho lần sau.
 
 ### 3.3 Bí mật (không commit)
 
@@ -518,7 +520,7 @@ Chạy app với `--env Sandbox`, đăng nhập thulu@, dán PAT (bảng điều
 | 13 | Đăng xuất Teams, chờ 10 phút | Log ghi "đang dùng lịch để đoán cuộc họp"; cổng họp vẫn đúng giờ theo lịch | 5.2 |
 | 14 | Xoá PAT (bảng điều khiển → *Kết nối* → *Xoá PAT*) | Các tính năng Boards tắt, không popup lỗi; dashboard có dòng "Chưa kết nối Azure Boards" | 14 |
 
-**Tính năng mở rộng** (bật bằng mục `Wellbeing`; để test trong 1 buổi đặt `MINDITFUL__Minditful__Wellbeing__MicroBreakEveryMinutes=5` và `…__FocusPlanMinMinutes=30` trong `.env`, xem README mục *Tham chiếu biến `.env`*):
+**Tính năng mở rộng** (bật bằng mục `Wellbeing`; ở chế độ test Sandbox tự rút ngắn: nhắc uống nước mỗi 5 phút, giữ giờ tập trung từ 30 phút trống):
 
 | # | Làm gì | Milo phải… |
 |---|---|---|
@@ -530,6 +532,7 @@ Chạy app với `--env Sandbox`, đăng nhập thulu@, dán PAT (bảng điều
 | 20 | Trên thẻ Tan tầm bấm *Mệt* | Nút Mệt tô đậm, điểm giảm 6; tuần sau dashboard chi tiết có dòng "Bạn tự thấy" |
 | 21 | Bảng điều khiển → *Milo của bạn* → *Tủ đồ* | Hiện chuỗi ngày về đúng giờ; món chưa mở khoá bị mờ. Về đúng giờ 3 ngày liền thì sáng thứ 4 thẻ Chào sáng báo "Milo được tặng khăn quàng" |
 | 22 | Bấm chóp đuôi → *Chi tiết* | Bảng nhỏ trên đầu Milo: dòng thời gian, Office Vibe, cuộc họp sắp tới; tab Tuần có 7 quả nho |
+| 23 | *Tổng quan* → *Chế độ Sandbox* → **Chạy như Production** | Trang *Thử tình huống* biến mất, nhãn thanh bên thành "SANDBOX · NHƯ PRODUCTION", Bộ não ghi "ngưỡng chuẩn"; ngồi 25 phút không còn thẻ Làm liền. Chuyển lại **Chế độ test** thì mọi thứ quay về |
 
 **Dọn dẹp sau khi test:** trong Outlook, tìm và xoá các sự kiện có category **Milo** (gồm cả "Tập trung · Milo giữ chỗ" và "Nghỉ cùng Milo" ngày mai). Azure Boards thì để nguyên, sprint sau dùng tiếp.
 
@@ -565,6 +568,7 @@ Chỉ đổi **cấu hình**, code giữ nguyên:
 | Scopes | 6 quyền | Bắt đầu với `User.Read`, `Presence.Read`, `Calendars.Read`. Các quyền còn lại thêm khi IT duyệt |
 | Tính năng thiếu quyền | — | App tự hạ cấp: Giữ chỗ → "Nhắc tôi lúc đó"; Email chờ tắt; khoá tập trung chỉ nhắc, không bật DND |
 | Azure DevOps | `mindiful-sandbox / Milo-Sandbox` | Org/project Bosch; PAT chỉ cần **Work Items: Read** + **Project and Team: Read** |
-| `BehaviorOverrides` | Có (ngưỡng rút gọn) | **Không có**, dùng ngưỡng chuẩn |
+| `BehaviorOverrides` | Có (ngưỡng rút gọn, chỉ ở chế độ test) | **Không có**, dùng ngưỡng chuẩn |
+| Chế độ test (trang *Thử tình huống*) | Có, bật/tắt được | **Không có** |
 
 Trước khi chạy Prod, kiểm tra 2 việc: org Azure DevOps của Bosch có cho tạo PAT không, và máy công ty có chặn đăng nhập MSAL qua trình duyệt hệ thống với `http://localhost` không. Nếu bị chặn, chuyển sang WAM broker (package `Microsoft.Identity.Client.Broker`, thêm redirect URI `ms-appx-web://microsoft.aad.brokerplugin/<ClientId>`).

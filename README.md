@@ -142,7 +142,7 @@ dotnet test
 
 ### 0. Chuẩn bị
 
-Làm xong mục **[Cài đặt từ đầu](#cài-đặt-từ-đầu)** ở trên: `dotnet test` ra `Passed! … 124`, và `.env` đã điền cho môi trường cần test.
+Làm xong mục **[Cài đặt từ đầu](#cài-đặt-từ-đầu)** ở trên: `dotnet test` ra `Passed! … 127`, và `.env` đã điền cho môi trường cần test.
 
 Mở thẳng một môi trường: `--env Scenario` (= Demo), `--env Sandbox`, `--env Prod`. Nếu đã tick "Nhớ lựa chọn", **giữ Shift** khi mở app để hiện lại màn hình chọn.
 
@@ -366,6 +366,7 @@ Claude chỉ nhận tên case và số liệu, không bao giờ nhận tiêu đ�
 | Biến | Giá trị | Mặc định | Khi nào đổi |
 | --- | --- | --- | --- |
 | `MINDITFUL_SANDBOX_ADO_PAT` | PAT | trống | **Bắt buộc** để Sandbox đọc Azure Boards. Scope *Work Items (Read & write)* + *Project and Team (Read)* |
+| `…Sandbox__TestMode` | `true` · `false` | `true` | Chế độ Sandbox lúc mở app lần đầu. `true` = **chế độ test**: có trang *Thử tình huống* để ép Milo làm như Demo, ngưỡng rút ngắn, bảng điều khiển tự mở. `false` = **chạy như Production**. Đổi được ngay trong bảng điều khiển / menu khay, lựa chọn đó được nhớ và thắng biến này |
 | `…Sandbox__Graph__ClientId` / `…TenantId` | GUID | có sẵn trong appsettings.json | Chỉ khi tạo lại app registration |
 | `…Sandbox__AzureDevOps__Organization` | tên org | `mindiful-sandbox` | Chỉ khi đổi org |
 | `…Production__AzureDevOps__Organization` / `…Project` / `…Team` | tên | trống | **Bắt buộc** cho Production: org/project/team Azure DevOps của Bosch |
@@ -374,11 +375,13 @@ Claude chỉ nhận tên case và số liệu, không bao giờ nhận tiêu đ�
 **Công thức hay dùng** (chép vào `.env`, các dòng khác để nguyên):
 
 ```ini
-# Chỉ chạy Sandbox, test nhanh tính năng mới trong 1 buổi
+# Chỉ chạy Sandbox, chế độ test (ép Milo làm như Demo; nhắc uống nước sau 5', giữ giờ tập trung từ 30' trống)
 MINDITFUL_ENV=Sandbox
 MINDITFUL_SANDBOX_ADO_PAT=<PAT>
-MINDITFUL__Minditful__Wellbeing__MicroBreakEveryMinutes=5
-MINDITFUL__Minditful__Wellbeing__FocusPlanMinMinutes=30
+MINDITFUL__Minditful__Sandbox__TestMode=true
+
+# Xem Sandbox chạy y như Production (không công cụ test, ngưỡng chuẩn)
+MINDITFUL__Minditful__Sandbox__TestMode=false
 
 # Có API key Claude: bật đủ Lớp 2
 ANTHROPIC_API_KEY=sk-ant-...
@@ -404,7 +407,7 @@ Kiểm tra app đã nhận cấu hình: mở **bảng điều khiển**. Trang *
 
 ### Sandbox (tenant `mindiful.onmicrosoft.com`)
 
-Hướng dẫn đầy đủ: **[docs/KET-NOI-SANDBOX.md](docs/KET-NOI-SANDBOX.md)**. Tài liệu gồm app registration, quyền Graph, Teams/Outlook/Azure DevOps, cách kiểm tra bằng tay, checklist 22 bước test và các lỗi thường gặp.
+Hướng dẫn đầy đủ: **[docs/KET-NOI-SANDBOX.md](docs/KET-NOI-SANDBOX.md)**. Tài liệu gồm app registration, quyền Graph, Teams/Outlook/Azure DevOps, cách kiểm tra bằng tay, checklist 23 bước test và các lỗi thường gặp.
 
 TenantId, ClientId, org `mindiful-sandbox`, project `Milo-Sandbox` và team `Milo-Sandbox Team` đã có sẵn trong appsettings.json. Việc còn lại:
 
@@ -418,7 +421,16 @@ TenantId, ClientId, org `mindiful-sandbox`, project `Milo-Sandbox` và team `Mil
    - *Giả vờ bạn đang…*: đè tín hiệu thật.
    Trang **Kết nối** có **Lưu PAT / Xoá PAT**.
 
-Sandbox dùng **ngưỡng rút gọn** (`BehaviorOverrides`) để test trong 1 buổi: task Active 0 ngày đã tính là kẹt, email chờ 0 ngày, làm liền 20 phút, 2 lời nhắc cách nhau 3 phút, ghé ngang 3–5 phút, chấm chờ giữ 5 phút. Production không có khối này nên dùng đúng ngưỡng của tài liệu.
+**Sandbox có 2 chế độ**, là giao thoa giữa Demo và Production. Đổi ở bảng điều khiển → *Tổng quan* → *Chế độ Sandbox*, hoặc menu khay → *Chế độ test*. Đổi lúc đang chạy, không cần mở lại app; lựa chọn được nhớ trên máy.
+
+| | Chế độ test (như Demo) | Chạy như Production |
+| --- | --- | --- |
+| Trang *Thử tình huống* (ép Milo làm từng tình huống, giả vờ gõ phím / rời máy / trình chiếu…) | Có | Ẩn |
+| Ngưỡng (`BehaviorOverrides`) | **Rút gọn**: task Active 0 ngày đã tính là kẹt, email chờ 0 ngày, làm liền 20', 2 lời nhắc cách nhau 3', ghé ngang 3–5', chấm chờ 5', uống nước mỗi 5', giữ giờ tập trung từ 30' trống | Chuẩn như Production: làm liền 120', 15' giữa 2 lời nhắc, task kẹt ≥ 3 ngày… |
+| Tín hiệu giả lập | Dùng được | Bị bỏ, dùng tín hiệu thật của Windows/Teams |
+| Bảng điều khiển khi mở app | Tự mở | Không tự mở (mở từ khay) |
+
+Dùng *Chạy như Production* để xem Milo trên Production trông và cư xử thế nào ngay trên tenant thử. Production thật không có chế độ test.
 
 Mỗi nguồn được đọc lại theo chu kỳ riêng: presence 30 giây, lịch 2 phút, mail 5 phút, Boards 3 phút. Khi mở khoá máy, đăng nhập hoặc bấm *Làm mới*, app đọc lại tất cả ngay.
 

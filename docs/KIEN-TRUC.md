@@ -7,7 +7,7 @@ Tài liệu này dành cho người **chưa biết gì về app**, đọc xong p
 | Tài liệu | Nói về |
 | --- | --- |
 | [Kịch bản hành vi Milo](Kịch%20bản%20hành%20vi%20Milo.md) | **Hành vi** (Milo nên làm gì). Các ký hiệu "§x" trong tài liệu này trỏ về đó |
-| [KET-NOI-SANDBOX.md](KET-NOI-SANDBOX.md) | Setup tenant sandbox, checklist test 22 bước |
+| [KET-NOI-SANDBOX.md](KET-NOI-SANDBOX.md) | Setup tenant sandbox, checklist test 23 bước |
 | [README](../README.md) | Cách chạy, cấu hình, hướng dẫn test và kịch bản present |
 | [HUONG-DAN-SU-DUNG.md](HUONG-DAN-SU-DUNG.md) | Hướng dẫn cho người dùng: thao tác với Milo, bảng điều khiển, từng tính năng |
 
@@ -65,7 +65,7 @@ flowchart LR
 
 | Project | Chứa gì | Vì sao tách |
 | --- | --- | --- |
-| **Minditful.Core** | Toàn bộ "bộ não": luật, hàng đợi, điều phối, episode, mood, cá nhân hoá, nội dung thẻ, keyframes hoạt ảnh, ngày mẫu | Không phụ thuộc Windows, UI hay mạng → **test được trên mọi OS** (124 test), và 3 môi trường dùng chung đúng một bộ não |
+| **Minditful.Core** | Toàn bộ "bộ não": luật, hàng đợi, điều phối, episode, mood, cá nhân hoá, nội dung thẻ, keyframes hoạt ảnh, ngày mẫu | Không phụ thuộc Windows, UI hay mạng → **test được trên mọi OS** (127 test), và 3 môi trường dùng chung đúng một bộ não |
 | **Minditful.Integrations** | Nói chuyện với thế giới ngoài: Entra/MSAL, Graph, Azure DevOps, Claude, SQLite, cấu hình, `.env` | Tách I/O khỏi logic; đổi nhà cung cấp mà không đụng bộ não |
 | **Minditful.App** | WPF: cửa sổ, overlay, vẽ Milo, khay hệ thống, tín hiệu Windows, vòng lặp thời gian của từng môi trường | Phần duy nhất cần Windows |
 
@@ -112,14 +112,14 @@ classDiagram
 | Class | `DemoSession` | `LiveSession` | `LiveSession` |
 | Giờ | Đồng hồ **kịch bản** ngày 24/9: tua 60/120/300× khi Milo ẩn, 1× khi Milo hiện | Giờ thật | Giờ thật |
 | Dữ liệu | `DemoScenario.Snapshot()` cố định | Graph + Azure Boards của tenant `mindiful.onmicrosoft.com` | Graph + Azure Boards của Bosch |
-| Tín hiệu (khoá máy, gõ…) | Kịch bản (`ScenarioScript.World`) + công tắc "Giả vờ bạn đang…" | Windows thật (+ nút giả lập đè lên) | Windows thật |
+| Tín hiệu (khoá máy, gõ…) | Kịch bản (`ScenarioScript.World`) + công tắc "Giả vờ bạn đang…" | Windows thật (+ công tắc giả lập đè lên, chỉ ở chế độ test) | Windows thật |
 | Presence Teams | Theo lịch kịch bản | `/me/presence` | `/me/presence` |
 | Người dùng mẫu tự bấm | Có (`AutoReplies`), tắt được | Không | Không |
-| Ngưỡng hành vi | Chuẩn (§4, §8) | **Rút gọn** (`BehaviorOverrides`) để test trong 1 buổi | Chuẩn |
+| Ngưỡng hành vi | Chuẩn (§4, §8) | Chế độ test: **rút gọn** (`BehaviorOverrides`) để test trong 1 buổi · Như Production: chuẩn. Đổi lúc chạy bằng `LiveSession.SetTestMode` → `BehaviorProfile.Apply` | Chuẩn |
 | Lưu SQLite | Không | Có | Có |
 | Hành động ra ngoài | Chỉ ghi nhật ký | Gọi API thật | Gọi API thật (hạ cấp khi thiếu quyền) |
 | Ẩn khi share màn hình | Không | Có | Có |
-| Bảng điều khiển | `DemoControlWindow` | `ControlCenterWindow` + trang Thử tình huống | `ControlCenterWindow` |
+| Bảng điều khiển | `DemoControlWindow` | `ControlCenterWindow`; trang Thử tình huống chỉ hiện ở chế độ test | `ControlCenterWindow` |
 
 Giao diện Milo trên desktop (`CompanionWindow` + `MiloLayer`) **giống hệt nhau** ở cả 3 môi trường.
 
@@ -878,13 +878,14 @@ Lỗi AADSTS được dịch sang tiếng Việt (admin consent, sai tenant, red
 | `<Env>.PresenceMode` | Graph | Graph / Local |
 | `<Env>.ContentProtection` | true | Ẩn khi share màn hình |
 | `<Env>.Polling.*Seconds` | 30/120/300/180 | Presence / lịch / mail / Boards |
-| `Sandbox.BehaviorOverrides.*` | xem appsettings | Ngưỡng rút gọn |
+| `Sandbox.BehaviorOverrides.*` | xem appsettings | Ngưỡng rút gọn (chế độ test) |
+| `Sandbox.TestMode` | true | Chế độ Sandbox lúc mở app lần đầu; lựa chọn trong bảng điều khiển lưu ở `%LOCALAPPDATA%\Minditful\Sandbox\test-mode.txt` và thắng giá trị này |
 
 ---
 
 ## 13. Kiểm thử
 
-`dotnet test` chạy 124 test trên Core + Integrations (không cần Windows, không gọi mạng):
+`dotnet test` chạy 127 test trên Core + Integrations (không cần Windows, không gọi mạng):
 
 | File | Kiểm tra |
 | --- | --- |
@@ -897,6 +898,7 @@ Lỗi AADSTS được dịch sang tiếng Việt (admin consent, sai tenant, red
 | `DotEnvTests` | Đọc `.env`, biến thật được ưu tiên, `.env.sample` đủ khoá; mọi biến trong `.env.sample` và README đều có trong appsettings.json |
 | `WorkHoursTests`, `ChatGoHomeTests` | Giờ làm linh hoạt 8→17 / 9→18 / 10→19; chat "về thôi", "đồng ý" ở thẻ tan tầm |
 | `ExtendedFeaturesTests` | Giữ giờ tập trung (đề nghị, tới giờ bật DND), báo cáo tuần thứ Hai, uống nước / 20-20-20, trốn khi trình chiếu, "Hôm nay thấy sao?", nghỉ giữa chuỗi họp ngày mai, tủ đồ, bảng chi tiết dashboard |
+| `SandboxModeTests` | Chế độ test ↔ như Production: ngưỡng rút gọn / chuẩn đổi lúc đang chạy, không bật lại tính năng đã tắt |
 
 Phần WPF và gọi API thật được kiểm bằng tay theo README mục "Hướng dẫn test 3 môi trường" và checklist ở KET-NOI-SANDBOX.md.
 

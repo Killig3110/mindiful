@@ -152,6 +152,7 @@ public partial class App : Application
                 var test = new WinForms.ToolStripMenuItem("Chế độ test (ép Milo làm như Demo)") { CheckOnClick = true, Checked = live.TestMode };
                 test.CheckedChanged += (_, _) =>
                 {
+                    if (test.Checked == live.TestMode) return; // đồng bộ lúc mở menu, không phải người dùng bấm
                     live.SetTestMode(test.Checked);
                     if (test.Checked) ShowControlCenter();
                     Companion?.Refresh();

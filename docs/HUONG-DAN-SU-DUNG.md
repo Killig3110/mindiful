@@ -121,11 +121,27 @@ Lúc Milo ẩn, đồng hồ kịch bản tua nhanh. Lúc Milo xuất hiện, th
 | --- | --- |
 | **Tổng quan** | 3 thẻ kết nối: *Microsoft 365*, *Azure Boards*, *Claude*. **Chấm xanh** là ổn, **vàng** là cần làm thêm 1 bước, **đỏ** là lỗi (dòng chữ cạnh chấm ghi lý do bằng tiếng Việt). Phần *Milo đang thấy*: số cuộc họp, email chờ, task, sprint, điểm mood, cuộc họp kế tiếp, giờ làm hôm nay |
 | **Kết nối** | *Đăng nhập / Đăng xuất Microsoft*, *Làm mới dữ liệu*. Ô dán **PAT** Azure DevOps (*Lưu PAT / Xoá PAT*). Ô dán **API key Claude** (*Lưu key*). Tất cả lưu mã hoá trên máy |
-| **Thử tình huống** (chỉ Sandbox) | *Chuẩn bị*: Reset ngày (chào sáng lại), đặt giờ về (*Giờ về = bây giờ + 2 phút*), *Tạo dữ liệu mẫu* trong tenant. *Cho Milo làm ngay* và *Giả vờ bạn đang…* như Demo |
+| **Thử tình huống** (chỉ Sandbox ở chế độ test) | *Chuẩn bị*: Reset ngày (chào sáng lại), đặt giờ về (*Giờ về = bây giờ + 2 phút*), *Tạo dữ liệu mẫu* trong tenant. *Cho Milo làm ngay* và *Giả vờ bạn đang…* như Demo |
 | **Milo của bạn** | Tủ đồ, góc màn hình, *Milo chăm sóc bạn thế nào* (tính năng nào đang Bật/Tắt), *Riêng tư & dữ liệu* (Milo tự điều chỉnh theo 7 ngày ra sao, dữ liệu giữ trên máy, nút **Xoá toàn bộ dữ liệu thống kê ngay**) |
 | **Bộ não Milo** | Như Demo |
 
 Production mặc định không tự mở bảng điều khiển (Milo chỉ ở góc màn hình). Mở bằng biểu tượng ở khay.
+
+**Chế độ Sandbox** (thẻ đầu tiên của trang *Tổng quan*, hoặc menu khay → *Chế độ test*). Sandbox là giao thoa giữa Demo và Production:
+
+- **Chế độ test (như Demo)**
+  - Có trang *Thử tình huống* để ép Milo làm bất kỳ tình huống nào, trên tài khoản và dữ liệu thật.
+  - Ngưỡng rút ngắn (ngồi liền 20 phút đã nhắc, 3 phút giữa 2 lời nhắc, nhắc uống nước mỗi 5 phút).
+  - Bảng điều khiển tự mở khi chạy app.
+  - Nhãn thanh bên: *SANDBOX · CHẾ ĐỘ TEST*.
+- **Chạy như Production**
+  - Ẩn trang *Thử tình huống*, bỏ mọi tín hiệu giả lập.
+  - Về ngưỡng chuẩn: ngồi liền 2 tiếng mới nhắc, 15 phút giữa 2 lời nhắc.
+  - Bảng điều khiển không tự mở.
+  - Milo cư xử y như bản Production, dùng để xem trước bản thật.
+  - Nhãn thanh bên: *SANDBOX · NHƯ PRODUCTION*.
+
+Đổi lúc nào cũng được, không cần mở lại app. Lần sau mở app sẽ nhớ chế độ đã chọn.
 
 ## 5. Milo làm được gì: từng tính năng
 
@@ -219,7 +235,9 @@ Present: để bảng điều khiển ở màn hình thứ hai, màn hình chín
 5. *Giờ về = bây giờ + 2 phút*: xem thẻ tan tầm, bấm *Mệt*, *Về thôi*.
 6. Checklist đầy đủ: [KET-NOI-SANDBOX.md](KET-NOI-SANDBOX.md) mục 7. Test xong xoá các sự kiện có category **Milo** trong Outlook.
 
-Sandbox dùng ngưỡng rút ngắn (vd. ngồi liền 20 phút đã nhắc) để test trong 1 buổi.
+7. Muốn xem bản Production trông thế nào: *Tổng quan* → *Chế độ Sandbox* → **Chạy như Production**. Trang *Thử tình huống* ẩn đi, Milo tự chạy với ngưỡng chuẩn. Muốn ép Milo làm lại thì chuyển về **Chế độ test**.
+
+Ở chế độ test, Sandbox dùng ngưỡng rút ngắn (vd. ngồi liền 20 phút đã nhắc) để test trong 1 buổi.
 
 ### 6.3 Production: dùng hằng ngày
 
