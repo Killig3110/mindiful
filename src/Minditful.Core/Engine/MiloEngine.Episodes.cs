@@ -4,8 +4,10 @@ namespace Minditful.Core.Engine;
 
 public sealed partial class MiloEngine
 {
-    private static readonly CaseId[] NoRequeue = [CaseId.MeetingSoon, CaseId.TaskDone, CaseId.FocusDone, CaseId.Dashboard];
-    private static readonly CaseId[] Parkable = [CaseId.EmailWaiting, CaseId.CalendarPacked, CaseId.StuckTask, CaseId.MorningHello, CaseId.EodWrapup, CaseId.EodNudge];
+    private static readonly CaseId[] NoRequeue = [CaseId.MeetingSoon, CaseId.TaskDone, CaseId.FocusDone, CaseId.Dashboard, CaseId.MicroBreak];
+    private static readonly CaseId[] Parkable =
+        [CaseId.EmailWaiting, CaseId.CalendarPacked, CaseId.StuckTask, CaseId.MorningHello, CaseId.EodWrapup, CaseId.EodNudge, CaseId.FocusPlan, CaseId.WeekReport];
+    private static bool IsBubble(CaseId c) => c is CaseId.TaskDone or CaseId.FocusDone or CaseId.MicroBreak;
 
     // ================= điều phối (mục 4) =================
     public void SortQueue()
@@ -166,6 +168,11 @@ public sealed partial class MiloEngine
             m.Shown++;
             m.Half.Add(HalfOf(S.T));
         }
+        if (c == CaseId.MicroBreak)
+        {
+            S.MicroCount++;
+            S.LastMicro = S.T;
+        }
         ep.Variant = S.VariantCounter.GetValueOrDefault(c);
         S.VariantCounter[c] = ep.Variant + 1;
         Record(c, Outcome.Shown);
@@ -194,7 +201,7 @@ public sealed partial class MiloEngine
         else if (c == CaseId.MorningHello) seq.AddRange([Clip.HangPull, Clip.Hello]);
         else if (swap || S.Peek) seq.Add(Clip.StandUp);
         else if (jump) seq.Add(Clip.JumpIn);
-        else if (c is CaseId.TaskDone or CaseId.FocusDone) seq.Add(Clip.PeekIn);
+        else if (IsBubble(c)) seq.Add(Clip.PeekIn);
         else if (c == CaseId.Dashboard) seq.AddRange([Clip.ClimbIn, Clip.StandUp]);
         else seq.Add(Clip.ClimbIn);
         if (c == CaseId.EodWrapup) seq.Add(Clip.Stretch);
@@ -267,10 +274,10 @@ public sealed partial class MiloEngine
         var ep = S.Ep!;
         var c = ep.C;
         var def = Catalog.Def(c);
-        if (c is CaseId.TaskDone or CaseId.FocusDone)
+        if (IsBubble(c))
         {
             ep.Card = true;
-            SetPhase(Phase.Bubble, 3.2, Clip.Celebrate);
+            SetPhase(Phase.Bubble, c == CaseId.MicroBreak ? 5 : 3.2, c == CaseId.MicroBreak ? Clip.Greet : Clip.Celebrate);
             return;
         }
         ep.Card = true;
@@ -415,6 +422,27 @@ public sealed partial class MiloEngine
             Chat(val);
             return;
         }
+        // Thẻ tan tầm: tự đánh giá ngày và giữ chỗ nghỉ ngày mai — không đóng thẻ, không tính là trả lời lời nhắc
+        if (act == "feel")
+        {
+            S.Feeling = Feeling.Parse(val);
+            ep.CardVer++;
+            Log($"Hôm nay bạn thấy: {Feeling.Label(S.Feeling)} (chỉ lưu trên máy, dùng để chấm mood)", LogKind.User);
+            ComputeMood();
+            return;
+        }
+        if (act == "holdTomorrow")
+        {
+            if (S.TomorrowHoldAt is null && TomorrowChain() is { } tc)
+            {
+                var at = tc[1].End;
+                S.TomorrowHoldAt = at;
+                ep.CardVer++;
+                Log($"Giữ 10' nghỉ ngày mai lúc {Tm.Hm(at)} giữa chuỗi {tc.Count} cuộc họp", LogKind.User);
+                Raise(new MiloAction.HoldBreak(at, at + 600, "Nghỉ cùng Milo", DayOffset: 1));
+            }
+            return;
+        }
         Record(c, act switch
         {
             "snooze" or "remindAt" or "extend" => Outcome.Snoozed,
@@ -426,6 +454,7 @@ public sealed partial class MiloEngine
             case CaseId.Dashboard:
                 if (act == "week") { ep.Page = DashPage.Week; ep.CardVer++; Log("Dashboard → Xem cả tuần", LogKind.User); }
                 else if (act == "today") { ep.Page = DashPage.Today; ep.CardVer++; }
+                else if (act == "detail") { ep.Detail = !ep.Detail; ep.CardVer++; Log(ep.Detail ? "Dashboard → Xem chi tiết" : "Dashboard → về 4 quả", LogKind.User); }
                 else if (act == "close") ExitEp(Clip.ClimbOut, "Đóng dashboard → leo xuống");
                 return;
             case CaseId.MorningHello:
@@ -515,6 +544,38 @@ public sealed partial class MiloEngine
             case CaseId.CheckIn:
                 m.Keys.Add(ep.Item.Key);
                 ExitEp(Clip.ClimbOut, "Bấm \"Cảm ơn Milo\"");
+                return;
+            case CaseId.FocusPlan:
+                m.Keys.Add(ep.Item.Key);
+                if (act == "dismiss")
+                {
+                    m.ForDay = true;
+                    ExitEp(Clip.ClimbOutShort, "Bấm \"Thôi\" → không đề nghị giữ giờ tập trung nữa hôm nay");
+                    return;
+                }
+                {
+                    var (at, end) = (ep.Data.At, ep.Data.At + ep.Data.Min * 60);
+                    S.Holds.Add(new Hold("focusPlan", at, end, "Tập trung · Milo giữ chỗ"));
+                    ep.Held = true;
+                    ep.AfterThanks = true;
+                    ep.ThanksText = $"Đã giữ {Tm.Dur(ep.Data.Min)} tập trung lúc {Tm.Hm(at)}! Tới giờ Milo bật Không làm phiền.";
+                    Log($"Giữ giờ tập trung {Tm.Hm(at)}–{Tm.Hm(end)} (busy) · tới giờ tự bật Không làm phiền", LogKind.User);
+                    Raise(new MiloAction.HoldFocus(at, end));
+                    SetPhase(Phase.Confirm, 2.4, Clip.Celebrate);
+                }
+                return;
+            case CaseId.WeekReport:
+                m.Keys.Add(ep.Item.Key);
+                if (act == "week")
+                {
+                    // Chuyển thẳng sang dashboard trang tuần, Milo không cần leo xuống rồi lên lại
+                    Log("Báo cáo tuần → mở chùm nho 7 ngày", LogKind.User);
+                    S.Ep = null;
+                    StartEp(new QueueItem { C = CaseId.Dashboard, Key = "d" + S.T, Pri = 0, Sev = 0, Enq = S.T }, swap: true);
+                    S.Ep!.Page = DashPage.Week;
+                    return;
+                }
+                ExitEp(Clip.ClimbOut, "Bấm \"Đã rõ\" → leo xuống");
                 return;
             case CaseId.EodWrapup:
                 S.EodShown = true;
@@ -610,13 +671,28 @@ public sealed partial class MiloEngine
 
     private sealed record ChatIntent(string Key, Regex Re, string Say);
 
+    // Thứ tự quan trọng: câu đầu tiên khớp sẽ thắng ("về thôi" là về nhà, không phải "thôi" = từ chối)
     private static readonly ChatIntent[] Intents =
     [
-        new("busy", new Regex("(họp|bận|lát|sau|đang làm|busy)", RegexOptions.IgnoreCase), "Hiểu rồi, bạn đang bận. Milo quay lại sau nhé."),
+        new("home", new Regex("(về thôi|đi về|về nhà|về nha|về đây|tan làm|tan ca|nghỉ thôi|xong việc)", RegexOptions.IgnoreCase), "Về nhà vui vẻ nha, mai gặp!"),
+        new("busy", new Regex("(họp|bận|lát|để sau|đang làm|busy)", RegexOptions.IgnoreCase), "Hiểu rồi, bạn đang bận. Milo quay lại sau nhé."),
         new("tired", new Regex("(mệt|căng|đuối|stress|áp lực)", RegexOptions.IgnoreCase), "Vậy thở cùng Milo vài nhịp nha."),
+        new("yes", new Regex("^(?!.*(không|chưa)).*(đồng ý|được|oke|\\bok\\b|ừ|yes|đi thôi|làm luôn|triển|chốt)", RegexOptions.IgnoreCase), "Okie, làm luôn nè!"),
         new("no", new Regex("(không|thôi|ổn|khỏi)", RegexOptions.IgnoreCase), "Okie, Milo tôn trọng bạn."),
-        new("thanks", new Regex("(cảm ơn|cám ơn|thanks|ok|oke)", RegexOptions.IgnoreCase), "Hihi, Milo vui lắm!"),
+        new("thanks", new Regex("(cảm ơn|cám ơn|thanks)", RegexOptions.IgnoreCase), "Hihi, Milo vui lắm!"),
     ];
+
+    /// <summary>Nút chính của từng thẻ — dùng khi người dùng chat "đồng ý".</summary>
+    private static string PrimaryAct(CaseId c) => c switch
+    {
+        CaseId.MorningHello => "gotIt",
+        CaseId.MeetingSoon => "join",
+        CaseId.EmailWaiting => "openMail",
+        CaseId.CheckIn => "thanks",
+        CaseId.EodWrapup or CaseId.EodNudge => "goHome",
+        CaseId.WeekReport => "gotIt",
+        _ => "accept",
+    };
 
     private void Chat(string? text)
     {
@@ -645,11 +721,25 @@ public sealed partial class MiloEngine
     {
         var ep = S.Ep!;
         ep.Phase = Phase.Show;
+        var eod = ep.C is CaseId.EodWrapup or CaseId.EodNudge;
         switch (k)
         {
+            // Chat "về thôi": ở thẻ tan tầm/quá giờ thì chạy ra xe; thẻ khác coi như đang bận
+            case "home" when eod: Reply("goHome"); break;
+            case "home" when ep.C == CaseId.Overtime: Reply("accept"); break;
+            case "home": Reply("snooze"); break;
+            case "yes": Reply(PrimaryAct(ep.C)); break;
+            // Thẻ tan tầm không có Để sau/Không cần: "bận"/"chưa" = làm thêm 30 phút (1 lần), rồi để Milo leo xuống
+            case "busy" or "no" when ep.C == CaseId.EodWrapup && S.ExtendedUntil is null: Reply("extend"); break;
+            case "busy" or "no" when eod:
+                if (ep.C == CaseId.EodWrapup) S.EodShown = true;
+                else S.Nudged = true;
+                ExitEp(Clip.ClimbOut, "Chat: chưa về → Milo leo xuống, case Quá giờ sẽ tiếp quản nếu còn làm");
+                break;
             case "busy": Reply("snooze"); break;
             case "no": Reply("dismiss"); break;
             case "tired":
+                if (eod) S.Feeling = Feeling.Bad; // "mệt" ở thẻ tan tầm cũng là câu trả lời cho "Hôm nay thấy sao?"
                 Mem(ep.C).Keys.Add(ep.Item.Key);
                 StartBreathe(3);
                 break;

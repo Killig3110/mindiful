@@ -53,13 +53,17 @@ internal sealed class FruitDashboardView : Canvas
         close.Click += (_, _) => onAct("close");
         var title = Text(model.Title, 12.5, "#3A2A1E", FontWeights.Bold, false);
         title.VerticalAlignment = VerticalAlignment.Center;
-        title.Margin = new Thickness(0, 0, 10, 0);
+        title.Margin = new Thickness(0, 0, 6, 0);
         toggle.VerticalAlignment = VerticalAlignment.Center;
+        var detail = LinkButton("Chi tiết", () => onAct("detail"));
+        detail.VerticalAlignment = VerticalAlignment.Center;
+        System.Windows.Automation.AutomationProperties.SetName(detail, "Mở bảng chi tiết");
         var chip = new Border
         {
-            Background = Br("#FBF3E7"), CornerRadius = new CornerRadius(12), Padding = new Thickness(12, 5, 6, 5),
-            Effect = new DropShadowEffect { BlurRadius = 16, ShadowDepth = 5, Direction = 270, Opacity = .2, Color = Rgb("#2B211A") },
-            Child = new StackPanel { Orientation = Orientation.Horizontal, Children = { title, toggle, close } },
+            Background = Br("#FFF9F1"), BorderBrush = Br("#F1DFC6"), BorderThickness = new Thickness(1.5),
+            CornerRadius = new CornerRadius(14), Padding = new Thickness(12, 4, 6, 4),
+            Effect = new DropShadowEffect { BlurRadius = 16, ShadowDepth = 5, Direction = 270, Opacity = .18, Color = Rgb("#2B211A") },
+            Child = new StackPanel { Orientation = Orientation.Horizontal, Children = { title, toggle, Sep(), detail, close } },
         };
         chip.Loaded += (_, _) =>
         {
@@ -69,6 +73,17 @@ internal sealed class FruitDashboardView : Canvas
         chip.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromSeconds(.3)));
         Children.Add(chip);
     }
+
+    private static Border Sep() => new() { Width = 1, Height = 12, Background = Br("#E8D6BD"), Margin = new Thickness(2, 0, 2, 0), VerticalAlignment = VerticalAlignment.Center };
+
+    /// <summary>Viền pastel riêng cho từng quả: nho tím, cam đào, anh đào hồng, táo xanh lá.</summary>
+    private static (string Ring, string Glow) Tint(FruitKind k) => k switch
+    {
+        FruitKind.Grape or FruitKind.Bunch => ("#E4DAFA", "#F6F1FF"),
+        FruitKind.Orange => ("#FFDDBA", "#FFF5EA"),
+        FruitKind.Cherries => ("#FFD2DB", "#FFF3F5"),
+        _ => ("#D5EDC9", "#F3FAEF"),
+    };
 
     private static Button LinkButton(string text, Action click)
     {
@@ -84,14 +99,15 @@ internal sealed class FruitDashboardView : Canvas
     private void AddBubble(FruitItem f, Point p, Point head, int index)
     {
         var size = f.Kind == FruitKind.Bunch ? 100.0 : 84.0;
+        var (ring, glow) = Tint(f.Kind);
         var bg = new RadialGradientBrush { GradientOrigin = new Point(.4, .3), Center = new Point(.4, .3), RadiusX = .8, RadiusY = .8 };
-        bg.GradientStops.Add(new GradientStop(Rgb("#FFFBF4"), 0));
-        bg.GradientStops.Add(new GradientStop(Rgb("#F6EBDC"), .7));
-        bg.GradientStops.Add(new GradientStop(Rgb("#EEDFCB"), 1));
+        bg.GradientStops.Add(new GradientStop(Rgb("#FFFFFF"), 0));
+        bg.GradientStops.Add(new GradientStop(Rgb(glow), .75));
+        bg.GradientStops.Add(new GradientStop(Rgb(ring), 1));
         var disc = new Ellipse
         {
-            Fill = bg, Stroke = new SolidColorBrush(Color.FromArgb(20, 58, 42, 30)), StrokeThickness = 1,
-            Effect = new DropShadowEffect { BlurRadius = 20, ShadowDepth = 8, Direction = 270, Opacity = .2, Color = Rgb("#3A2A1E") },
+            Fill = bg, Stroke = Br(ring), StrokeThickness = 3,
+            Effect = new DropShadowEffect { BlurRadius = 18, ShadowDepth = 6, Direction = 270, Opacity = .16, Color = Rgb("#3A2A1E") },
         };
 
         var art = new Viewbox { Width = f.Kind == FruitKind.Bunch ? 58 : 40, Height = f.Kind == FruitKind.Bunch ? 64 : 40, Child = FruitArt.Build(f) };
@@ -116,10 +132,11 @@ internal sealed class FruitDashboardView : Canvas
         var hover = new ScaleTransform(1, 1, size / 2, size / 2);
         var popScale = new ScaleTransform(1, 1, size / 2, size / 2);
         var popMove = new TranslateTransform();
+        var bob = new TranslateTransform();
         var bubble = new Grid
         {
             Width = size, Height = size, Children = { disc, content, badge }, Cursor = Cursors.Hand, Opacity = 0,
-            RenderTransform = new TransformGroup { Children = { hover, popScale, popMove } },
+            RenderTransform = new TransformGroup { Children = { hover, popScale, popMove, bob } },
             ToolTip = Tip(f),
         };
         if (!f.Available) content.Opacity = .55;
@@ -142,6 +159,11 @@ internal sealed class FruitDashboardView : Canvas
         popMove.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(head.X - p.X, 0, dur) { BeginTime = begin, EasingFunction = ease });
         popMove.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(head.Y - p.Y, 0, dur) { BeginTime = begin, EasingFunction = ease });
         bubble.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromSeconds(.25)) { BeginTime = begin });
+        // Sau khi bung ra, mỗi quả nhấp nhô nhẹ lệch nhịp nhau như đang lơ lửng
+        bob.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(0, -3, TimeSpan.FromSeconds(1.8 + index * .15))
+        {
+            BeginTime = begin + dur, AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever, EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut },
+        });
     }
 
     private static void Hover(ScaleTransform t, double to)

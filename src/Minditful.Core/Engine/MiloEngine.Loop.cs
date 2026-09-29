@@ -362,6 +362,14 @@ public sealed partial class MiloEngine
 
     public void SetInCallOverride(bool? inCall) => S.InCallOverride = inCall;
 
+    /// <summary>Teams presence "Presenting" (hoặc Demo/Sandbox giả lập): Milo trốn hẳn tới khi thôi trình chiếu.</summary>
+    public void SetPresenting(bool on)
+    {
+        if (on == S.Presenting) return;
+        S.Presenting = on;
+        Log(on ? "Bạn đang trình chiếu → Milo trốn hẳn, kể cả chóp đuôi" : "Thôi trình chiếu → chóp đuôi hiện lại", LogKind.User);
+    }
+
     public void LeaveMeeting()
     {
         if (Ongoing() is not { } ev) return;
@@ -441,6 +449,22 @@ public sealed partial class MiloEngine
             case CaseId.Overtime: d.Over = Math.Max(35, S.OtMin); break;
             case CaseId.HighFragmentation: d.Sw = Math.Max(11, SwitchesHour()); break;
             case CaseId.FocusDone: d.Min = 90; break;
+            case CaseId.FocusPlan:
+                if (FocusSlot() is not { } fs)
+                {
+                    Log("Giữ giờ tập trung cần 1 khoảng trống ≥ 60 phút từ 15 phút nữa tới hết giờ làm", LogKind.Error);
+                    return;
+                }
+                (d.At, d.Min) = fs;
+                break;
+            case CaseId.WeekReport:
+                if (Snap.LastWeek is not { Days: > 0 })
+                {
+                    Log("Báo cáo tuần cần dữ liệu tuần trước trên máy (chưa có)", LogKind.Error);
+                    return;
+                }
+                break;
+            case CaseId.MicroBreak: d.Count = S.MicroCount; break;
             case CaseId.TaskDone:
                 MarkTaskDone();
                 return;

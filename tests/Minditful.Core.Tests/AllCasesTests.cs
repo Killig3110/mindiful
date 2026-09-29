@@ -393,12 +393,13 @@ public class AllCasesTests
     {
         var e = Fresh("17:55", new WorkSnapshot());
         Until(e, () => e.S.Ep is { C: CaseId.EodWrapup, Phase: Phase.Show }, 600);
-        Assert.Equal(["goHome", "extend"], Buttons(e));
+        Assert.Equal(["goHome", "extend"], Buttons(e).Where(a => a != "feel")); // + 3 nút "Hôm nay thấy sao?"
+        Assert.Equal(3, Buttons(e).Count(a => a == "feel"));
         e.UserReply("extend");
         Assert.Equal(e.S.T + 1800, e.S.ExtendedUntil!.Value, 1);
         Finish(e);
         Until(e, () => e.S.Ep is { C: CaseId.EodNudge, Phase: Phase.Show }, 1900);
-        Assert.Equal(["goHome"], Buttons(e));
+        Assert.Equal(["goHome"], Buttons(e).Where(a => a != "feel"));
         e.UserReply("goHome");
         Finish(e);
         Assert.True(e.S.OffDuty);

@@ -34,8 +34,28 @@ public sealed class MinditfulOptions
     public ConnectionOptions Production { get; set; } = new();
     public LlmOptions Llm { get; set; } = new();
     public Storage.StorageOptions Storage { get; set; } = new();
+    public WellbeingOptions Wellbeing { get; set; } = new();
 
     public ConnectionOptions For(AppEnvironment env) => env == AppEnvironment.Production ? Production : Sandbox;
+}
+
+/// <summary>Section "Wellbeing": các tính năng mở rộng ngoài prototype, bật/tắt từng cái (Sandbox và Production).</summary>
+public sealed class WellbeingOptions
+{
+    /// <summary>Đề nghị giữ khoảng trống dài nhất trong ngày làm khối tập trung; tới giờ tự bật Không làm phiền.</summary>
+    public bool FocusPlan { get; set; } = true;
+    public int FocusPlanMinMinutes { get; set; } = 60;
+    /// <summary>Sáng thứ Hai tóm tắt tuần trước + 1 mẹo.</summary>
+    public bool WeekReport { get; set; } = true;
+    /// <summary>Nhắc uống nước / 20-20-20 sau mỗi N phút ngồi máy liên tục. 0 = tắt.</summary>
+    public int MicroBreakEveryMinutes { get; set; } = 50;
+    public int MicroBreakMaxPerDay { get; set; } = 6;
+    /// <summary>Thẻ tan tầm hỏi "Hôm nay thấy sao?" và gợi ý nghỉ giữa chuỗi họp ngày mai.</summary>
+    public bool EveningCheck { get; set; } = true;
+    /// <summary>Teams báo đang trình chiếu (Presenting) → Milo trốn hẳn, kể cả chóp đuôi.</summary>
+    public bool HideWhenPresenting { get; set; } = true;
+    /// <summary>Tủ đồ: Milo có phụ kiện mới khi bạn về đúng giờ 3/5/10 ngày liền.</summary>
+    public bool Wardrobe { get; set; } = true;
 }
 
 public sealed class WorkDayOptions

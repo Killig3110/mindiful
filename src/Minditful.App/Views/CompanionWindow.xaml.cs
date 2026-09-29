@@ -25,6 +25,7 @@ public partial class CompanionWindow : Window
         _session = session;
         Layer.Engine = session.Engine;
         Layer.Corner = UiSettings.LoadCorner(session.Env);
+        Layer.AccessoryChoice = UiSettings.LoadAccessory(session.Env);
         Layer.TailDropped += OnTailDropped;
         Layer.Interacted += () => Animate(true);
         SourceInitialized += (_, _) => ApplyWindowStyles();
@@ -136,6 +137,13 @@ public partial class CompanionWindow : Window
     public void Refresh()
     {
         Animate(_session.Engine.Busy);
+        Layer.Render();
+    }
+
+    internal void SetAccessory(string choice)
+    {
+        Layer.AccessoryChoice = choice;
+        UiSettings.SaveAccessory(_session.Env, choice);
         Layer.Render();
     }
 

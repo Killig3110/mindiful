@@ -80,6 +80,7 @@ public static class Present
         }
         if (pres == PresenceState.Silent)
             return new("Im lặng", $"Cổng {Catalog.GateLabel[g!.Value]} đang đóng. Milo không xuất hiện" + (s.Queue.Count > 0 ? ", lời nhắc đọng thành chấm chờ ở góc." : "."), "Mục 4 · B11");
+        if (g == Gate.Presenting) return new("Trốn", "Bạn đang trình chiếu. Milo trốn hẳn, kể cả chóp đuôi, tới khi bạn thôi trình chiếu.", "Mở rộng");
         if (pres == PresenceState.Off) return new("Nghỉ làm", s.OffDuty ? "Đã tan tầm. Milo nghỉ tới sáng mai." : "Máy đang khoá.", "Mục 3");
         if (s.Visit is not null) return new("Ghé ngang", $"Ghé ngang 8 giây, dáng theo mood {e.CurrentBand.Label.ToLowerInvariant()}, không bóng thoại.", "Mục 9.3");
         if (s.Peek) return new("Ló đầu", "Rê chuột 600ms → Milo ngóc đầu và thì thầm 1 dòng. Bấm để mở dashboard.", "Mục 9.2 · B03");
@@ -125,9 +126,12 @@ public static class Present
         if (ep.Phase == Phase.Breathe) return new(CardVariant.Breathe, [], 280, Low: low);
         if (ep.Phase == Phase.Thanks) return new(CardVariant.Say, [], SayText: ep.ThanksText ?? "Cảm ơn đã nghỉ cùng Milo!", Low: low);
         if (ep.Phase == Phase.Bubble)
-            return new(CardVariant.Say, [], SayText: c == CaseId.TaskDone
-                ? $"Xong #{d.Task!.Id} rồi! Quả nho hôm nay mọng thêm chút."
-                : $"{JsRound(d.Min)} phút sâu xong rồi!", Low: low);
+            return new(CardVariant.Say, [], SayText: c switch
+            {
+                CaseId.TaskDone => $"Xong #{d.Task!.Id} rồi! Quả nho hôm nay mọng thêm chút.",
+                CaseId.MicroBreak => MicroText(d.Count),
+                _ => $"{JsRound(d.Min)} phút sâu xong rồi!",
+            }, Low: low);
 
         var b = new List<CardBlock>();
         switch (c)
@@ -149,6 +153,11 @@ public static class Present
                     extra.Add($"{inProg} task đang mở, nhiều hơn thường lệ. Chọn 1 việc quan trọng nhất nhé?");
                 if (e.Snap.YesterdayScore is { } y) extra.Add($"Hôm qua: {y} điểm");
                 if (e.Cfg.IsFlexible) extra.Add($"Hôm nay về lúc {Hm(e.Cfg.End)}");
+                if (e.Snap.Wardrobe is { } wd)
+                {
+                    if (wd.NewItem is { } item) extra.Add($"Bạn về đúng giờ {wd.Streak} ngày liền, Milo được tặng {item}!");
+                    else if (wd.Streak >= 2) extra.Add($"Chuỗi về đúng giờ: {wd.Streak} ngày");
+                }
                 if (extra.Count > 0) b.Add(new ParagraphBlock(string.Join(" · ", extra), Small: true));
                 b.Add(new ButtonsBlock([new("gotIt", "Đã rõ", ButtonStyle.Dark), new("remindAt", $"Nhắc lúc {HourLabel(e.MorningRemindAt())}", ButtonStyle.Ghost)]));
                 break;
@@ -225,15 +234,43 @@ public static class Present
                 if (s.FoldedList.Count > 0)
                     b.Add(new ParagraphBlock("Trong ngày còn: " + string.Join(", ", s.FoldedList.Select(f =>
                         Catalog.Def(f.C).Name.ToLowerInvariant() + (f.Data.Min > 0 ? " " + Dur(f.Data.Min) : ""))) + " chưa xử lý.", Small: true));
-                if (e.Snap.Tomorrow is { } tm)
+                if (e.Cfg.EveningCheck && e.TomorrowChain() is { } tc) b.AddRange(TomorrowBlocks(e, tc));
+                else if (e.Snap.Tomorrow is { } tm)
                     b.Add(new ParagraphBlock($"Mai {tm.Time} có {tm.Subject} — Milo nhắc lúc mở máy.", Small: true, Color: "#7A6455"));
+                if (e.Cfg.EveningCheck) b.AddRange(FeelBlocks(s));
                 b.Add(new ButtonsBlock([new("goHome", "Về thôi", ButtonStyle.Amber), new("extend", "Thêm 30 phút", ButtonStyle.Ghost, s.ExtendedUntil is null)]));
+                b.Add(new ChatBlock(ep.Chat)); // gõ "về thôi" / "đồng ý" để về, "chưa" / "bận" để làm thêm
                 break;
             }
             case CaseId.EodNudge:
                 b.Add(new ParagraphBlock(Lines.Text(e, ep)));
+                if (e.Cfg.EveningCheck && s.Feeling == 0) b.AddRange(FeelBlocks(s));
                 b.Add(new ButtonsBlock([new("goHome", "Về thôi", ButtonStyle.Amber)]));
+                b.Add(new ChatBlock(ep.Chat));
                 return new(CardVariant.Card, b, 280, Low: low);
+            case CaseId.FocusPlan:
+            {
+                var end = d.At + d.Min * 60;
+                b.Add(new TopBlock("Lịch Outlook · khoảng trống dài nhất", "#DDF0EA", "#1F5A4B", PillIcon.Clock, $"{Hm(d.At)} – {Hm(end)}", Stamp: ep.Held));
+                b.Add(new ParagraphBlock($"Từ **{Hm(d.At)}** tới **{Hm(end)}** bạn trống {Dur(d.Min)}. Milo giữ chỗ \"Tập trung\" để không ai chen vào nhé?"));
+                if ((e.StuckTasks().FirstOrDefault() ?? s.Tasks.FirstOrDefault(x => !x.Done)) is { } tk)
+                    b.Add(new LineBlock(LeadKind.IdTag, "#" + tk.Id, "#0B4F8A", tk.Title, PillText: "hợp để làm", PillBg: "#DDF0EA", PillFg: "#1F5A4B"));
+                b.Add(new ParagraphBlock("Tới giờ Milo tự bật Không làm phiền trên Teams.", Small: true, Color: "#7A6455"));
+                if (!ep.Held)
+                    b.Add(new ButtonsBlock([new("accept", e.Snap.CanWriteCalendar ? $"Giữ {Dur(d.Min)}" : "Nhắc tôi lúc đó", ButtonStyle.Dark), new("dismiss", "Thôi", ButtonStyle.Ghost)]));
+                break;
+            }
+            case CaseId.WeekReport when e.Snap.LastWeek is { } w:
+            {
+                b.Add(new EyebrowBlock("Thứ Hai · tuần mới"));
+                b.Add(new TitleBlock("Tuần trước của bạn"));
+                b.Add(new TilesBlock([($"{w.AvgScore:0}", "điểm TB"), (Dur(w.MeetingMin), "họp"), ($"{w.AcceptedBreaks} lần", "nghỉ cùng Milo")]));
+                if (w.Best is { } best && w.Worst is { } worst && w.Days > 1)
+                    b.Add(new ParagraphBlock($"Tốt nhất {WeekdayName(best.Label)} **{best.Score}**, mệt nhất {WeekdayName(worst.Label)} **{worst.Score}**.", Small: true));
+                b.Add(new ParagraphBlock(WeekTip(w)));
+                b.Add(new ButtonsBlock([new("gotIt", "Đã rõ", ButtonStyle.Dark), new("week", "Xem chùm nho", ButtonStyle.Ghost)]));
+                return new(CardVariant.Card, b, 300, Low: low);
+            }
         }
         if (def.Kind == CaseKind.Care) b.AddRange(CareBlocks(e, ep));
         return new(CardVariant.Card, b, Low: low);
@@ -284,6 +321,43 @@ public static class Present
         sub.Add(new("dismiss", "Không cần", ButtonStyle.Ghost));
         yield return new ButtonsBlock(sub);
         yield return new ChatBlock(ep.Chat);
+    }
+
+    private static IEnumerable<CardBlock> FeelBlocks(DayState s)
+    {
+        yield return new ParagraphBlock("Hôm nay bạn thấy sao? (chỉ lưu trên máy)", Small: true, Color: "#7A6455");
+        CardButton Btn(string v, string label) =>
+            new("feel", label, Engine.Feeling.Parse(v) == s.Feeling ? ButtonStyle.Dark : ButtonStyle.Ghost, Val: v);
+        yield return new ButtonsBlock([Btn("good", "Vui"), Btn("ok", "Bình thường"), Btn("bad", "Mệt")]);
+    }
+
+    private static IEnumerable<CardBlock> TomorrowBlocks(MiloEngine e, IReadOnlyList<CalendarEvent> tc)
+    {
+        var at = e.S.TomorrowHoldAt ?? tc[1].End;
+        yield return new ParagraphBlock($"Mai {Hm(tc[0].Start)}–{Hm(tc[^1].End)} có **{tc.Count} cuộc họp liền**, không phút nghỉ.", Small: true);
+        if (e.S.TomorrowHoldAt is null)
+            yield return new ButtonsBlock([new("holdTomorrow", e.Snap.CanWriteCalendar ? $"Giữ 10' nghỉ lúc {Hm(at)}" : $"Nhắc nghỉ lúc {Hm(at)}", ButtonStyle.Ghost)]);
+        else yield return new StatusDotBlock($"Đã giữ 10' nghỉ mai lúc {Hm(at)}");
+    }
+
+    /// <summary>Nhắc nhẹ: số chẵn là uống nước, số lẻ là quy tắc 20-20-20.</summary>
+    public static string MicroText(int n) => (n % 4) switch
+    {
+        0 => "Uống ngụm nước nha! Ngồi máy cả tiếng rồi đó.",
+        1 => "20-20-20: nhìn xa 6 mét trong 20 giây cho mắt nghỉ nhé.",
+        2 => "Nhấp ngụm nước rồi làm tiếp nè.",
+        _ => "Rời mắt khỏi màn hình, nhìn ra cửa sổ 20 giây nha.",
+    };
+
+    /// <summary>1 mẹo cho tuần mới, chọn theo điểm yếu nhất của tuần trước.</summary>
+    public static string WeekTip(WeekStats w)
+    {
+        if (w.Worst is { Score: < 45 } z)
+            return $"{char.ToUpper(WeekdayName(z.Label)[0])}{WeekdayName(z.Label)[1..]} là ngày nặng nhất. Tuần này thử **giữ chỗ nghỉ** giữa chuỗi họp nhé.";
+        if (w.OvertimeMin >= 60) return $"Tuần trước quá giờ {Dur(w.OvertimeMin)}. Tuần này thử **về đúng giờ** để Milo có đồ mới nha.";
+        if (w.AcceptedBreaks < w.Days) return $"Tuần trước mới nghỉ cùng Milo {w.AcceptedBreaks} lần. Tuần này thử **mỗi ngày 1 lần** nhé.";
+        if (w.FocusMin < 60 * w.Days) return "Thử **giữ 1 khối tập trung** mỗi sáng, Milo canh giờ cho.";
+        return "Tuần trước rất cân bằng. **Giữ phong độ** nha!";
     }
 
     private static string HourLabel(double t) => t % 3600 == 0 ? $"{(int)(t / 3600)}h" : Hm(t);
@@ -402,6 +476,52 @@ public static class Present
         ]);
     }
 
+    /// <summary>Bảng chi tiết (bấm "Chi tiết" trên dashboard 4 quả). null khi đang xem 4 quả.</summary>
+    public static DetailDashboard? Detail(MiloEngine e)
+    {
+        if (e.S.Ep is not { Detail: true } ep || Dashboard(e) is not { } d) return null;
+        var s = e.S;
+        if (ep.Page == DashPage.Today)
+        {
+            double t0 = e.Cfg.Start, t1 = Math.Max(e.Cfg.End, t0 + 3600);
+            double F(double x) => Math.Clamp((x - t0) / (t1 - t0), 0, 1);
+            var segs = e.Meetings.Where(m => !s.Skipped.Contains(m.Id) && m.End > t0 && m.Start < t1)
+                .Select(m => new TimelineSeg(F(m.Start), F(m.End), e.Assessment(m.Id) is { Load: >= 4 } ? "heavy" : "meet",
+                    $"{Hm(m.Start)}–{Hm(m.End)} · {m.Subject}" + (e.Assessment(m.Id) is { } a ? $" · nặng {a.Load}/5" : "")))
+                .Concat(s.Holds.Where(h => h.End > t0 && h.Start < t1).Select(h => new TimelineSeg(F(h.Start), F(h.End),
+                    h.Kind is "focus" or "focusPlan" ? "focus" : "break", $"{Hm(h.Start)}–{Hm(h.End)} · {h.Label}")))
+                .OrderBy(x => x.From).ToList();
+            var upcoming = d.Events.Where(r => TimeOnly.TryParse(r.Time, out var tt) && tt.ToTimeSpan().TotalSeconds >= s.T - 60).Take(3).ToList();
+            var chips = new List<(string, string)>();
+            if (e.Snap.MailAvailable) chips.Add(($"{e.WaitingEmails().Count}", "email chờ"));
+            if (e.Snap.BoardsAvailable) chips.Add(($"{e.InProgress()}", e.StuckTasks().Count > 0 ? $"task · {e.StuckTasks().Count} kẹt" : "task đang làm"));
+            chips.Add((Dur(Math.Max(s.LongestNm, s.FocusMinDone)), "tập trung"));
+            chips.Add(($"{s.AcceptedBreaks}", "lần nghỉ"));
+            return new DetailDashboard(DashPage.Today, new DetailToday(
+                s.Score, Catalog.Bands[s.BandIdx].Label, d.Phrase, e.Snap.YesterdayScore is { } y ? s.Score - y : null, d.Insight?.Replace("Milo nhận xét: ", ""),
+                Hm(t0), Hm(t1), segs, s.T >= t0 && s.T <= t1 ? F(s.T) : null, s.Vibe, upcoming, chips, d.StatusNote), null);
+        }
+        var real = d.Days.Where(x => x.Score >= 0).ToList();
+        var avg = real.Count > 0 ? (int)Math.Round(real.Average(x => x.Score)) : s.Score;
+        var w = e.Snap.ThisWeek;
+        var prev = e.Snap.LastWeek;
+        var stats = new List<(string, string)>
+        {
+            (Dur(w?.MeetingMin is > 0 ? w.MeetingMin : e.MeetingMin()), "họp"),
+            ($"{w?.AcceptedBreaks ?? s.AcceptedBreaks}", "lần nghỉ cùng Milo"),
+            (Dur(w?.FocusMin is > 0 ? w.FocusMin : s.FocusMinDone), "tập trung sâu"),
+            ($"{w?.TasksDone ?? s.TasksDone}", "task xong"),
+        };
+        if (w is { OvertimeMin: >= 1 }) stats.Add((Dur(w.OvertimeMin), "quá giờ"));
+        var replies = w is null ? [] : new List<(string, int, string)>
+        {
+            ("Đồng ý", w.Accepted, "#CFE6BC"), ("Để sau", w.Snoozed, "#FBE3C0"), ("Không cần", w.Dismissed, "#F8D7DC"), ("Bỏ qua", w.Ignored, "#E7DED2"),
+        }.Where(r => r.Item2 > 0).ToList();
+        var feel = w is null || w.FeelGood + w.FeelOk + w.FeelBad == 0 ? null : $"Bạn tự thấy: vui {w.FeelGood} · bình thường {w.FeelOk} · mệt {w.FeelBad} ngày";
+        return new DetailDashboard(DashPage.Week, null, new DetailWeek(avg, prev is null ? null : (int)Math.Round(avg - prev.AvgScore), d.Days, stats, replies, feel,
+            w is { Days: >= 2 } ? WeekTip(w) : null));
+    }
+
     /// <summary>Thống kê tuần từ dữ liệu local (SQLite), kèm so sánh tuần trước nếu còn giữ.</summary>
     public static string? WeekSummary(WeekStats? w, WeekStats? prev)
     {
@@ -412,6 +532,7 @@ public static class Present
                (w.Best is { } b && w.Worst is { } z && w.Days > 1 ? $" · tốt nhất {b.Label} {b.Score}, mệt nhất {z.Label} {z.Score}" : "") +
                $"\nHọp {Dur(w.MeetingMin)} · nghỉ cùng Milo {w.AcceptedBreaks} lần · tập trung sâu {Dur(w.FocusMin)} · {w.TasksDone} task xong" +
                (w.OvertimeMin >= 1 ? $" · quá giờ {Dur(w.OvertimeMin)}" : "") +
+               (w.FeelGood + w.FeelOk + w.FeelBad > 0 ? $"\nBạn tự thấy: vui {w.FeelGood} · bình thường {w.FeelOk} · mệt {w.FeelBad} ngày" : "") +
                (answered > 0 ? $"\nLời nhắc: {w.Shown} lần hiện · đồng ý {w.Accepted} · để sau {w.Snoozed} · không cần {w.Dismissed} · bỏ qua {w.Ignored}" : "");
     }
 
@@ -438,5 +559,6 @@ public static class Present
     {
         ["meet"] = "Họp", ["chain"] = "Chuỗi họp", ["streak"] = "Làm liền", ["ot"] = "Quá giờ", ["rest"] = "Thiếu nghỉ",
         ["frag"] = "Phân mảnh", ["work"] = "Workload", ["stuck"] = "Task kẹt", ["email"] = "Email chờ", ["stress"] = "Giả lập", ["llm"] = "Claude",
+        ["self"] = "Bạn tự thấy",
     };
 }

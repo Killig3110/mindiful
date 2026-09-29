@@ -150,8 +150,8 @@ internal sealed class CardRenderer(Action<string, string?> onAct)
                 BorderBrush = border is null ? null : Br(border), BorderThickness = new Thickness(border is null ? 0 : 1.5),
                 Margin = new Thickness(bb.Buttons.Count > 1 && cb != bb.Buttons[0] ? 3 : 0, 0, bb.Buttons.Count > 1 && cb != bb.Buttons[^1] ? 3 : 0, 0),
             };
-            var act = cb.Act;
-            btn.Click += (_, _) => onAct(act, null);
+            var (act, val) = (cb.Act, cb.Val);
+            btn.Click += (_, _) => onAct(act, val);
             g.Children.Add(btn);
         }
         return g;

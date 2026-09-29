@@ -40,7 +40,7 @@ public sealed class MiloLayer : Grid
     private readonly Border _badge, _whisper;
     private readonly System.Windows.Controls.TextBlock _badgeText, _whisperText, _dotText;
     private readonly Ellipse _whisperDot;
-    private readonly ContentControl _cardHost, _dashHost;
+    private readonly ContentControl _cardHost, _dashHost, _detailHost;
     private readonly Grid _fx;
     private readonly CardRenderer _cards;
     private readonly Stopwatch _clock = Stopwatch.StartNew();
@@ -57,6 +57,16 @@ public sealed class MiloLayer : Grid
     private readonly List<(FrameworkElement El, Func<double, (double Op, double Tx, double Ty, double Sx, double Sy)> Anim, double Delay)> _fxAnims = [];
 
     public double BaseOffset { get; set; } = 44;
+
+    /// <summary>Tủ đồ: "auto" = món mới nhất đã mở khoá, "none" = không mặc, hoặc id 1 món (<see cref="Wardrobe"/>).</summary>
+    internal string AccessoryChoice { get; set; } = "auto";
+
+    private string? Accessory(MiloEngine e)
+    {
+        if (e.Snap.Wardrobe is not { } w || AccessoryChoice == "none") return null;
+        var unlocked = Wardrobe.Unlocked(w.Best).ToList();
+        return AccessoryChoice == "auto" ? unlocked.LastOrDefault()?.Id : unlocked.FirstOrDefault(i => i.Id == AccessoryChoice)?.Id;
+    }
 
     /// <summary>Góc neo (§9.1). Góc trái lật Milo theo chiều ngang, góc trên thì Milo tụt xuống từ mép trên.</summary>
     internal Corner Corner
@@ -204,6 +214,8 @@ public sealed class MiloLayer : Grid
         Place(_cardHost, 26, 162);
         _dashHost = new ContentControl { Focusable = false };
         Place(_dashHost, 0, 0); // vườn trái cây neo đúng góc, xếp vòng cung quanh đầu Milo
+        _detailHost = new ContentControl { Focusable = false };
+        Place(_detailHost, 16, 150); // bảng chi tiết nằm ngay trên đầu Milo, cỡ 1 thẻ
 
         var pulse = new Ellipse { Width = 10, Height = 10, Fill = Br("#E8A33D"), Margin = new Thickness(0, 0, 8, 0) };
         _dotText = new System.Windows.Controls.TextBlock { FontSize = 12, Foreground = Br("#3A2A1E") };
@@ -294,7 +306,7 @@ public sealed class MiloLayer : Grid
             var tired = e.S.BandIdx >= 2;
             var rig = MiloRig.For(clip, tired);
             var blink = MiloRig.Blink(Now, tired);
-            _milo.Source = MiloSkin.Frame(Present.PoseFor(e, clip), rig, MiloRig.FrameIndex(rig, elapsed), blink, sat);
+            _milo.Source = MiloSkin.Frame(Present.PoseFor(e, clip), rig, MiloRig.FrameIndex(rig, elapsed), blink, sat, Accessory(e));
         }
 
         // ---- chóp đuôi ----
@@ -352,13 +364,18 @@ public sealed class MiloLayer : Grid
 
         // ---- dashboard ----
         // ---- dashboard: vườn trái cây quanh Milo ----
-        var dashKey = showDash ? $"{ep!.Id}:{ep.CardVer}:{ep.Page}:{_corner}" : null;
+        var dashKey = showDash ? $"{ep!.Id}:{ep.CardVer}:{ep.Page}:{ep.Detail}:{_corner}" : null;
         if (dashKey != _dashKey)
         {
+            var wasDetail = _detailHost.Content is not null;
             _dashKey = dashKey;
-            _dashHost.Content = dashKey is not null && Present.Fruits(e) is { } fruits
+            var detail = dashKey is null ? null : Present.Detail(e);
+            _dashHost.Content = dashKey is not null && detail is null && Present.Fruits(e) is { } fruits
                 ? new FruitDashboardView(fruits, _corner, act => Act(x => x.UserReply(act)))
                 : null;
+            var view = detail is null ? null : new DetailDashboardView(detail, act => Act(x => x.UserReply(act)));
+            _detailHost.Content = view;
+            if (view is not null && !wasDetail) Pop(view);
         }
 
         RenderFx(e, clip, elapsed);

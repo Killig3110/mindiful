@@ -24,6 +24,7 @@ internal sealed class LiveSession : IMiloSession
     private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(30) };
 
     private readonly WorkDayOptions _day;
+    private readonly WellbeingOptions _well;
     private readonly DispatcherTimer _tick = new() { Interval = TimeSpan.FromMilliseconds(250) };
     private readonly DispatcherTimer _refresh = new();
     private readonly DispatcherTimer _presence = new();
@@ -66,6 +67,7 @@ internal sealed class LiveSession : IMiloSession
         Env = env;
         Conn = opt.For(env);
         _day = opt.WorkDay;
+        _well = opt.Wellbeing;
         var ov = Conn.BehaviorOverrides;
         if (ov?.EmailMinBusinessDaysWaiting is { } mailDays) Conn.MailMinWaitDays = mailDays;
         _secrets = new SecretStore(env);
@@ -87,8 +89,9 @@ internal sealed class LiveSession : IMiloSession
         History = new LocalStore(Path.Combine(dir, "minditful.db"), opt.Storage);
         _storage = opt.Storage;
         var imported = History.ImportLegacy(dir);
-        Provider = new LiveWorkDataProvider(Conn, _day, Auth, Graph, Boards, History);
-        Sink = new LiveActionSink(Conn, Auth, Graph, History, () => Engine!.Day, LogOnUi, Shell.Open);
+        Provider = new LiveWorkDataProvider(Conn, _day, Auth, Graph, Boards, History) { WardrobeEnabled = _well.Wardrobe };
+        Sink = new LiveActionSink(Conn, Auth, Graph, History, () => Engine!.Day, LogOnUi, Shell.Open) { WardrobeEnabled = _well.Wardrobe };
+        Sink.Unlocked += item => Application.Current.Dispatcher.BeginInvoke(() => RefreshAsync()); // món mới vào snapshot ngay, Milo mặc luôn
         Seeder = new SandboxSeeder(Conn, Auth, Graph, Boards);
         if (Graph is not null && Conn.PresenceMode.Equals("Graph", StringComparison.OrdinalIgnoreCase))
             _presenceWatcher = new PresenceWatcher(Graph, Auth);
@@ -110,6 +113,9 @@ internal sealed class LiveSession : IMiloSession
             VisitMinMinutes = ov?.VisitEveryMin is [var vmin, _] ? vmin : std.VisitMinMinutes,
             VisitMaxMinutes = ov?.VisitEveryMin is [_, var vmax] ? vmax : std.VisitMaxMinutes,
             ParkTtl = ov?.ParkedReminderTtlMin is { } park ? park * 60 : std.ParkTtl,
+            // Tính năng mở rộng (mục "Wellbeing" trong appsettings.json / .env)
+            FocusPlan = _well.FocusPlan, FocusPlanMinMinutes = _well.FocusPlanMinMinutes, WeekReport = _well.WeekReport,
+            MicroBreakEveryMin = _well.MicroBreakEveryMinutes, MicroBreakMaxPerDay = _well.MicroBreakMaxPerDay, EveningCheck = _well.EveningCheck,
         };
         Engine = new MiloEngine(cfg, new WorkSnapshot(), null, DateOnly.FromDateTime(now), now.TimeOfDay.TotalSeconds);
         Engine.SetAuto(false);
@@ -171,6 +177,7 @@ internal sealed class LiveSession : IMiloSession
         {
             // Qua ngày mà chưa "Về thôi": lưu im lặng (mục 6.4 · Tắt máy ngang)
             if (Engine.S.DayStarted && !Engine.S.OffDuty) SaveToday();
+            if (Engine.S.DayStarted && _well.Wardrobe) Sink.RecordStreak(Engine.BuildDayRecord());
             Engine.StartNewDay(today, now.TimeOfDay.TotalSeconds, Engine.Snap);
             ApplyTuning();
             if (!Monitor.Locked) RestoreOrMarkDayStart();
@@ -237,6 +244,8 @@ internal sealed class LiveSession : IMiloSession
     /// <summary>Luật cá nhân hoá 7 ngày (§14) tính lại mỗi đầu ngày từ log phản hồi local.</summary>
     private void ApplyTuning()
     {
+        // Chụp thống kê tuần trước trước khi dọn, để báo cáo sáng thứ Hai vẫn có số liệu khi chỉ giữ tuần hiện tại
+        Provider.LastWeekFallback = History.WeekStats(Engine.Day.AddDays(-7)) ?? Provider.LastWeekFallback;
         // Mỗi lần mở app / sang ngày mới: tự xoá dữ liệu cá nhân của kỳ đã qua (tuần hoặc tháng)
         var cleaned = History.Cleanup(Engine.Day);
         if (cleaned.Total > 0)
@@ -324,6 +333,7 @@ internal sealed class LiveSession : IMiloSession
         {
             var p = await _presenceWatcher.PollAsync();
             Engine.SetInCallOverride(p.InCall);
+            if (_well.HideWhenPresenting && !_pinned.Contains("presenting")) Engine.SetPresenting(p.Presenting);
             if (p.InCall is null) NoteOffline(p.Activity);
             else
             {
@@ -381,6 +391,21 @@ internal sealed class LiveSession : IMiloSession
 
     public string? OverridesText => Conn.BehaviorOverrides?.Describe();
 
+    public WellbeingOptions Wellbeing => _well;
+
+    public string WardrobeText
+    {
+        get
+        {
+            var w = History.Wardrobe(Engine.Day);
+            var next = Core.Engine.Wardrobe.Items.FirstOrDefault(i => i.Streak > w.Best);
+            var owned = Core.Engine.Wardrobe.Unlocked(w.Best).Select(i => i.Name).ToList();
+            return $"Chuỗi về đúng giờ: {w.Streak} ngày (dài nhất {w.Best})"
+                + (owned.Count > 0 ? " · đã có: " + string.Join(", ", owned) : " · chưa có món nào")
+                + (next is null ? "" : $" · món kế tiếp: {next.Name} khi đạt {next.Streak} ngày");
+        }
+    }
+
     // ---------- Sandbox: giả lập tín hiệu đè lên tín hiệu thật ----------
     public bool IsPinned(string signal) => _pinned.Contains(signal);
 
@@ -389,7 +414,7 @@ internal sealed class LiveSession : IMiloSession
         var s = Engine.S;
         var on = signal switch
         {
-            "away" => !s.Away, "typing" => !s.Typing, "fullscreen" => !s.Fullscreen, "dnd" => !s.UserDnd, _ => false,
+            "away" => !s.Away, "typing" => !s.Typing, "fullscreen" => !s.Fullscreen, "dnd" => !s.UserDnd, "presenting" => !s.Presenting, _ => false,
         };
         switch (signal)
         {
@@ -397,6 +422,7 @@ internal sealed class LiveSession : IMiloSession
             case "typing": Engine.SetTyping(on); break;
             case "fullscreen": Engine.SetFullscreen(on); break;
             case "dnd": Engine.SetUserDnd(on); break;
+            case "presenting": Engine.SetPresenting(on); break;
         }
         if (on) _pinned.Add(signal);
         else _pinned.Remove(signal);

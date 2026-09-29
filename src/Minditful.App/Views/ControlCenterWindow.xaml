@@ -74,6 +74,19 @@
                     <TextBlock x:Name="StorageText" TextWrapping="Wrap" Foreground="{StaticResource Soft}" FontSize="12" />
                     <Button Style="{StaticResource Round}" Content="Xoá toàn bộ dữ liệu thống kê ngay" HorizontalAlignment="Left" Margin="0,8,0,0" Click="Wipe_Click" />
 
+                    <TextBlock Style="{StaticResource Eyebrow}" Text="CHĂM SÓC MỞ RỘNG (MỤC WELLBEING)" Margin="0,14,0,6" />
+                    <TextBlock x:Name="WellbeingText" TextWrapping="Wrap" Foreground="{StaticResource Soft}" FontSize="12" />
+
+                    <TextBlock Style="{StaticResource Eyebrow}" Text="TỦ ĐỒ CỦA MILO · VỀ ĐÚNG GIỜ ĐỂ MỞ KHOÁ" Margin="0,14,0,6" />
+                    <TextBlock x:Name="WardrobeText" TextWrapping="Wrap" Foreground="{StaticResource Soft}" FontSize="12" />
+                    <UniformGrid x:Name="Wardrobe" Columns="5" Margin="0,8,0,0">
+                        <Button Style="{StaticResource Round}" Tag="auto" Content="Tự chọn" Margin="0,0,6,6" Click="Accessory_Click" />
+                        <Button Style="{StaticResource Round}" Tag="none" Content="Không mặc" Margin="0,0,6,6" Click="Accessory_Click" />
+                        <Button Style="{StaticResource Round}" Tag="scarf" Content="Khăn quàng" Margin="0,0,6,6" Click="Accessory_Click" />
+                        <Button Style="{StaticResource Round}" Tag="flower" Content="Kẹp hoa" Margin="0,0,6,6" Click="Accessory_Click" />
+                        <Button Style="{StaticResource Round}" Tag="beret" Content="Mũ nồi" Margin="0,0,6,6" Click="Accessory_Click" />
+                    </UniformGrid>
+
                     <TextBlock Style="{StaticResource Eyebrow}" Text="GÓC NEO CỦA MILO (§9.1 · CŨNG CÓ THỂ KÉO CHÓP ĐUÔI)" Margin="0,14,0,6" />
                     <UniformGrid Columns="4">
                         <Button Style="{StaticResource Round}" Tag="TopLeft" Content="↖ Trên trái" Margin="0,0,6,6" Click="Corner_Click" />
@@ -106,6 +119,7 @@
                             <Button Style="{StaticResource Round}" Tag="away" Content="Rời khỏi máy" Margin="0,0,6,6" Click="Act_Click" />
                             <Button Style="{StaticResource Round}" Tag="fullscreen" Content="Toàn màn hình" Margin="0,0,6,6" Click="Act_Click" />
                             <Button Style="{StaticResource Round}" Tag="dnd" Content="Không làm phiền" Margin="0,0,6,6" Click="Act_Click" />
+                            <Button Style="{StaticResource Round}" Tag="presenting" Content="Đang trình chiếu" Margin="0,0,6,6" Click="Act_Click" />
                             <Button Style="{StaticResource Round}" Tag="leave" Content="Rời cuộc họp" Margin="0,0,6,6" Click="Act_Click" />
                             <Button Style="{StaticResource Round}" Tag="frag" Content="Nhảy việc 12 lần" Margin="0,0,6,6" Click="Act_Click" />
                             <Button Style="{StaticResource Round}" Tag="stress" Content="Ngày căng −30" Margin="0,0,6,6" Click="Act_Click" />

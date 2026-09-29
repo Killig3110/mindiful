@@ -19,6 +19,7 @@ public partial class ControlCenterWindow : Window
         CaseId.MorningHello, CaseId.MeetingSoon, CaseId.CalendarPacked, CaseId.EmailWaiting, CaseId.StuckTask, CaseId.TaskDone,
         CaseId.MeetingOverload, CaseId.NoBreak, CaseId.LunchMissed, CaseId.LowRest, CaseId.HighFragmentation, CaseId.Overtime,
         CaseId.CheckIn, CaseId.EodWrapup, CaseId.EodNudge, CaseId.FocusDone, CaseId.Dashboard,
+        CaseId.FocusPlan, CaseId.WeekReport, CaseId.MicroBreak,
     ];
 
     private readonly LiveSession _session;
@@ -81,13 +82,37 @@ public partial class ControlCenterWindow : Window
             var tag = (string)b.Tag;
             var on = tag switch
             {
-                "typing" => s.Typing, "away" => s.Away, "fullscreen" => s.Fullscreen, "dnd" => s.UserDnd, "stress" => s.Stress > 0, _ => false,
+                "typing" => s.Typing, "away" => s.Away, "fullscreen" => s.Fullscreen, "dnd" => s.UserDnd, "stress" => s.Stress > 0,
+                "presenting" => s.Presenting, _ => false,
             };
             b.Background = on ? (Brush)FindResource("Cream") : (Brush)FindResource("Panel2");
             b.Foreground = on ? (Brush)FindResource("Ink") : (Brush)FindResource("Text");
             if (tag == "leave") b.IsEnabled = e.InCall();
         }
+        var wb = _session.Wellbeing;
+        WellbeingText.Text =
+            $"Giữ giờ tập trung: {(wb.FocusPlan ? $"bật (khoảng trống ≥ {wb.FocusPlanMinMinutes}')" : "tắt")} · " +
+            $"Báo cáo tuần sáng thứ Hai: {(wb.WeekReport ? "bật" : "tắt")} · " +
+            $"Uống nước / 20-20-20: {(wb.MicroBreakEveryMinutes > 0 ? $"mỗi {wb.MicroBreakEveryMinutes}' ngồi máy, tối đa {wb.MicroBreakMaxPerDay} lần/ngày (hôm nay {s.MicroCount})" : "tắt")} · " +
+            $"Hỏi \"Hôm nay thấy sao?\" + nghỉ giữa chuỗi họp ngày mai: {(wb.EveningCheck ? "bật" : "tắt")} · " +
+            $"Trốn khi trình chiếu: {(wb.HideWhenPresenting ? "bật" : "tắt")}" + (s.Presenting ? " (đang trốn)" : "");
+        WardrobeText.Text = wb.Wardrobe ? _session.WardrobeText : "Tủ đồ đang tắt (Wellbeing.Wardrobe = false).";
+        var best = e.Snap.Wardrobe?.Best ?? 0;
+        var choice = UiSettings.LoadAccessory(_session.Env);
+        foreach (var b in Wardrobe.Children.OfType<Button>())
+        {
+            var tag = (string)b.Tag;
+            b.IsEnabled = wb.Wardrobe && (tag is "auto" or "none" || Core.Engine.Wardrobe.Find(tag) is { } item && best >= item.Streak);
+            b.Background = tag == choice ? (Brush)FindResource("Cream") : (Brush)FindResource("Panel2");
+            b.Foreground = tag == choice ? (Brush)FindResource("Ink") : (Brush)FindResource("Text");
+        }
         Brain.Render(e);
+    }
+
+    private void Accessory_Click(object sender, RoutedEventArgs e)
+    {
+        ((App)Application.Current).Companion?.SetAccessory((string)((Button)sender).Tag);
+        Render();
     }
 
     private void ClearPat_Click(object sender, RoutedEventArgs e) => _session.ClearPat();
@@ -170,7 +195,7 @@ public partial class ControlCenterWindow : Window
         var eng = _session.Engine;
         switch ((string)((Button)sender).Tag)
         {
-            case "typing" or "away" or "fullscreen" or "dnd": _session.Toggle((string)((Button)sender).Tag); break;
+            case "typing" or "away" or "fullscreen" or "dnd" or "presenting": _session.Toggle((string)((Button)sender).Tag); break;
             case "leave": eng.LeaveMeeting(); break;
             case "frag": eng.SimulateFragmentation(); break;
             case "stress": eng.ToggleStress(); break;

@@ -21,6 +21,11 @@ public sealed class LiveWorkDataProvider(
     private DateTime _calAt = DateTime.MinValue, _mailAt = DateTime.MinValue, _boardsAt = DateTime.MinValue;
     private List<CalendarEvent> _calendar = [];
     private TomorrowInfo? _tomorrow;
+    private List<CalendarEvent> _tomorrowCal = [];
+
+    /// <summary>Thống kê tuần trước chụp lại trước khi tự xoá (khi chỉ giữ tuần hiện tại) để sáng thứ Hai vẫn có báo cáo tuần.</summary>
+    public WeekStats? LastWeekFallback { get; set; }
+    public bool WardrobeEnabled { get; set; } = true;
     private string? _calNote, _mailNote, _boardsNote;
     private List<MailItem> _mails = [];
     private int _unread;
@@ -47,13 +52,23 @@ public sealed class LiveWorkDataProvider(
                     _me ??= (await graph.MeAsync(ct)).Mail;
                     var dayStart = now.Date;
                     var calendar = new List<CalendarEvent>();
+                    var tomorrowCal = new List<CalendarEvent>();
                     TomorrowInfo? tomorrow = null;
                     foreach (var e in (await graph.CalendarViewAsync(dayStart, dayStart.AddDays(2), ct)).Where(Relevant))
                     {
                         if (e.Start.Date == dayStart) calendar.Add(await MapEventAsync(e, dayStart, ct));
-                        else if (tomorrow is null && e.Start.Date == dayStart.AddDays(1)) tomorrow = new TomorrowInfo(e.Start.ToString("H:mm"), e.Subject);
+                        else if (e.Start.Date == dayStart.AddDays(1))
+                        {
+                            tomorrow ??= new TomorrowInfo(e.Start.ToString("H:mm"), e.Subject);
+                            // Ngày mai chỉ cần giờ để tìm chuỗi họp liền — không tải tệp đính kèm
+                            var t0 = dayStart.AddDays(1);
+                            tomorrowCal.Add(new CalendarEvent
+                            {
+                                Id = e.Id, Subject = e.Subject, Start = Math.Max(0, (e.Start - t0).TotalSeconds), End = Math.Min(86400, (e.End - t0).TotalSeconds),
+                            });
+                        }
                     }
-                    (_calendar, _tomorrow, _calNote) = (calendar, tomorrow, null);
+                    (_calendar, _tomorrow, _tomorrowCal, _calNote) = (calendar, tomorrow, tomorrowCal, null);
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
@@ -82,7 +97,7 @@ public sealed class LiveWorkDataProvider(
         }
         else
         {
-            (_calendar, _tomorrow, _mails, _mailOk) = ([], null, [], false);
+            (_calendar, _tomorrow, _tomorrowCal, _mails, _mailOk) = ([], null, [], [], false);
             _calNote = "Chưa đăng nhập Microsoft → chưa có lịch và email";
             _mailNote = null;
         }
@@ -129,6 +144,8 @@ public sealed class LiveWorkDataProvider(
         {
             Calendar = _calendar,
             Tomorrow = _tomorrow,
+            TomorrowCalendar = _tomorrowCal,
+            Wardrobe = WardrobeEnabled ? history.Wardrobe(today) : null,
             Emails = _mails,
             Unread = _unread,
             Tasks = _tasks,
@@ -138,7 +155,7 @@ public sealed class LiveWorkDataProvider(
             Week = history.Week(today),
             YesterdayScore = history.Yesterday(today),
             ThisWeek = history.WeekStats(today),
-            LastWeek = history.WeekStats(today.AddDays(-7)),
+            LastWeek = history.WeekStats(today.AddDays(-7)) ?? (LastWeekFallback?.From == LocalStore.WeekStart(today.AddDays(-7)) ? LastWeekFallback : null),
             MailAvailable = _mailOk,
             CanWriteCalendar = graph is null || auth.GrantedScopes.Count == 0 || auth.Has("Calendars.ReadWrite"),
             BoardsAvailable = _boardsOk,

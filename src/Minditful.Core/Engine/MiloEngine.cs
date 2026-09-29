@@ -193,6 +193,7 @@ public sealed partial class MiloEngine
         if (!S.DayStarted) return Gate.Off;
         if (S.Locked) return Gate.Locked;
         if (S.OffDuty) return Gate.Off;
+        if (S.Presenting) return Gate.Presenting;
         if (InCall()) return Gate.Meeting;
         if (S.Fullscreen) return Gate.Fullscreen;
         if (FocusActive()) return Gate.Focus;
@@ -204,7 +205,8 @@ public sealed partial class MiloEngine
     {
         if (S.Ep is not null) return PresenceState.Talk;
         var g = HardGate();
-        if (g is Gate.Off or Gate.Locked) return PresenceState.Off;
+        // Đang trình chiếu: trốn hẳn, không để lại cả chóp đuôi trên màn hình đang chia sẻ
+        if (g is Gate.Off or Gate.Locked or Gate.Presenting) return PresenceState.Off;
         if (g is not null) return PresenceState.Silent;
         if (S.Visit is not null) return PresenceState.Visit;
         if (S.Peek) return PresenceState.Peek;
@@ -231,7 +233,10 @@ public sealed partial class MiloEngine
         p["stuck"] = Math.Min(6, StuckTasks().Count * 2);
         p["email"] = Math.Min(4, Math.Max(0, WaitingEmails().Count - 2));
         p["stress"] = S.Stress;
-        var bonus = Math.Min(12, S.AcceptedBreaks * 3) + Math.Min(6, S.TasksDone * 2) + Math.Min(8, S.FocusDone * 4) + Math.Min(3, S.ExtraBonus);
+        // Người dùng tự nói cuối ngày: "Mệt" trừ 6, "Vui" cộng 3 — lời tự đánh giá nặng hơn mọi phỏng đoán
+        p["self"] = S.Feeling == Feeling.Bad ? 6 : 0;
+        var bonus = Math.Min(12, S.AcceptedBreaks * 3) + Math.Min(6, S.TasksDone * 2) + Math.Min(8, S.FocusDone * 4) + Math.Min(3, S.ExtraBonus)
+                    + (S.Feeling == Feeling.Good ? 3 : 0);
         var sum = p.Values.Sum();
         S.RuleScore = (int)Tm.Clamp(Tm.JsRound(92 - sum + bonus), 0, 100);
         var insight = Cfg.MoodMode == MoodMode.Rules ? null : FreshInsight();
@@ -269,5 +274,47 @@ public sealed partial class MiloEngine
     }
 
     public DayRecord BuildDayRecord() => new(Day, S.Score, MeetingMin(), S.AcceptedBreaks, S.FocusMinDone, S.TasksDone, S.OtMin,
-        S.Vibe.F, S.Vibe.E, S.Vibe.S, InProgress());
+        S.Vibe.F, S.Vibe.E, S.Vibe.S, InProgress(), S.Feeling);
+
+    // ================= tính năng mở rộng =================
+    /// <summary>
+    /// Khoảng trống dài nhất từ 15 phút nữa tới hết giờ làm (bỏ giờ họp, khối đã giữ, 12:00–13:00 ăn trưa).
+    /// Trả về giờ bắt đầu (chừa 5 phút sau cuộc họp) và số phút đề nghị (tối đa 90).
+    /// </summary>
+    public (double Start, double Min)? FocusSlot()
+    {
+        var from = Math.Ceiling((S.T + 900) / 300) * 300;
+        var end = Cfg.End;
+        var busy = Meetings.Where(m => !S.Skipped.Contains(m.Id)).Select(m => (m.Start, End: m.End + 300))
+            .Concat(S.Holds.Select(h => (h.Start, End: h.End)))
+            .Append((Start: Tm.T("12:00"), End: Tm.T("13:00")))
+            .Where(b => b.End > from && b.Start < end).OrderBy(b => b.Start).ToList();
+        (double Start, double Len) best = (0, 0);
+        var cursor = from;
+        foreach (var b in busy)
+        {
+            if (b.Start - cursor > best.Len) best = (cursor, b.Start - cursor);
+            cursor = Math.Max(cursor, b.End);
+        }
+        if (end - cursor > best.Len) best = (cursor, end - cursor);
+        var start = Math.Ceiling(best.Start / 300) * 300;
+        var min = Math.Floor(Math.Min(90, (best.Start + best.Len - start) / 60) / 5) * 5;
+        return min >= Cfg.FocusPlanMinMinutes ? (start, min) : null;
+    }
+
+    /// <summary>Chuỗi ≥ 3 cuộc họp liền nhau của ngày mai (cách nhau dưới 5 phút).</summary>
+    public IReadOnlyList<CalendarEvent>? TomorrowChain()
+    {
+        var cur = new List<CalendarEvent>();
+        foreach (var e in Snap.TomorrowCalendar.OrderBy(e => e.Start))
+        {
+            if (cur.Count > 0 && e.Start - cur[^1].End < 300) cur.Add(e);
+            else
+            {
+                if (cur.Count >= 3) return cur;
+                cur = [e];
+            }
+        }
+        return cur.Count >= 3 ? cur : null;
+    }
 }

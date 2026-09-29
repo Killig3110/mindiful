@@ -76,6 +76,8 @@
                         <Button Style="{StaticResource Round}" Tag="done" Content="Kéo 1 task sang Done" Margin="0,0,0,6" HorizontalContentAlignment="Left" Click="Act_Click" />
                         <Button Style="{StaticResource Round}" Tag="stress" Content="Giả lập ngày căng (−30)" Margin="0,0,6,6" HorizontalContentAlignment="Left" Click="Act_Click" />
                         <Button Style="{StaticResource Round}" Tag="dash" Content="Mở dashboard" Margin="0,0,0,6" HorizontalContentAlignment="Left" Click="Act_Click" />
+                        <Button Style="{StaticResource Round}" Tag="presenting" Content="Teams: đang trình chiếu" Margin="0,0,6,6" HorizontalContentAlignment="Left" Click="Act_Click" />
+                        <Button Style="{StaticResource Round}" Tag="wardrobe" Content="Tủ đồ: đổi phụ kiện" Margin="0,0,0,6" HorizontalContentAlignment="Left" Click="Act_Click" />
                     </UniformGrid>
                     <TextBlock Style="{StaticResource Hint}" Margin="0,4,0,0"
                                Text="Trên desktop: rê chuột lên chóp đuôi để Milo ló đầu, bấm để mở dashboard, kéo đuôi sang góc khác để đổi góc neo. Đóng cửa sổ này thì Milo vẫn chạy (biểu tượng ở khay hệ thống)." />

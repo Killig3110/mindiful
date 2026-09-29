@@ -38,6 +38,20 @@ public static class DemoScenario
             },
         ],
         Tomorrow = new TomorrowInfo("9:00", "Daily"),
+        // Mai có chuỗi 3 cuộc họp liền → thẻ tan tầm gợi ý giữ 10' nghỉ từ tối nay
+        TomorrowCalendar =
+        [
+            new CalendarEvent { Id = "t1", Subject = "Daily", Start = T("09:00"), End = T("09:15") },
+            new CalendarEvent { Id = "t2", Subject = "Architecture review", Start = T("13:30"), End = T("14:30") },
+            new CalendarEvent { Id = "t3", Subject = "Sprint 43 planning", Start = T("14:30"), End = T("15:30") },
+            new CalendarEvent { Id = "t4", Subject = "Customer call", Start = T("15:30"), End = T("16:15") },
+        ],
+        // Chuỗi 10 ngày về đúng giờ: đã mở khoá cả 3 phụ kiện (mũ nồi vừa mở hôm qua)
+        Wardrobe = new WardrobeInfo(10, 10, "mũ nồi"),
+        LastWeek = new WeekStats(new DateOnly(2026, 9, 14), 5, 68, new DayScore("T5", 81), new DayScore("T3", 42), 11 * 60 + 20, 3, 190, 7, 35,
+            18, 8, 5, 3, 2, FeelGood: 2, FeelOk: 2, FeelBad: 1),
+        ThisWeek = new WeekStats(new DateOnly(2026, 9, 21), 3, 58, new DayScore("T2", 77), new DayScore("T3", 38), 9 * 60 + 40, 4, 240, 7, 35,
+            14, 6, 4, 2, 2, FeelGood: 1, FeelOk: 1, FeelBad: 1),
         Emails =
         [
             new MailItem { Id = "m1", From = "PM", Color = "#5471B0", Subject = "Chốt scope sprint 43?", Days = 2 },

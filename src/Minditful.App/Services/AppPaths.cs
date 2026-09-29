@@ -74,4 +74,12 @@ internal static class UiSettings
         System.IO.File.Exists(File(env)) && Enum.TryParse<Corner>(System.IO.File.ReadAllText(File(env)).Trim(), out var c) ? c : Corner.BottomRight;
 
     public static void SaveCorner(AppEnvironment env, Corner c) => System.IO.File.WriteAllText(File(env), c.ToString());
+
+    private static string AccessoryFile(AppEnvironment env) => Path.Combine(AppPaths.For(env), "accessory.txt");
+
+    /// <summary>Tủ đồ: "auto" (món mới nhất), "none" hoặc id món.</summary>
+    public static string LoadAccessory(AppEnvironment env) =>
+        System.IO.File.Exists(AccessoryFile(env)) ? System.IO.File.ReadAllText(AccessoryFile(env)).Trim() : "auto";
+
+    public static void SaveAccessory(AppEnvironment env, string choice) => System.IO.File.WriteAllText(AccessoryFile(env), choice);
 }

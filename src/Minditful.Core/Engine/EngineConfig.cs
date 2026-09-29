@@ -51,6 +51,19 @@ public sealed class EngineConfig
     public double MoodIntervalMinutes { get; set; } = 30;
     /// <summary>Gửi kèm tối đa 5 câu người dùng tự gõ cho Milo hôm nay để Claude đọc cảm xúc (mặc định tắt).</summary>
     public bool IncludeChatInMood { get; set; }
+
+    // ---- Tính năng mở rộng. Mặc định tắt để ngày mẫu giữ đúng mốc của tài liệu; Sandbox/Prod bật qua mục "Wellbeing". ----
+    /// <summary>Đề nghị giữ khoảng trống dài nhất trong ngày làm khối tập trung, tới giờ tự bật Không làm phiền.</summary>
+    public bool FocusPlan { get; init; }
+    /// <summary>Khoảng trống tối thiểu (phút) để đề nghị giữ giờ tập trung.</summary>
+    public double FocusPlanMinMinutes { get; init; } = 60;
+    /// <summary>Sáng thứ Hai: tóm tắt tuần trước kèm 1 mẹo (cần dữ liệu tuần trước trên máy).</summary>
+    public bool WeekReport { get; init; }
+    /// <summary>Nhắc uống nước / quy tắc 20-20-20 sau mỗi N phút làm liên tục (0 = tắt).</summary>
+    public double MicroBreakEveryMin { get; init; }
+    public int MicroBreakMaxPerDay { get; init; } = 6;
+    /// <summary>Hỏi "Hôm nay thấy sao?" trên thẻ tan tầm và gợi ý nghỉ giữa chuỗi họp ngày mai.</summary>
+    public bool EveningCheck { get; init; } = true;
 }
 
 /// <summary>Hành động Milo cần làm ra thế giới thật (Teams, Outlook, Azure Boards). Demo chỉ ghi log.</summary>
@@ -59,9 +72,12 @@ public abstract record MiloAction
     public sealed record JoinMeeting(CalendarEvent Event) : MiloAction;
     public sealed record OpenAttachment(CalendarEvent Event) : MiloAction;
     /// <summary>POST /me/events, showAs tentative.</summary>
-    public sealed record HoldBreak(double Start, double End, string Subject) : MiloAction;
-    /// <summary>Tạo sự kiện "Tập trung: #id" + presence DoNotDisturb tới hết khối.</summary>
-    public sealed record StartFocus(string TaskId, string Title, double Start, double End) : MiloAction;
+    /// <param name="DayOffset">0 = hôm nay, 1 = ngày mai (giữ chỗ nghỉ giữa chuỗi họp ngày mai).</param>
+    public sealed record HoldBreak(double Start, double End, string Subject, int DayOffset = 0) : MiloAction;
+    /// <summary>Giữ trước 1 khối tập trung trong lịch (busy). Tới giờ engine tự <see cref="StartFocus"/>.</summary>
+    public sealed record HoldFocus(double Start, double End) : MiloAction;
+    /// <summary>Tạo sự kiện "Tập trung: #id" + presence DoNotDisturb tới hết khối. <paramref name="CalendarHeld"/>: lịch đã giữ từ trước, không tạo thêm.</summary>
+    public sealed record StartFocus(string TaskId, string Title, double Start, double End, bool CalendarHeld = false) : MiloAction;
     public sealed record EndFocus : MiloAction;
     public sealed record OpenMail(MailItem Mail) : MiloAction;
     /// <summary>Tan tầm: lưu quả nho của ngày.</summary>
@@ -71,4 +87,12 @@ public abstract record MiloAction
 /// <summary>Bản ghi cuối ngày (mục 11 · Lưu cuối ngày).</summary>
 public sealed record DayRecord(
     DateOnly Date, int Score, double MeetingMin, int AcceptedBreaks, double FocusMin, int TasksDone, double OvertimeMin,
-    int VibeFocus, int VibeEnergy, int VibeStress, int InProgress);
+    int VibeFocus, int VibeEnergy, int VibeStress, int InProgress, int Feeling = 0);
+
+/// <summary>Người dùng tự nói hôm nay thấy sao (thẻ tan tầm). 0 = chưa trả lời.</summary>
+public static class Feeling
+{
+    public const int Good = 3, Ok = 2, Bad = 1;
+    public static int Parse(string? v) => v switch { "good" => Good, "ok" => Ok, "bad" => Bad, _ => 0 };
+    public static string Label(int f) => f switch { Good => "Vui", Ok => "Bình thường", Bad => "Mệt", _ => "" };
+}

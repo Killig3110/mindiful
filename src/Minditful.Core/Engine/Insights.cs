@@ -117,8 +117,9 @@ public sealed partial class MiloEngine
             $"quá giờ {S.OtMin} phút, chuyển việc {SwitchesHour()} lần/giờ",
             $"{InProgress()} task đang làm (trung bình {Snap.AvgInProgress:0.#}), {StuckTasks().Count} task kẹt, {WaitingEmails().Count} email chờ trả lời",
             $"đã đồng ý nghỉ {S.AcceptedBreaks} lần, tập trung sâu {Dur(S.FocusMinDone)}, xong {S.TasksDone} task",
+            S.Feeling > 0 ? $"người dùng tự nói hôm nay thấy: {Feeling.Label(S.Feeling).ToLowerInvariant()}" : "",
             "các khoản trừ theo luật: " + string.Join(", ", new[] { "meet", "chain", "streak", "ot", "rest", "frag", "work", "stuck", "email" }.Select(P).Where(x => x.Length > 0)),
-        });
+        }.Where(x => x.Length > 0));
         return new MoodRequest(S.RuleScore, facts, Cfg.IncludeChatInMood ? S.ChatHistory.TakeLast(5).ToList() : []);
     }
 

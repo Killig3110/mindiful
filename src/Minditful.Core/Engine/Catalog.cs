@@ -5,6 +5,8 @@ public enum CaseId
 {
     Dashboard, MorningHello, MeetingSoon, EodWrapup, MeetingOverload, LowRest, Overtime, NoBreak,
     LunchMissed, HighFragmentation, EodNudge, CalendarPacked, StuckTask, EmailWaiting, TaskDone, FocusDone, CheckIn,
+    // Tính năng mở rộng (sau prototype): thêm ở cuối để không đổi thứ tự phá hoà của 17 case gốc
+    FocusPlan, WeekReport, MicroBreak,
 }
 
 public enum CaseKind { User, Social, Assist, Care }
@@ -17,7 +19,7 @@ public enum Clip
 
 public enum Pose { Idle, Tired, Breathe, Wave, Point, Care, Greeting, Run }
 
-public enum Gate { Off, Locked, Meeting, Fullscreen, Focus, Dnd }
+public enum Gate { Off, Locked, Meeting, Fullscreen, Focus, Dnd, Presenting }
 
 public enum PresenceState { Off, Hidden, Peek, Visit, Talk, Silent }
 
@@ -53,6 +55,9 @@ public static class Catalog
         new CaseDef(CaseId.TaskDone, 5, CaseKind.Assist, "Task xong", "#7FA65A", "Mục 7.5 · B18", Exempt: true),
         new CaseDef(CaseId.FocusDone, 1, CaseKind.Assist, "Hết giờ tập trung", "#7FA65A", "Mục 7.4 · B09", Exempt: true),
         new CaseDef(CaseId.CheckIn, 5, CaseKind.Social, "Chào hỏi", "#E8A33D", "Mục 9.5 · §4.2", Timeout: 15, Stay: Clip.Greet, Need: 5),
+        new CaseDef(CaseId.FocusPlan, 4, CaseKind.Assist, "Giữ giờ tập trung", "#2E7D6B", "Mở rộng · khoảng trống dài nhất", Sev: 1, Timeout: 45, Need: 5),
+        new CaseDef(CaseId.WeekReport, 4, CaseKind.Social, "Báo cáo tuần", "#7261B0", "Mở rộng · sáng thứ Hai", Timeout: 45, Stay: Clip.Greet, Need: 5),
+        new CaseDef(CaseId.MicroBreak, 5, CaseKind.Assist, "Uống nước · nhìn xa", "#3E8E9E", "Mở rộng · 20-20-20", Exempt: true),
     }.ToDictionary(c => c.Id);
 
     public static CaseDef Def(CaseId c) => Cases[c];
@@ -88,7 +93,7 @@ public static class Catalog
     public static readonly IReadOnlyDictionary<Gate, string> GateLabel = new Dictionary<Gate, string>
     {
         [Gate.Off] = "Nghỉ làm", [Gate.Locked] = "Khoá máy", [Gate.Meeting] = "Đang họp",
-        [Gate.Fullscreen] = "Toàn màn hình", [Gate.Focus] = "Giờ tập trung", [Gate.Dnd] = "Không làm phiền",
+        [Gate.Fullscreen] = "Toàn màn hình", [Gate.Focus] = "Giờ tập trung", [Gate.Dnd] = "Không làm phiền", [Gate.Presenting] = "Đang trình chiếu",
     };
 
     public static string ClipName(Clip k) => k switch

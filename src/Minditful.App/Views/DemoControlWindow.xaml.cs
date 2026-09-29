@@ -7,6 +7,7 @@ using Minditful.App.Services;
 using Minditful.Core.Engine;
 using Minditful.Core.Presentation;
 using Minditful.Core.Scenario;
+using Minditful.Integrations;
 
 namespace Minditful.App.Views;
 
@@ -22,6 +23,7 @@ public partial class DemoControlWindow : Window
         ("Hỗ trợ công việc", [CaseId.MeetingSoon, CaseId.CalendarPacked, CaseId.EmailWaiting, CaseId.StuckTask, CaseId.TaskDone, CaseId.FocusDone]),
         ("Chăm sóc", [CaseId.MeetingOverload, CaseId.Overtime, CaseId.LunchMissed, CaseId.NoBreak, CaseId.LowRest, CaseId.HighFragmentation]),
         ("Người dùng mở", [CaseId.Dashboard]),
+        ("Mở rộng", [CaseId.FocusPlan, CaseId.WeekReport, CaseId.MicroBreak]),
     ];
 
     private readonly DemoSession _session;
@@ -124,6 +126,11 @@ public partial class DemoControlWindow : Window
         SetAct("fullscreen", s.Fullscreen, "Thoát toàn màn hình", "Mở toàn màn hình");
         SetAct("dnd", s.UserDnd, "Tắt Không làm phiền", "Teams: Không làm phiền");
         SetAct("stress", s.Stress > 0, "Bỏ giả lập ngày căng", "Giả lập ngày căng (−30)");
+        SetAct("presenting", s.Presenting, "Thôi trình chiếu", "Teams: đang trình chiếu");
+        Act("wardrobe").Content = "Tủ đồ: " + (UiSettings.LoadAccessory(AppEnvironment.Demo) switch
+        {
+            "none" => "không mặc", "auto" => "tự chọn", var id => Wardrobe.Find(id)?.Name ?? id,
+        }) + " → đổi";
         Act("leave").IsEnabled = e.InCall();
 
         var cur = -1;
@@ -195,6 +202,13 @@ public partial class DemoControlWindow : Window
             case "done": eng.MarkTaskDone(); break;
             case "stress": eng.ToggleStress(); break;
             case "dash": ((App)Application.Current).Companion?.OpenDashboard(); break;
+            case "presenting": eng.SetPresenting(!s.Presenting); break;
+            case "wardrobe":
+                // Ngày mẫu có sẵn chuỗi 10 ngày về đúng giờ nên mặc thử được cả 3 món
+                string[] cycle = ["auto", "scarf", "flower", "beret", "none"];
+                var cur = Array.IndexOf(cycle, UiSettings.LoadAccessory(AppEnvironment.Demo));
+                ((App)Application.Current).Companion?.SetAccessory(cycle[(cur + 1) % cycle.Length]);
+                break;
         }
         RefreshMilo();
         Render();

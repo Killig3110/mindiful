@@ -5,7 +5,7 @@ public sealed partial class MiloEngine
     private static readonly CaseId[] Conditional =
     [
         CaseId.MeetingOverload, CaseId.LowRest, CaseId.Overtime, CaseId.NoBreak, CaseId.LunchMissed,
-        CaseId.HighFragmentation, CaseId.CalendarPacked, CaseId.StuckTask, CaseId.EmailWaiting,
+        CaseId.HighFragmentation, CaseId.CalendarPacked, CaseId.StuckTask, CaseId.EmailWaiting, CaseId.FocusPlan, CaseId.MicroBreak,
     ];
 
     private static string HalfOf(double t) => t < Tm.T("12:00") ? "am" : "pm";
@@ -108,6 +108,19 @@ public sealed partial class MiloEngine
             if (t >= Tm.T("10:00") && t <= Tm.T("16:30") && S.Score >= 60 && t - S.LastEpEnd >= 7200 && g is null
                 && S.Queue.Count == 0 && Mem(CaseId.CheckIn).Shown < 2 && S.Rnd.Next() < 0.02)
                 Enqueue(CaseId.CheckIn, "ci-" + Mem(CaseId.CheckIn).Shown, new CaseData());
+            // Giữ giờ tập trung: 1 lần/ngày, đề nghị khoảng trống dài nhất còn lại (trước 15:00).
+            // Chờ 20 phút sau lần mở máy đầu để không nối đuôi ngay Chào sáng.
+            if (Cfg.FocusPlan && t >= Cfg.Start && t - (S.FirstAct ?? t) >= 1200 && t <= Tm.T("15:00") && Mem(CaseId.FocusPlan).Shown == 0 && !FocusActive()
+                && !S.Holds.Any(h => h.Kind is "focus" or "focusPlan") && FocusSlot() is { } fs)
+                Enqueue(CaseId.FocusPlan, "fp", new CaseData { At = fs.Start, Min = fs.Min });
+            // Báo cáo tuần: sáng thứ Hai, sau Chào sáng, khi máy còn giữ dữ liệu tuần trước
+            if (Cfg.WeekReport && Day.DayOfWeek == DayOfWeek.Monday && Snap.LastWeek is { Days: > 0 } && Mem(CaseId.WeekReport).Shown == 0
+                && S.Ep?.C != CaseId.MorningHello && S.Queue.All(q => q.C != CaseId.MorningHello))
+                Enqueue(CaseId.WeekReport, "wr", new CaseData());
+            // Uống nước / 20-20-20: sau mỗi N phút ngồi máy liên tục (không tính giờ họp)
+            if (Cfg.MicroBreakEveryMin > 0 && S.MicroCount < Cfg.MicroBreakMaxPerDay && t < Cfg.End && S.NmRun >= Cfg.MicroBreakEveryMin
+                && t - S.LastMicro >= Cfg.MicroBreakEveryMin * 60 && !FocusActive())
+                Enqueue(CaseId.MicroBreak, "mb-" + S.MicroCount, new CaseData { Count = S.MicroCount });
             // Tan tầm
             if (t >= Cfg.End && !S.EodShown) Enqueue(CaseId.EodWrapup, "eod", new CaseData());
             if (S.ExtendedUntil is { } ext && t >= ext && !S.Nudged) Enqueue(CaseId.EodNudge, "nudge", new CaseData());
@@ -128,6 +141,21 @@ public sealed partial class MiloEngine
             Mem(r.C).Keys.Remove(r.Key);
             Enqueue(r.C, r.Key + "-r", r.Data);
         }
+    }
+
+    /// <summary>Tới giờ khối tập trung đã giữ trước: tự bật Không làm phiền (nếu đang ngồi máy và không họp).</summary>
+    private void StartHeldFocus()
+    {
+        var h = S.Holds.FirstOrDefault(h => h.Kind == "focusPlan" && S.T >= h.Start && S.T < h.End - 300);
+        if (h is null || S.Locked || S.OffDuty || InCall() || FocusActive()) return;
+        S.Holds.Remove(h);
+        S.Holds.Add(h with { Kind = "focus", Start = S.T });
+        var tk = StuckTasks().FirstOrDefault() ?? S.Tasks.FirstOrDefault(x => !x.Done) ?? new WorkTask { Id = "tập trung", Title = "Tập trung" };
+        S.FocusUntil = h.End;
+        S.FocusStart = S.T;
+        S.FocusTask = tk;
+        Log($"Tới giờ tập trung đã giữ → Không làm phiền tới {Tm.Hm(h.End)}", LogKind.Gate);
+        Raise(new MiloAction.StartFocus(tk.Id, tk.Title, S.T, h.End, CalendarHeld: true));
     }
 
     private void MinuteTick()
@@ -172,6 +200,7 @@ public sealed partial class MiloEngine
             }
             else S.OffActive = 0;
         }
+        if (S.DayStarted) StartHeldFocus();
         if (!(S.OffDuty && S.Locked)) ComputeMood();
         MaybeAskMood();
         if (S.DayStarted)

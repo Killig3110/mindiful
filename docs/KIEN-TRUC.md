@@ -393,6 +393,20 @@ Mỗi khi có cuộc họp mới (lúc khởi tạo, `ApplySnapshot`, sang ngày
 
 ---
 
+### 5.12 Tính năng mở rộng (mục `Wellbeing`)
+
+Thêm sau prototype, cùng khung Rule Engine → hàng đợi → điều phối, nên vẫn chịu cổng im lặng và ngân sách như 16 case gốc. 3 case mới đứng cuối enum `CaseId` để không đổi thứ tự phá hoà của case gốc.
+
+| Case / cơ chế | Loại | Điều kiện (`EvalRules`) | Kết quả |
+| --- | --- | --- | --- |
+| `FocusPlan` · Giữ giờ tập trung | Hỗ trợ, P4, cần 5' trống | `Cfg.FocusPlan`, ≥ 20' sau lần mở máy đầu, trước 15:00, chưa có khối tập trung, `FocusSlot()` tìm được ≥ 60' | *Giữ* → `Hold("focusPlan")` + `MiloAction.HoldFocus` (busy). `StartHeldFocus()` mỗi phút: tới giờ, đang ngồi máy, không họp → bật tập trung, `StartFocus(CalendarHeld: true)` |
+| `WeekReport` · Báo cáo tuần | Xã giao, P4 | `Cfg.WeekReport`, thứ Hai, `Snap.LastWeek` có dữ liệu, sau Chào sáng | Thẻ tổng kết + `Present.WeekTip()`. *Xem chùm nho* đổi thẳng episode sang Dashboard trang Tuần |
+| `MicroBreak` · Uống nước, 20-20-20 | Hỗ trợ, P5, miễn ngân sách | `Cfg.MicroBreakEveryMin > 0`, `NmRun` (phút ngồi máy liên tục, không họp) ≥ N, cách lần trước ≥ N, chưa quá số lần/ngày | Bóng thoại 5 giây như Task xong, không nút |
+| `Gate.Presenting` | Cổng | `SetPresenting(true)` từ Teams presence "Presenting" | Như các cổng khác, nhưng `Presence()` = Off nên ẩn cả chóp đuôi và chấm chờ |
+| "Hôm nay thấy sao?" | Nút trên thẻ Tan tầm | `Cfg.EveningCheck` | `Reply("feel", good/ok/bad)` → `S.Feeling`; Mood Engine: Mệt −6, Vui +3; `DayRecord.Feeling`; gửi cho Claude trong `BuildMoodRequest` |
+| Nghỉ ngày mai | Nút trên thẻ Tan tầm | `TomorrowChain()` ≥ 3 cuộc liền trong `Snap.TomorrowCalendar` | `HoldBreak(DayOffset: 1)` sau cuộc thứ 2 |
+| Tủ đồ | App + SQLite | `LiveActionSink.RecordStreak` lúc `DayClosed` hoặc lúc qua ngày | `LocalStore.RecordDay` → món mới → `Snap.Wardrobe` → thẻ Chào sáng + `MiloSkin` chèn phụ kiện vào nhóm `head`/`torso` của SVG để đi theo cử động |
+
 ## 6. UI/UX
 
 ### 6.1 Các cửa sổ
@@ -415,7 +429,8 @@ Giữ đúng toạ độ prototype (tính từ góc neo, đơn vị px; "đáy" 
 | Chóp đuôi | 96, 0 | 46×40 | Quầng thở 5s, màu theo mood, chấm số/đếm ngược; **kéo để đổi góc** |
 | Thì thầm | 150, 68 | — | Khi ló đầu |
 | Thẻ | 26, 162 (bấm chấm chờ: 26, 16) | 280–310 rộng | Hiệu ứng pop 0,35s |
-| Dashboard trái cây | 0, 0 (khung 340×360) | 4 bong bóng 84px (chùm nho tuần 100px) | Vòng cung bán kính 160 quanh đầu Milo; bung ra từ Milo, lần lượt 90 ms; thanh tiêu đề nhỏ ở trên (Hôm nay/Tuần này, ×) |
+| Dashboard trái cây | 0, 0 (khung 340×360) | 4 bong bóng 84px (chùm nho tuần 100px) | Vòng cung bán kính 160 quanh đầu Milo; bung ra từ Milo, lần lượt 90 ms rồi nhấp nhô nhẹ; viền pastel theo quả; thanh tiêu đề nhỏ (Hôm nay/Tuần này · Chi tiết · ×) |
+| Bảng chi tiết (`DetailDashboardView`) | 16, 150 | 290 rộng, cao tối đa 400 (cuộn mảnh) | Thay 4 quả khi bấm *Chi tiết* (`Episode.Detail`). Hôm nay: điểm + lời Milo, dòng thời gian giờ làm, Office Vibe, 3 cuộc họp sắp tới, chip số liệu. Tuần: 7 quả nho, thống kê, bạn trả lời Milo thế nào, bạn tự thấy, mẹo |
 | Chấm chờ | 22, 10 | — | "N lời nhắc đang chờ" khi Im lặng |
 
 Góc trái: lật ngang Milo và đổi neo sang trái. Góc trên: lật dọc (Milo thò xuống từ mép trên), mọi thứ neo theo mép trên.
@@ -559,6 +574,16 @@ erDiagram
         INTEGER in_progress
         TEXT mood_source "Luật / Luật + Claude / Claude"
         TEXT saved_at
+        INTEGER feeling "0 chưa trả lời, 1 Mệt, 2 Bình thường, 3 Vui"
+    }
+    streak {
+        INTEGER id PK "luôn = 1"
+        INTEGER count "chuỗi về đúng giờ hiện tại"
+        INTEGER best
+        INTEGER base "chuỗi trước ngày last_day"
+        TEXT last_day
+        TEXT unlocked_item "scarf / flower / beret"
+        TEXT unlocked_day
     }
     mood_sample {
         TEXT day PK
@@ -596,6 +621,7 @@ Không bảng nào có tiêu đề, nội dung, người tham dự hay id gốc 
 | `AvgInProgress()` | Baseline workload (cần ≥ 5 ngày) |
 | `WeekStats()` | Thống kê tuần + so với tuần trước trong dashboard |
 | `Outcomes(7 ngày)` | Cá nhân hoá luật 2–3 |
+| `RecordDay()`, `Wardrobe()` | Tủ đồ: cập nhật chuỗi về đúng giờ lúc "Về thôi" hoặc lúc qua ngày; món mới báo ở thẻ Chào sáng hôm sau |
 
 ---
 
@@ -849,7 +875,7 @@ Lỗi AADSTS được dịch sang tiếng Việt (admin consent, sai tenant, red
 
 ## 13. Kiểm thử
 
-`dotnet test` chạy 87 test trên Core + Integrations (không cần Windows, không gọi mạng):
+`dotnet test` chạy 123 test trên Core + Integrations (không cần Windows, không gọi mạng):
 
 | File | Kiểm tra |
 | --- | --- |
@@ -860,6 +886,8 @@ Lỗi AADSTS được dịch sang tiếng Việt (admin consent, sai tenant, red
 | `InsightTests` | Đánh giá cuộc họp luật/Claude; mood Hybrid ±10, Llm, hết hạn; công tắc cấu hình |
 | `StorageTests` | SQLite: lưu, thống kê tuần, tự xoá tuần/tháng, không lưu tiêu đề, xoá toàn bộ, chuyển dữ liệu cũ |
 | `DotEnvTests` | Đọc `.env`, biến thật được ưu tiên, `.env.sample` đủ khoá |
+| `WorkHoursTests`, `ChatGoHomeTests` | Giờ làm linh hoạt 8→17 / 9→18 / 10→19; chat "về thôi", "đồng ý" ở thẻ tan tầm |
+| `ExtendedFeaturesTests` | Giữ giờ tập trung (đề nghị, tới giờ bật DND), báo cáo tuần thứ Hai, uống nước / 20-20-20, trốn khi trình chiếu, "Hôm nay thấy sao?", nghỉ giữa chuỗi họp ngày mai, tủ đồ, bảng chi tiết dashboard |
 
 Phần WPF và gọi API thật được kiểm bằng tay theo README mục "Hướng dẫn test 3 môi trường" và checklist ở KET-NOI-SANDBOX.md.
 

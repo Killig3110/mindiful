@@ -44,7 +44,7 @@ public sealed record CleanupResult(DateOnly Cutoff, int Days, int Outcomes, int 
 /// </summary>
 public sealed class LocalStore
 {
-    private const int SchemaVersion = 2;
+    private const int SchemaVersion = 3;
     private readonly string _cs;
     private readonly StorageOptions _opt;
     private readonly object _gate = new();
@@ -121,8 +121,18 @@ public sealed class LocalStore
                     day TEXT NOT NULL, event_hash TEXT NOT NULL, start TEXT, duration_min REAL, load INTEGER, kind TEXT,
                     recovery_min INTEGER, source TEXT, PRIMARY KEY (day, event_hash));
                 CREATE TABLE IF NOT EXISTS day_start (day TEXT PRIMARY KEY, first_act REAL NOT NULL);
+                CREATE TABLE IF NOT EXISTS streak (
+                    id INTEGER PRIMARY KEY CHECK (id = 1), count INTEGER NOT NULL, best INTEGER NOT NULL, base INTEGER NOT NULL,
+                    last_day TEXT, unlocked_item TEXT, unlocked_day TEXT);
                 """;
             cmd.ExecuteNonQuery();
+            // v3: người dùng tự đánh giá ngày (0 = chưa trả lời)
+            cmd.CommandText = "SELECT COUNT(*) FROM pragma_table_info('day_record') WHERE name = 'feeling';";
+            if (Convert.ToInt32(cmd.ExecuteScalar(), CultureInfo.InvariantCulture) == 0)
+            {
+                cmd.CommandText = "ALTER TABLE day_record ADD COLUMN feeling INTEGER NOT NULL DEFAULT 0;";
+                cmd.ExecuteNonQuery();
+            }
             cmd.CommandText = $"PRAGMA user_version = {SchemaVersion};";
             cmd.ExecuteNonQuery();
         }
@@ -130,17 +140,23 @@ public sealed class LocalStore
 
     // ================= bản ghi cuối ngày =================
     public void SaveDay(DayRecord r, string moodSource = "Luật") => Exec("""
-        INSERT INTO day_record VALUES ($day,$score,$meet,$breaks,$focus,$done,$ot,$vf,$ve,$vs,$ip,$src,$at)
+        INSERT INTO day_record (day, score, meeting_min, accepted_breaks, focus_min, tasks_done, overtime_min, vibe_focus, vibe_energy,
+            vibe_stress, in_progress, mood_source, saved_at, feeling)
+        VALUES ($day,$score,$meet,$breaks,$focus,$done,$ot,$vf,$ve,$vs,$ip,$src,$at,$feel)
         ON CONFLICT(day) DO UPDATE SET score=$score, meeting_min=$meet, accepted_breaks=$breaks, focus_min=$focus, tasks_done=$done,
-            overtime_min=$ot, vibe_focus=$vf, vibe_energy=$ve, vibe_stress=$vs, in_progress=$ip, mood_source=$src, saved_at=$at;
+            overtime_min=$ot, vibe_focus=$vf, vibe_energy=$ve, vibe_stress=$vs, in_progress=$ip, mood_source=$src, saved_at=$at,
+            feeling=CASE WHEN $feel > 0 THEN $feel ELSE feeling END;
         """, ("$day", D(r.Date)), ("$score", r.Score), ("$meet", r.MeetingMin), ("$breaks", r.AcceptedBreaks), ("$focus", r.FocusMin),
         ("$done", r.TasksDone), ("$ot", r.OvertimeMin), ("$vf", r.VibeFocus), ("$ve", r.VibeEnergy), ("$vs", r.VibeStress),
-        ("$ip", r.InProgress), ("$src", moodSource), ("$at", DateTime.Now.ToString("s", CultureInfo.InvariantCulture)));
+        ("$ip", r.InProgress), ("$src", moodSource), ("$at", DateTime.Now.ToString("s", CultureInfo.InvariantCulture)), ("$feel", r.Feeling));
 
     public IReadOnlyList<DayRecord> Days(DateOnly from, DateOnly toExclusive) => Query(
-        "SELECT * FROM day_record WHERE day >= $f AND day < $t ORDER BY day", r => new DayRecord(
+        """
+        SELECT day, score, meeting_min, accepted_breaks, focus_min, tasks_done, overtime_min, vibe_focus, vibe_energy, vibe_stress, in_progress, feeling
+        FROM day_record WHERE day >= $f AND day < $t ORDER BY day
+        """, r => new DayRecord(
             D(r.GetString(0)), r.GetInt32(1), r.GetDouble(2), r.GetInt32(3), r.GetDouble(4), r.GetInt32(5), r.GetDouble(6),
-            r.GetInt32(7), r.GetInt32(8), r.GetInt32(9), r.GetInt32(10)),
+            r.GetInt32(7), r.GetInt32(8), r.GetInt32(9), r.GetInt32(10), r.GetInt32(11)),
         ("$f", D(from)), ("$t", D(toExclusive)));
 
     /// <summary>6 ngày gần nhất trước hôm nay, nhãn "T2".."CN" — cho chùm nho 7 ngày.</summary>
@@ -213,7 +229,44 @@ public sealed class LocalStore
         return new WeekStats(from, days.Count, days.Average(d => d.Score), new DayScore(Label(best.Date), best.Score),
             new DayScore(Label(worst.Date), worst.Score), days.Sum(d => d.MeetingMin), days.Sum(d => d.AcceptedBreaks),
             days.Sum(d => d.FocusMin), days.Sum(d => d.TasksDone), days.Sum(d => d.OvertimeMin),
-            Count(Outcome.Shown), Count(Outcome.Accepted), Count(Outcome.Snoozed), Count(Outcome.Dismissed), Count(Outcome.Ignored));
+            Count(Outcome.Shown), Count(Outcome.Accepted), Count(Outcome.Snoozed), Count(Outcome.Dismissed), Count(Outcome.Ignored),
+            days.Count(d => d.Feeling == Feeling.Good), days.Count(d => d.Feeling == Feeling.Ok), days.Count(d => d.Feeling == Feeling.Bad));
+    }
+
+    // ================= tủ đồ: chuỗi ngày về đúng giờ =================
+    /// <summary>
+    /// Ghi kết quả 1 ngày làm việc vào chuỗi về đúng giờ. Gọi lại trong cùng ngày thì tính lại từ đầu ngày đó
+    /// (vd. bấm "Về thôi" rồi vẫn làm tiếp tới quá giờ). Chỉ lưu 1 dòng số đếm, không lưu ngày nào về lúc mấy giờ.
+    /// </summary>
+    /// <returns>Chuỗi hiện tại, chuỗi dài nhất và món vừa mở khoá (nếu có).</returns>
+    public (int Streak, int Best, Accessory? Unlocked) RecordDay(DateOnly day, bool onTime)
+    {
+        lock (_gate)
+        {
+            var row = Query("SELECT count, best, base, last_day FROM streak WHERE id = 1",
+                r => (Count: r.GetInt32(0), Best: r.GetInt32(1), Base: r.GetInt32(2), Last: r.IsDBNull(3) ? null : r.GetString(3))).FirstOrDefault();
+            var baseCount = row.Last == D(day) ? row.Base : row.Count;
+            var count = onTime ? baseCount + 1 : 0;
+            var best = Math.Max(row.Best, count);
+            var item = Core.Engine.Wardrobe.NewlyUnlocked(row.Best, best);
+            Exec("""
+                INSERT INTO streak (id, count, best, base, last_day, unlocked_item, unlocked_day) VALUES (1, $c, $b, $base, $d, $i, $id)
+                ON CONFLICT(id) DO UPDATE SET count=$c, best=$b, base=$base, last_day=$d,
+                    unlocked_item=COALESCE($i, unlocked_item), unlocked_day=COALESCE($id, unlocked_day);
+                """, ("$c", count), ("$b", best), ("$base", baseCount), ("$d", D(day)), ("$i", item?.Id), ("$id", item is null ? null : D(day)));
+            return (count, best, item);
+        }
+    }
+
+    /// <summary>Chuỗi hiện tại cho hôm nay. Món mới chỉ báo vào ngày làm việc ngay sau ngày mở khoá.</summary>
+    public WardrobeInfo Wardrobe(DateOnly today)
+    {
+        var row = Query("SELECT count, best, last_day, unlocked_item, unlocked_day FROM streak WHERE id = 1",
+            r => (Count: r.GetInt32(0), Best: r.GetInt32(1), Last: r.IsDBNull(2) ? null : r.GetString(2),
+                Item: r.IsDBNull(3) ? null : r.GetString(3), ItemDay: r.IsDBNull(4) ? null : r.GetString(4))).FirstOrDefault();
+        if (row.Last is null) return new WardrobeInfo(0, 0);
+        var fresh = row.ItemDay is not null && row.ItemDay == row.Last && string.CompareOrdinal(row.Last, D(today)) < 0;
+        return new WardrobeInfo(row.Count, row.Best, fresh ? Core.Engine.Wardrobe.Find(row.Item)?.Name : null);
     }
 
     // ================= dọn & xoá =================
@@ -263,7 +316,7 @@ public sealed class LocalStore
     /// <summary>Xoá toàn bộ dữ liệu thống kê của môi trường này (nút trong Bảng điều khiển).</summary>
     public void WipeAll()
     {
-        Exec("DELETE FROM day_record; DELETE FROM outcome_event; DELETE FROM mood_sample; DELETE FROM meeting_assessment; DELETE FROM day_start;");
+        Exec("DELETE FROM day_record; DELETE FROM outcome_event; DELETE FROM mood_sample; DELETE FROM meeting_assessment; DELETE FROM day_start; DELETE FROM streak;");
         Exec("VACUUM;");
     }
 

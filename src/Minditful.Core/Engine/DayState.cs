@@ -67,6 +67,13 @@ public sealed class DayState
     public MoodInsight? MoodInsight;
     public double LastMoodAsk = -1e9;
     public readonly List<string> ChatHistory = [];
+    /// <summary>Teams presence "Presenting": Milo trốn hẳn, kể cả chóp đuôi.</summary>
+    public bool Presenting;
+    /// <summary>Tự đánh giá cuối ngày (<see cref="Feeling"/>), 0 = chưa trả lời.</summary>
+    public int Feeling;
+    public double? TomorrowHoldAt;
+    public double LastMicro = -1e9;
+    public int MicroCount;
     /// <summary>Điểm Mood Engine theo luật, trước khi Claude chỉnh.</summary>
     public int RuleScore = 92;
 }

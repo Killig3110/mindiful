@@ -182,13 +182,17 @@ Dùng để present và để kiểm tra đủ 16 case của prototype. Giờ, l
 | Xã giao | Chào sáng · Chào hỏi · Tan tầm · Nhắc lại tan tầm | Hello! + bản tin · thẻ 1 nút "Cảm ơn Milo" · tổng kết 3 ô · 1 nút "Về thôi" |
 | Hỗ trợ | Sắp họp · Lịch kín · Email chờ · Task kẹt · Task xong · Hết giờ tập trung | Thẻ Teams · lịch mini · 3 email · thanh sprint · bóng thoại 3s · bóng thoại 3s |
 | Chăm sóc | Họp liên tục · Quá giờ · Chưa nghỉ trưa · Làm liền · Nghỉ quá ít · Phân mảnh | Nhãn màu riêng từng case, nút Đồng ý / Để sau (Np) / Không cần, ô chat |
-| Người dùng | Dashboard | 4 quả quanh Milo: nho (mood) · cam (cuộc họp, múi đã ăn = đã họp) · anh đào (email chờ) · táo cắn dở (sprint); rê chuột lên từng quả xem chi tiết (lịch + mức nặng cuộc họp, Office Vibe, email…) |
+| Người dùng | Dashboard | 4 quả quanh Milo: nho (mood) · cam (cuộc họp, múi đã ăn = đã họp) · anh đào (email chờ) · táo cắn dở (sprint); rê chuột lên từng quả xem chi tiết. Bấm **Chi tiết** trên thanh tiêu đề: bảng nhỏ cỡ 1 thẻ ngay trên đầu Milo (dòng thời gian, Office Vibe, cuộc họp sắp tới; trang Tuần có 7 quả nho, thống kê, bạn trả lời Milo thế nào) |
+| Mở rộng | Giữ giờ tập trung · Báo cáo tuần · Uống nước · nhìn xa | Thẻ "khoảng trống dài nhất 16:15–17:45" → *Giữ 1h30* · thẻ "Tuần trước của bạn" + 1 mẹo → *Xem chùm nho* mở dashboard tuần · bóng thoại 5 giây, không nút |
 
 **1d. Bẻ kịch bản** (mục *Bạn thử làm*):
 - *Đang gõ phím*: lời nhắc bị hoãn; gõ liên tục 5' thì chỉ hiện nhãn gọn "Milo có lời nhắn".
 - *Toàn màn hình* hoặc *Không làm phiền*: Milo im lặng và hiện chấm chờ; **bấm chấm chờ** thì thẻ bung ra ngay kể cả đang họp.
 - *Nhảy việc 12 lần/giờ*: case Phân mảnh.
 - *Giả lập ngày căng*: Milo đổi dáng mệt, có chữ z bay.
+- *Teams: đang trình chiếu*: Milo trốn hẳn, kể cả chóp đuôi và chấm chờ; bấm lại thì hiện lại.
+- *Tủ đồ: đổi phụ kiện*: xoay vòng tự chọn → khăn quàng → kẹp hoa → mũ nồi → không mặc (ngày mẫu có sẵn chuỗi 10 ngày về đúng giờ).
+- Ở thẻ **Tan tầm** (18:00): bấm *Vui / Bình thường / Mệt* để thấy điểm đổi (+3 / 0 / −6), bấm *Giữ 10' nghỉ lúc 15:30* cho chuỗi họp ngày mai.
 
 **1e. Tương tác chung** (cả 3 môi trường):
 - Rê chuột lên chóp đuôi **0,6 giây** thì Milo ló đầu; bấm vào đuôi thì mở dashboard; Esc để đóng.
@@ -434,6 +438,22 @@ Các clip "Cần vẽ" được dựng thành chuỗi khung từ 8 tư thế SVG
 
 Milo chớp mắt 4.5 giây/lần, khi mệt thì nhắm lâu hơn (§9.4). Chuyển động toàn thân (leo, nhảy, tụt) vẫn theo keyframes của prototype. Khung hình được dựng sẵn lúc máy rảnh để lần hiện đầu không bị giật.
 
+## Tính năng chăm sóc mở rộng (mục `Wellbeing`)
+
+7 tính năng thêm ngoài prototype. Sandbox/Production bật theo `Wellbeing` trong `appsettings.json` hoặc `.env`. Demo tắt sẵn để ngày mẫu giữ đúng các mốc của tài liệu; bật thử từng cái ở mục **Mở rộng** của bảng điều khiển kịch bản.
+
+| Tính năng | Khi nào | Milo làm gì | Cấu hình |
+| --- | --- | --- | --- |
+| Giữ giờ tập trung | 1 lần/ngày, sau lần mở máy đầu 20 phút, trước 15:00, khi còn khoảng trống ≥ 60 phút | Đề nghị giữ khoảng trống dài nhất (tối đa 90 phút) trong lịch (busy). Tới giờ tự bật Không làm phiền, hết giờ bóng thoại "… phút sâu xong rồi!". Không có `Calendars.ReadWrite` thì chỉ nhắc | `FocusPlan`, `FocusPlanMinMinutes` |
+| Báo cáo tuần | Sáng thứ Hai, ngay sau Chào sáng | Điểm TB, giờ họp, số lần nghỉ, ngày tốt/mệt nhất của tuần trước + 1 mẹo chọn theo điểm yếu nhất. *Xem chùm nho* mở dashboard tuần | `WeekReport` |
+| Hôm nay thấy sao? | Thẻ Tan tầm (và Nhắc lại tan tầm nếu chưa trả lời) | 3 nút Vui / Bình thường / Mệt. Chỉ lưu trên máy; "Mệt" trừ 6 điểm, "Vui" cộng 3; gửi cho Claude khi bật Mood Hybrid/Llm; thống kê tuần có "Bạn tự thấy" | `EveningCheck` |
+| Nghỉ giữa chuỗi họp ngày mai | Thẻ Tan tầm, khi mai có ≥ 3 cuộc họp liền | *Giữ 10' nghỉ lúc HH:mm* tạo sự kiện tentative trong lịch ngày mai | `EveningCheck` |
+| Uống nước · 20-20-20 | Mỗi 50 phút ngồi máy liên tục (không tính giờ họp), tối đa 6 lần/ngày | Ló lên 5 giây với 1 bóng thoại, không nút, không tính ngân sách lời nhắc. Rời máy ≥ 5 phút thì đếm lại | `MicroBreakEveryMinutes` (0 = tắt), `MicroBreakMaxPerDay` |
+| Trốn khi trình chiếu | Teams presence = Presenting | Trốn hẳn, kể cả chóp đuôi và chấm chờ; thẻ đang mở thu lại | `HideWhenPresenting` |
+| Tủ đồ của Milo | Về đúng giờ (quá giờ < 15 phút) 3 / 5 / 10 ngày liền | Mở khoá khăn quàng / kẹp hoa / mũ nồi, sáng hôm sau thẻ Chào sáng báo. Chọn món ở Bảng điều khiển (mặc định: món mới nhất) | `Wardrobe` |
+
+Test nhanh trên Sandbox: chọn *Giữ giờ tập trung*, *Báo cáo tuần* hoặc *Uống nước · nhìn xa* ở ô **Chạy thử 1 case**; bấm *Đang trình chiếu* ở mục giả lập tín hiệu; bấm *Giờ về = bây giờ + 2'* để thấy thẻ Tan tầm có 3 nút cảm xúc. Báo cáo tuần cần dữ liệu tuần trước trên máy (chạy app ít nhất 1 ngày tuần trước).
+
 ## Góc neo (§9.1)
 
 Kéo chóp đuôi rồi thả ở đâu thì Milo neo vào **góc gần nhất** của màn hình đó (hỗ trợ nhiều màn hình). Bấm mà không kéo thì vẫn mở dashboard.
@@ -444,8 +464,10 @@ Kéo chóp đuôi rồi thả ở đâu thì Milo neo vào **góc gần nhất**
 
 ## Dữ liệu cá nhân trên máy (SQLite, tự xoá)
 
-Mỗi môi trường có 1 file `%LOCALAPPDATA%\Minditful\<môi trường>\minditful.db`, gồm 4 bảng:
-- `day_record`: điểm, phút họp, nghỉ, tập trung… mỗi ngày.
+Mỗi môi trường có 1 file `%LOCALAPPDATA%\Minditful\<môi trường>\minditful.db`, gồm các bảng:
+- `day_record`: điểm, phút họp, nghỉ, tập trung, câu trả lời "Hôm nay thấy sao?"… mỗi ngày.
+- `day_start`: giờ mở máy đầu ngày (giờ làm linh hoạt).
+- `streak`: 1 dòng duy nhất cho tủ đồ (chuỗi về đúng giờ hiện tại, dài nhất, món vừa mở). Không tự xoá theo tuần vì chỉ là bộ đếm; nút xoá toàn bộ vẫn xoá.
 - `mood_sample`: điểm mood mỗi 15 phút.
 - `outcome_event`: log phản hồi từng lời nhắc.
 - `meeting_assessment`: mức nặng cuộc họp. Id sự kiện được **băm**, không lưu tiêu đề.

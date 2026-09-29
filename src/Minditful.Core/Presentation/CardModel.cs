@@ -15,7 +15,7 @@ public sealed record TitleBlock(string Text, double Size = 17) : CardBlock;
 public sealed record ParagraphBlock(string Text, bool Small = false, string? Color = null) : CardBlock;
 public sealed record LineBlock(LeadKind Lead, string LeadText, string LeadColor, string Text, string? Source = null, bool SourceAlert = false,
     string? PillText = null, string? PillBg = null, string? PillFg = null) : CardBlock;
-public sealed record CardButton(string Act, string Label, ButtonStyle Style, bool Enabled = true);
+public sealed record CardButton(string Act, string Label, ButtonStyle Style, bool Enabled = true, string? Val = null);
 public sealed record ButtonsBlock(IReadOnlyList<CardButton> Buttons) : CardBlock;
 public sealed record PeopleBlock(IReadOnlyList<Person> People, string Role, string RoleBg, string RoleFg) : CardBlock;
 public sealed record ScheduleRow(string Text, bool IsSlot);
@@ -51,3 +51,19 @@ public sealed record FruitItem(
     int Score = 0, int Total = 0, int Done = 0, int Count = 0, double Progress = 0, IReadOnlyList<DayScore>? Days = null, bool Available = true);
 
 public sealed record FruitDashboard(DashPage Page, string Title, IReadOnlyList<FruitItem> Items);
+
+/// <summary>Đoạn trên thanh thời gian của bảng chi tiết. From/To: 0..1 trong khung giờ làm. Kind: meet · heavy · focus · break.</summary>
+public sealed record TimelineSeg(double From, double To, string Kind, string Label);
+
+/// <summary>Bảng chi tiết hôm nay (nhỏ, ngay cạnh Milo): điểm, dòng thời gian, Office Vibe, cuộc họp sắp tới.</summary>
+public sealed record DetailToday(
+    int Score, string Band, string Phrase, int? Delta, string? Insight, string StartLabel, string EndLabel,
+    IReadOnlyList<TimelineSeg> Segments, double? Now, (int F, int E, int S) Vibe, IReadOnlyList<DashRow> Upcoming,
+    IReadOnlyList<(string Big, string Small)> Chips, string? Note);
+
+/// <summary>Bảng chi tiết tuần: 7 quả nho, thống kê, bạn trả lời Milo thế nào, bạn tự thấy thế nào.</summary>
+public sealed record DetailWeek(
+    int Avg, int? Diff, IReadOnlyList<DayScore> Days, IReadOnlyList<(string Big, string Small)> Stats,
+    IReadOnlyList<(string Label, int Count, string Color)> Replies, string? Feel, string? Tip);
+
+public sealed record DetailDashboard(DashPage Page, DetailToday? Today, DetailWeek? Week);

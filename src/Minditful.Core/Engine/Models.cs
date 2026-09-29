@@ -49,13 +49,20 @@ public sealed record CompletedTask(string Id, string Title);
 /// <summary>Thống kê 1 tuần (thứ Hai → Chủ nhật) tính từ dữ liệu local.</summary>
 public sealed record WeekStats(
     DateOnly From, int Days, double AvgScore, DayScore? Best, DayScore? Worst, double MeetingMin, int AcceptedBreaks,
-    double FocusMin, int TasksDone, double OvertimeMin, int Shown, int Accepted, int Snoozed, int Dismissed, int Ignored);
+    double FocusMin, int TasksDone, double OvertimeMin, int Shown, int Accepted, int Snoozed, int Dismissed, int Ignored,
+    int FeelGood = 0, int FeelOk = 0, int FeelBad = 0);
+
+/// <summary>Chuỗi ngày về đúng giờ và phụ kiện Milo đã mở khoá (tủ đồ).</summary>
+public sealed record WardrobeInfo(int Streak, int Best, string? NewItem = null);
 
 /// <summary>Toàn bộ dữ liệu công việc mà Rule Engine đọc. Demo dùng bản cố định, Prod/Sandbox làm mới định kỳ.</summary>
 public sealed class WorkSnapshot
 {
     public IReadOnlyList<CalendarEvent> Calendar { get; init; } = [];
     public TomorrowInfo? Tomorrow { get; init; }
+    /// <summary>Lịch ngày mai (giây tính từ 00:00 ngày mai) — để gợi ý nghỉ giữa chuỗi họp từ tối hôm trước.</summary>
+    public IReadOnlyList<CalendarEvent> TomorrowCalendar { get; init; } = [];
+    public WardrobeInfo? Wardrobe { get; init; }
     public IReadOnlyList<MailItem> Emails { get; init; } = [];
     public int Unread { get; init; }
     public IReadOnlyList<WorkTask> Tasks { get; init; } = [];
@@ -89,6 +96,8 @@ public sealed class CaseData
     public double Worked { get; set; }
     public int Sw { get; set; }
     public bool FromHold { get; set; }
+    /// <summary>Giờ bắt đầu khối được đề nghị (Giữ giờ tập trung).</summary>
+    public double At { get; set; }
     /// <summary>Câu chính do LLM viết sẵn lúc case vào hàng đợi (null = dùng template).</summary>
     public string? Line { get; set; }
 }
@@ -164,6 +173,8 @@ public sealed class Episode
     public string? ThanksText;
     public Clip AfterThanksClip = Engine.Clip.ClimbOut;
     public bool Opened, Held, Confirmed, GoHome, LongBreak;
+    /// <summary>Dashboard: đang xem bảng chi tiết thay cho 4 quả.</summary>
+    public bool Detail;
     public int Cycles, Cycle;
     public DashPage Page = DashPage.Today;
     public string? Intent;
