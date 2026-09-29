@@ -69,6 +69,8 @@ Kịch bản dưới đây chỉ dùng những phản ứng **không phụ thu�
 
 Sandbox đọc email mỗi ~20 giây, lịch và Azure Boards mỗi ~30 giây (Production 5 / 2 / 3 phút). Không muốn chờ: *Tổng quan* → **Làm mới ngay**.
 
+Thao tác bấm từng bước trên Outlook / Teams / Azure Boards, Milo hiện gì và lỗi hay gặp của từng case: **mục 4**.
+
 | # | Bạn làm (trên dịch vụ thật) | Chờ | Milo phản ứng | Bạn nói |
 | --- | --- | --- | --- | --- |
 | 1 | Người phụ (tài khoản thứ 2) **gửi 1 email** cho thulu@ | ≤ 20 giây | Milo ló lên thẻ **Có mới**: "… vừa gửi mail cho bạn" + tiêu đề, nút *Mở email* / *Đã xem* | "Có mail mới gửi thẳng cho bạn là Milo báo ngay, không cần mở Outlook." |
@@ -98,14 +100,164 @@ Nói: *"Sandbox là giao thoa: ép Milo làm để kiểm thử như Demo, rồi
 
 > "Cùng một bộ não với Demo. Lên tenant Bosch chỉ cần IT cấp quyền cho app registration, không đổi code."
 
-## 4. Dọn dẹp sau khi present
+## 4. Chi tiết từng case realtime
+
+Mỗi case ghi: **điều kiện**, **thao tác từng bước** trên dịch vụ thật, **thời gian chờ**, **Milo hiện gì**, **nói gì**, **lỗi hay gặp**.
+
+- "Tài khoản thứ 2" = 1 tài khoản khác trong tenant `mindiful.onmicrosoft.com` (hoặc điện thoại đăng nhập tài khoản đó). thulu@ là tài khoản đang chạy Milo.
+- Milo phải **đang mở trước** lúc bạn gửi. Thứ đã có sẵn lúc mở app chỉ được ghi nhận, không báo lại.
+- Thời gian chờ ở Sandbox: email ≤ 20 giây, lịch và Azure Boards ≤ 30 giây, trạng thái Teams ≤ 30 giây. Không muốn chờ: bảng điều khiển → *Tổng quan* → **Làm mới ngay**.
+- Production chậm hơn: email 5 phút, lịch 2 phút, Azure Boards 3 phút.
+- Đang họp, trình chiếu, tập trung, Không làm phiền hay toàn màn hình thì thẻ không bật lên mà thành **chấm chờ** ở góc. Bấm chấm để mở ngay, hoặc chờ hết lý do im lặng + 2 phút.
+
+### Tổng quan
+
+| # | Case | Bạn làm | Chờ | Milo |
+| --- | --- | --- | --- | --- |
+| A | Email mới | Tài khoản thứ 2 gửi mail cho thulu@ | ≤ 20" | Thẻ **Có mới** · email |
+| B | Lời mời họp mới | Tài khoản thứ 2 mời thulu@ vào cuộc họp Teams | ≤ 30" | Thẻ **Có mới** · lời mời họp |
+| C | Task mới được giao | Azure Boards: giao task Active cho thulu@ | ≤ 30" | Thẻ **Có mới** · task |
+| D | Nhiều thứ cùng lúc | Làm A + B + C liền nhau | ≤ 30" | 1 thẻ gộp "3 thứ mới vừa tới" |
+| E | Task xong | Kéo task của thulu@ sang Closed | ≤ 30" | Nhảy tưng "Xong #id rồi!" |
+| F | Sắp họp | Cuộc họp Teams online còn 5 phút | Đúng giờ | Thẻ **Sắp họp** + gợi ý theo loại cuộc họp |
+| G | Đang họp | Tham gia cuộc họp | ≤ 30" | Ẩn hẳn, cả chóp đuôi |
+| H | Chia sẻ màn hình | Share / Present trong Teams | Ngay / ≤ 30" | Người xem không thấy Milo |
+| I | Không làm phiền | Teams đặt Do not disturb | ≤ 30" | Im lặng |
+| J | Trả lời email chờ | Trả lời email có dấu "?" từ hôm qua | ≤ 20" | Quả anh đào biến mất |
+| K | Khoá / mở khoá máy | Windows + L, rồi đăng nhập lại | Ngay | Nghỉ; mở khoá thì đọc lại dữ liệu |
+| L | Milo làm giúp | Bấm *Giữ chỗ* / *Khoá 90 phút* trên thẻ | ≤ 5" | Outlook có sự kiện, Teams chuyển DND, Milo ngủ trên chóp đuôi |
+
+### A. Email mới → thẻ "Có mới"
+
+- **Điều kiện:** gửi **thẳng** cho thulu@ (ô *To*, không phải CC/BCC), từ tài khoản khác, trong 24 giờ qua.
+- **Thao tác** (tài khoản thứ 2, Outlook web `outlook.office.com`):
+  1. **New mail**.
+  2. *To*: `thulu@mindiful.onmicrosoft.com`.
+  3. *Subject*: `Nhờ bạn review PR #512 trước 15:00 nhé` (nội dung tuỳ ý).
+  4. **Send**.
+- **Chờ:** ≤ 20 giây.
+- **Milo hiện:** ló lên chỉ tay, thẻ có nhãn *Outlook · email mới* · *vừa tới*, tiêu đề **"<Tên người gửi> vừa gửi mail cho bạn"**, 1 dòng tiêu đề email kèm chữ viết tắt tên. Nút **Mở email** (mở đúng email trong Outlook) · **Đã xem**. 20 giây không bấm thì thẻ thu lại, không nhắc lại.
+- **Nói:** *"Có mail mới gửi thẳng cho bạn là Milo báo ngay, không cần mở Outlook. Mail CC hay mail nhóm thì Milo không làm phiền."*
+- **Lỗi hay gặp:**
+  - Gửi từ chính thulu@ → không báo. Chỉ để thử 1 tài khoản thì đặt `MINDITFUL__Minditful__Sandbox__IncludeSelfSentMail=true` trong `.env`, rồi mở lại app.
+  - Để thulu@ ở CC → không báo.
+  - Email tới **trước** khi mở app → không báo (coi là có sẵn).
+
+### B. Lời mời họp mới → thẻ "Có mới"
+
+- **Điều kiện:** cuộc họp **người khác** tạo, có mời thulu@, diễn ra **hôm nay hoặc ngày mai**, không phải cả ngày, không đặt *Show as: Free*.
+- **Thao tác** (tài khoản thứ 2, Teams → **Calendar** → **New meeting**, hoặc Outlook web → Calendar → New event → bật *Teams meeting*):
+  1. *Title*: `Sync nhanh về bản build mới`.
+  2. *Required attendees*: `thulu@mindiful.onmicrosoft.com`.
+  3. Giờ: chiều nay (hoặc ngày mai).
+  4. **Send**.
+- **Chờ:** ≤ 30 giây.
+- **Milo hiện:** thẻ *Teams · lời mời họp mới*, tiêu đề **"Có lời mời họp mới lúc HH:MM"** (ngày mai thì "mai HH:MM"), dòng tên cuộc họp + người tổ chức. Nút **Xem cuộc họp** · **Đã xem**.
+- **Mẹo:** tên cuộc họp có từ khoá như *planning*, *daily*, *demo*, *workshop*, *1:1* thì Milo đoán loại cuộc họp. Tới lúc còn 5 phút, thẻ Sắp họp hiện gợi ý tương ứng (xem F).
+- **Lỗi hay gặp:** thulu@ tự tạo cuộc họp → không báo, vì không phải "lời mời". Cuộc họp tuần sau → không báo.
+
+### C. Task mới được giao → thẻ "Có mới"
+
+- **Điều kiện:** work item trong project `Milo-Sandbox`, loại *Task / Bug / User Story / Product Backlog Item / Issue*, **Assigned To = thulu@**, **State = Active**.
+- **Thao tác** (Azure DevOps `dev.azure.com/mindiful-sandbox` → `Milo-Sandbox` → **Boards → Work items**):
+  1. **New Work Item → Task**.
+  2. *Title*: `Sửa lỗi đăng nhập trên màn hình Settings`.
+  3. *Assigned To*: thulu@.
+  4. *State*: **Active**.
+  5. **Save**.
+
+  Hoặc mở 1 task Active có sẵn của người khác, đổi *Assigned To* sang thulu@ rồi **Save**.
+- **Chờ:** ≤ 30 giây.
+- **Milo hiện:** thẻ *Azure Boards · task mới giao cho bạn*, tiêu đề **"Bạn vừa được giao 1 task mới"**, dòng `#id` + tên task. Nút **Mở task** (mở work item trên trình duyệt) · **Đã xem**.
+- **Lỗi hay gặp:**
+  - State để **New** → không tính. Chỉ trạng thái trong `ActiveStates` (mặc định *Active*) mới được đọc.
+  - Tạo ở project khác → không thấy.
+  - PAT hết hạn → trang *Tổng quan* báo Azure Boards vàng/đỏ.
+
+### D. Nhiều thứ cùng lúc → 1 thẻ gộp
+
+- **Thao tác:** làm A, B, C liền nhau trong khoảng 20 giây.
+- **Milo hiện:** 1 thẻ nhãn *Outlook · Teams · Azure Boards*, tiêu đề **"3 thứ mới vừa tới"**, 3 dòng (email, cuộc họp, task), mới nhất ở trên. Thứ tới thêm lúc thẻ đang mở thì gộp vào luôn, không bật thẻ thứ 2.
+- **Nói:** *"Nhiều thứ tới liền thì Milo gộp 1 lần cho gọn, không nhảy ra 3 lần."*
+
+### E. Task xong → Milo ăn mừng
+
+- **Điều kiện:** task giao cho thulu@, chuyển sang **Closed** hoặc **Resolved** hôm nay.
+- **Thao tác:** Azure Boards → **Boards** → kéo thẻ task từ cột *Active* sang *Closed* (hoặc mở task → *State: Closed* → Save).
+- **Chờ:** ≤ 30 giây.
+- **Milo hiện:** ló lên nhảy tưng, bóng thoại **"Xong #id rồi!"**, điểm mood +2. Tính cách *Pha trộn* thì khoảng 1/3 số lần là động tác **slay** lấp lánh.
+- **Nói:** *"Không cần báo cho Milo, xong việc trên Boards là Milo biết."*
+
+### F. Sắp họp → thẻ "Sắp họp" có gợi ý
+
+- **Điều kiện:** cuộc họp **Teams meeting** (online) trong lịch thulu@, còn **≤ 5 phút**, thulu@ không đang trong cuộc gọi khác.
+- **Chuẩn bị:** tạo sẵn cuộc họp (thulu@ tổ chức hoặc được mời) bắt đầu đúng lúc cần demo. Đặt tên *"Demo Milo cho ban giám khảo"* thì Milo đoán là *Trình bày*.
+- **Milo hiện:** thẻ *Teams · còn 5 phút*, tên cuộc họp, người tham gia, vai trò, câu gợi ý theo loại. Ví dụ bạn trình bày: *"uống ngụm nước, mở sẵn slide, hít sâu 3 nhịp rồi vào"*; tên có *planning*: *"ghi sẵn 1–2 ý chính"*. Nút **Tham gia** (mở Teams) · **Mở slide** (nếu bạn trình bày và có file đính kèm).
+- **Nói:** *"Milo đoán loại cuộc họp từ tiêu đề và agenda ngay trên máy để gợi ý. AI chỉ nhận nhãn, không nhận chữ."*
+- **Lỗi hay gặp:** cuộc hẹn thường (không bật Teams meeting) → không có thẻ Sắp họp, chỉ hiện trong dashboard.
+
+### G. Đang họp → Milo im lặng
+
+- **Thao tác:** bấm **Tham gia** trên thẻ F (hoặc vào cuộc họp trong Teams).
+- **Chờ:** ≤ 30 giây, Teams presence chuyển *In a call*.
+- **Milo hiện:** ẩn hẳn, cả chóp đuôi. Có lời nhắc hoặc email mới trong lúc họp thì góc màn hình có chấm **"n lời nhắc đang chờ"**.
+- **Thử thêm:** trong lúc họp, tài khoản thứ 2 gửi 1 email → Milo **không** bật lên. Rời họp, 2 phút sau thẻ *Có mới* mới hiện.
+- **Nói:** *"Đang trong cuộc gọi thì Milo im lặng tuyệt đối, và hết họp để bạn thở 2 phút rồi mới nói."*
+- **Lỗi hay gặp:** Teams desktop không đăng nhập thulu@ → Milo đoán họp theo lịch (vẫn ẩn đúng giờ trong lịch).
+
+### H. Chia sẻ màn hình / trình chiếu
+
+- **Thao tác:** trong cuộc họp bấm **Share** → chọn màn hình. Nếu đang bật *Hiện Milo khi chia sẻ màn hình* thì tắt công tắc này lúc đó (*Tổng quan* hoặc menu khay).
+- **Milo hiện:** người xem màn hình chia sẻ **không thấy Milo**. Teams báo *Presenting* thì Milo trốn hẳn cả trên màn hình của bạn.
+- **Nói:** *"Milo không bao giờ lộ lên màn hình đang chia sẻ. Công tắc hiện Milo chỉ có ở Sandbox để demo."*
+
+### I. Teams "Do not disturb" → Milo im lặng
+
+- **Thao tác:** Teams → ảnh đại diện → trạng thái **Do not disturb**.
+- **Chờ:** ≤ 30 giây.
+- **Milo hiện:** dải trên cùng bảng điều khiển ghi *"Milo đang im lặng · vì không làm phiền"*; chóp đuôi mờ; lời nhắc thành chấm chờ.
+- Xong trả về **Available**.
+
+### J. Trả lời email chờ → quả anh đào biến mất
+
+- **Điều kiện của "email chờ":** gửi thẳng cho thulu@, có dấu **"?"** trong tiêu đề/nội dung hoặc được cắm cờ, chưa trả lời, đã chờ **≥ 1 ngày làm việc** (chế độ test: 0 ngày). Thẻ *Email chờ* chỉ hiện sau 10:00 (chế độ test: bất kỳ lúc nào).
+- **Chuẩn bị:** hôm trước nhờ người gửi thulu@ email "Chốt scope sprint 43?".
+- **Thao tác:** bấm chóp đuôi → dashboard có quả anh đào → Outlook web → mở email đó → **Reply** → Send.
+- **Chờ:** ≤ 20 giây.
+- **Milo hiện:** quả anh đào biến mất khỏi dashboard.
+- **Nói:** *"Milo chỉ biết email đã được trả lời hay chưa, không lưu nội dung."*
+
+### K. Khoá / mở khoá máy (Windows)
+
+- **Thao tác:** **Windows + L**, chờ vài giây, đăng nhập lại.
+- **Milo hiện:** khoá máy thì Milo nghỉ hẳn (thời gian khoá tính là nghỉ). Mở khoá thì app đọc lại mọi nguồn ngay. Lần mở khoá đầu tiên trong ngày thì Milo **Chào sáng**.
+- Rời máy (không chạm chuột/phím) ≥ 5 phút cũng tính là 1 lần nghỉ. Vắng ≥ 30 phút rồi quay lại, tính cách *Pha trộn* đôi khi có động tác **mạng nhện**.
+
+### L. Milo làm giúp (ghi vào Outlook / Teams thật)
+
+- **Điều kiện:** tenant đã cấp `Calendars.ReadWrite` và `Presence.ReadWrite` (trang *Tổng quan* không có chữ "THIẾU").
+- **Thao tác và kết quả** (khi thẻ tương ứng hiện, hoặc chế độ test → *Thử tình huống*):
+
+  | Bấm | Outlook / Teams thật |
+  | --- | --- |
+  | *Giữ chỗ* (Lịch kín) | Outlook Calendar có "Nghỉ cùng Milo", category **Milo**, tentative |
+  | *Khoá 30' trong lịch* (Chưa nghỉ trưa) | "Nghỉ trưa · Milo giữ chỗ" |
+  | *Giữ 10' nghỉ* (thẻ Tan tầm) | "Nghỉ cùng Milo" ngày mai |
+  | *Khoá 90 phút* (Task kẹt) / *Tập trung 30 phút* | Sự kiện "Tập trung: #id" (busy) + Teams chuyển **Do not disturb**; Milo **ngủ trên chóp đuôi**; hết giờ Teams tự về trạng thái tự động |
+  | *Giữ* (Giữ giờ tập trung) | "Tập trung · Milo giữ chỗ"; tới giờ tự bật Do not disturb |
+  | *Tham gia* / *Mở email* / *Mở task* | Mở Teams / Outlook / Azure Boards |
+
+- **Nói:** *"Milo không tự làm gì khi bạn chưa bấm. Chỉ 2 việc tự động nằm trong cái bạn đã đồng ý: tới giờ tập trung đã giữ thì bật Không làm phiền, hết giờ thì trả lại."*
+- **Dọn sau khi demo:** xoá sự kiện category **Milo** trong Outlook, trả Teams về *Available*.
+
+## 5. Dọn dẹp sau khi present
 
 - **Outlook Calendar:** xoá các sự kiện có category **Milo** ("Nghỉ cùng Milo", "Tập trung…") và cuộc họp tạo cho buổi present.
 - **Azure Boards:** kéo task vừa Closed về lại Active nếu muốn dùng lại lần sau.
 - **Teams:** trạng thái về *Available*.
 - Muốn lần sau mở lại vẫn chạy như Production: không cần làm gì, app nhớ chế độ đã chọn.
 
-## 5. Sự cố khi đang present
+## 6. Sự cố khi đang present
 
 | Sự cố | Xử lý nhanh |
 | --- | --- |

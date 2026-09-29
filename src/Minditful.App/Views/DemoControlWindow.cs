@@ -316,7 +316,7 @@ internal sealed class DemoControlWindow : ControlShell
             {
                 title, Spacer(6), show, sayBox,
                 Row(prev, run, next),
-                Switch("Tự chạy qua các bước", "Milo xong việc ở bước này thì tự sang bước sau (bước không có Milo chờ 12 giây). Tắt để tự bấm từng bước.",
+                Switch("Tự chạy qua các bước", "Milo xong việc ở bước này thì tự sang bước sau (bước không có Milo chờ theo độ dài bước). Tắt để tự bấm từng bước.",
                     () => _tourAuto, () =>
                     {
                         _tourAuto = !_tourAuto;

@@ -63,7 +63,7 @@ Còn thời gian thì thêm: 6 Lịch kín, 7 Email chờ, 23 Dashboard chi ti�
 
 ### 0.4 Phần 2 · Sandbox realtime (9 phút)
 
-Làm theo [KICH-BAN-SANDBOX.md](KICH-BAN-SANDBOX.md) mục 3: *Tổng quan* + dashboard số thật → người phụ gửi mail (~20 giây Milo báo) → gửi lời mời họp và giao task (gộp "3 thứ mới") → kéo task Closed (Milo ăn mừng) → cuộc họp tạo sẵn: Sắp họp → Tham gia (Milo ẩn) → Share màn hình (người xem không thấy Milo) → Rời họp → Teams DND.
+Làm theo [KICH-BAN-SANDBOX.md](KICH-BAN-SANDBOX.md) mục 3 (thao tác chi tiết từng case realtime: mục 4): *Tổng quan* + dashboard số thật → người phụ gửi mail (~20 giây Milo báo) → gửi lời mời họp và giao task (gộp "3 thứ mới") → kéo task Closed (Milo ăn mừng) → cuộc họp tạo sẵn: Sắp họp → Tham gia (Milo ẩn) → Share màn hình (người xem không thấy Milo) → Rời họp → Teams DND.
 
 **Kết:** *"Cùng một bộ não với Demo. Lên tenant Bosch chỉ cần IT cấp quyền cho app, không đổi code."*
 
@@ -174,6 +174,22 @@ Nói: *"Luật được chứng minh bằng test. AI được kiểm trước kh
 ## 4. Bản rút gọn 13 phút
 
 Là phần Demo của ngày present, xem bảng ở **mục 0.3**. Tắt tự chạy, bấm thẳng từng dòng trong *Tất cả bước*. Chỉ có 7 phút thì giữ: 1, 2→3, 4, 8, 22, 26, 28.
+
+## 4b. Case realtime trong Demo (giả lập)
+
+Demo không kết nối dịch vụ thật, nên các case realtime được **giả lập** trên bảng điều khiển. Milo phản ứng y như khi có dữ liệu thật. Muốn làm thật với Outlook / Teams / Azure Boards: [KICH-BAN-SANDBOX.md](KICH-BAN-SANDBOX.md) mục 4.
+
+| Case thật | Giả lập trong Demo | Milo |
+| --- | --- | --- |
+| Email mới / lời mời họp / task mới được giao | *Thử tình huống* → **Có mới**: bấm lần 1 = email, lần 2 = lời mời họp, lần 3 = task. Bấm liền 3 lần → 1 thẻ gộp | Thẻ **Có mới** (bước 22 của kịch bản) |
+| Task chuyển sang Done | *Thử tình huống* → **Task xong** | Nhảy tưng "Xong #id rồi!" |
+| Cuộc họp còn 5 phút | *Thử tình huống* → **Sắp họp**, hoặc *Ngày mẫu* → mốc 09:25 | Thẻ Sắp họp + gợi ý theo loại cuộc họp |
+| Vào cuộc họp Teams | *Ngày mẫu* → mốc 09:30 (họp trong lịch mẫu) | Ẩn hẳn, lời nhắc thành chấm chờ |
+| Teams: trình chiếu / Không làm phiền | *Thử tình huống* → *Giả vờ bạn đang…* → **Teams: đang trình chiếu** / **Teams: Không làm phiền** | Trốn hẳn / im lặng |
+| Mở app toàn màn hình | **Mở app toàn màn hình** | Im lặng, chấm chờ |
+| Khoá máy / rời máy / đang gõ | **Khoá máy** / **Rời khỏi máy** / **Đang gõ phím** | Nghỉ / không nói với màn hình trống / chờ bạn dừng tay |
+| Bắt đầu khối tập trung | Bước 24 của kịch bản, hoặc bấm *Tập trung 30 phút* trên thẻ | Milo ngủ trên chóp đuôi |
+| Điểm mood đổi theo ngày thật | Trang *Bắt đầu* → **Mood realtime** (kéo căng thẳng, nghỉ, xong task) | Đổi dáng và màu ngay |
 
 ## 5. Vì sao là trái cây (nói ở bước 8)
 
