@@ -57,13 +57,16 @@ internal sealed class FruitDashboardView : Canvas
         toggle.VerticalAlignment = VerticalAlignment.Center;
         var detail = LinkButton("Chi tiết", () => onAct("detail"));
         detail.VerticalAlignment = VerticalAlignment.Center;
+        var talk = LinkButton("Trò chuyện", () => onAct("talk"));
+        talk.VerticalAlignment = VerticalAlignment.Center;
+        System.Windows.Automation.AutomationProperties.SetName(talk, "Trò chuyện với Milo");
         System.Windows.Automation.AutomationProperties.SetName(detail, "Mở bảng chi tiết");
         var chip = new Border
         {
             Background = Br("#FFF9F1"), BorderBrush = Br("#F1DFC6"), BorderThickness = new Thickness(1.5),
             CornerRadius = new CornerRadius(14), Padding = new Thickness(12, 4, 6, 4),
             Effect = new DropShadowEffect { BlurRadius = 16, ShadowDepth = 5, Direction = 270, Opacity = .18, Color = Rgb("#2B211A") },
-            Child = new StackPanel { Orientation = Orientation.Horizontal, Children = { title, toggle, Sep(), detail, close } },
+            Child = new StackPanel { Orientation = Orientation.Horizontal, Children = { title, toggle, Sep(), detail, Sep(), talk, close } },
         };
         chip.Loaded += (_, _) =>
         {

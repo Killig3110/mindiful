@@ -153,4 +153,13 @@ public partial class CompanionWindow : Window
         Animate(true);
         Layer.Render();
     }
+
+    /// <summary>Menu khay "Trò chuyện với Milo": Milo leo lên với khung chat và đặt con trỏ vào ô gõ.</summary>
+    public void OpenTalk()
+    {
+        _session.Engine.OpenTalk();
+        Activate(); // cửa sổ cần được kích hoạt thì ô gõ mới nhận phím
+        Animate(true);
+        Layer.Render();
+    }
 }

@@ -134,6 +134,7 @@ public partial class App : Application
     {
         var menu = new WinForms.ContextMenuStrip();
         menu.Items.Add("Mở dashboard của Milo", null, (_, _) => Companion?.OpenDashboard());
+        menu.Items.Add("Trò chuyện với Milo", null, (_, _) => Companion?.OpenTalk());
         if (_session is DemoSession demo)
         {
             menu.Items.Add("Mở bảng điều khiển", null, (_, _) => ShowControlCenter());

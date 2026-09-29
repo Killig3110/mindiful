@@ -115,8 +115,13 @@ public sealed class OpenAiCompatibleWriter(LlmOptions opt, Func<string?> apiKey)
         return line;
     }
 
-    public async Task<string?> ReplyChatAsync(ChatRequest r, CancellationToken ct = default) =>
-        Lines.Clean(await AskAsync(ClaudeLineWriter.Voice + ClaudeLineWriter.ChatRules, ClaudeLineWriter.ChatUser(r), opt.TimeoutMs, false, ct));
+    public async Task<string?> ReplyChatAsync(ChatRequest r, CancellationToken ct = default)
+    {
+        var talk = r.Case == CaseId.Talk;
+        var raw = await AskAsync(ClaudeLineWriter.Voice + (talk ? ClaudeLineWriter.TalkRules : ClaudeLineWriter.ChatRules),
+            ClaudeLineWriter.ChatUser(r), talk ? opt.InsightTimeoutMs : opt.TimeoutMs, false, ct);
+        return ClaudeLineWriter.CleanChat(raw, r);
+    }
 
     private async Task<string?> AskAsync(string system, string user, int timeoutMs, bool json, CancellationToken ct)
     {
@@ -127,14 +132,14 @@ public sealed class OpenAiCompatibleWriter(LlmOptions opt, Func<string?> apiKey)
         {
             ["model"] = opt.Model,
             ["messages"] = new object[] { new { role = "system", content = system }, new { role = "user", content = user } },
-            ["temperature"] = json ? 0.2 : 0.7,
+            ["temperature"] = json ? 0 : 0.7, // chấm điểm: 0 để cùng số liệu cho cùng điểm (bộ kiểm chứng đo độ ổn định)
             ["max_tokens"] = 600,
         };
         if (json) body["response_format"] = new { type = "json_object" };
         // Model có bước suy luận (gpt-oss) tiêu token cho suy luận trước khi viết; để "high" thì hết 600 token mà chưa có JSON
         if (opt.Model.Contains("gpt-oss", StringComparison.OrdinalIgnoreCase))
         {
-            body["reasoning_effort"] = "low";
+            body["reasoning_effort"] = "low"; // "medium" không ổn định hơn rõ rệt mà tốn gấp 3 token (Groq miễn phí: 8.000 token/phút/key)
             body["max_tokens"] = 1200;
         }
         var payload = JsonSerializer.Serialize(body);

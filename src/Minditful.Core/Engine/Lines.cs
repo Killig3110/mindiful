@@ -5,8 +5,11 @@ namespace Minditful.Core.Engine;
 /// <summary>Yêu cầu viết câu chính cho 1 case. Chỉ chứa tên case và số liệu — không bao giờ có tiêu đề email/họp/task (§14).</summary>
 public sealed record LineRequest(CaseId Case, string CaseName, string Facts, string Action, string Template);
 
-/// <summary>Người dùng gõ câu mà bộ nhận diện từ khoá không hiểu → hỏi LLM (§10 · Chat tự do).</summary>
-public sealed record ChatRequest(CaseId Case, string CaseName, string Facts, string UserText);
+/// <summary>
+/// Người dùng gõ câu mà bộ nhận diện từ khoá không hiểu → hỏi LLM (§10 · Chat tự do).
+/// <see cref="History"/>: các lượt trước trong cùng thẻ để LLM nối mạch. Với <see cref="CaseId.Talk"/>, <see cref="Facts"/> là số liệu cả ngày.
+/// </summary>
+public sealed record ChatRequest(CaseId Case, string CaseName, string Facts, string UserText, IReadOnlyList<ChatLine>? History = null, string? Primary = null);
 
 /// <summary>
 /// Câu chính của thẻ (§14 · Lời thoại): LLM viết sẵn khi case vào hàng đợi; hết giờ/lỗi thì dùng template.
@@ -17,6 +20,18 @@ public static class Lines
 {
     public const string ChatFallback = "Milo nghe rồi nè. Bạn chọn một nút bên trên giúp Milo nhé.";
     public const string ChatThinking = "…";
+
+    /// <summary>Nhãn nút chính của thẻ chăm sóc (dùng chung cho thẻ và cho AI khi trả lời chat).</summary>
+    public static string PrimaryLabel(CaseId c) => c switch
+    {
+        CaseId.Overtime => "Chốt việc, về thôi",
+        CaseId.LunchMissed => "Đi ăn thôi",
+        CaseId.NoBreak => "Thở 1 phút",
+        CaseId.LowRest => "Nghỉ 15 phút",
+        CaseId.HighFragmentation => "Tập trung 30 phút",
+        CaseId.EodWrapup or CaseId.EodNudge => "Về thôi",
+        _ => "Đồng ý, nghỉ chút",
+    };
 
     private delegate string Line(MiloEngine e, CaseData d);
 
@@ -127,13 +142,19 @@ public static class Lines
     /// Kiểm tra câu LLM trả về đúng ràng buộc (§14): 1 câu ngắn, không markdown, dưới 25 từ (cho phép tới 30).
     /// Sai thì trả null để dùng template.
     /// </summary>
-    public static string? Clean(string? raw)
+    /// <param name="maxWords">Câu nhắc/chat trên thẻ tối đa 30 từ; trò chuyện tự do cho phép dài hơn.</param>
+    /// <param name="joinLines">true: nối các dòng thành 1 đoạn (trò chuyện); false: chỉ lấy dòng đầu (câu nhắc).</param>
+    public static string? Clean(string? raw, int maxWords = 30, bool joinLines = false)
     {
         if (string.IsNullOrWhiteSpace(raw)) return null;
         var s = raw.Trim().Trim('"', '“', '”', '\'', '*', '`').Trim();
-        if (s.Contains('\n')) s = s.Split('\n', StringSplitOptions.RemoveEmptyEntries)[0].Trim();
-        if (s.Length < 8 || s.Contains('#') || s.Contains("**")) return null;
+        if (s.Contains('\n'))
+            s = joinLines
+                ? string.Join(' ', s.Split('\n', StringSplitOptions.RemoveEmptyEntries).Select(l => l.Trim().TrimStart('-', '•', '*', ' ')))
+                : s.Split('\n', StringSplitOptions.RemoveEmptyEntries)[0].Trim();
+        // Loại markdown (tiêu đề, in đậm, khối code) nhưng vẫn cho chữ như "C#" hay "#123"
+        if (s.Length < 8 || s.StartsWith('#') || s.Contains("**") || s.Contains("```")) return null;
         var words = s.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length;
-        return words is > 0 and <= 30 ? s : null;
+        return words > 0 && words <= maxWords ? s : null;
     }
 }

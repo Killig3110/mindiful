@@ -12,4 +12,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Minditful.Core\Minditful.Core.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Minditful.Core.Tests" />
+  </ItemGroup>
 </Project>

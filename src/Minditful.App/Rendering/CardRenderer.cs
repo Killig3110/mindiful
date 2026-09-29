@@ -270,10 +270,11 @@ internal sealed class CardRenderer(Action<string, string?> onAct)
             BorderThickness = new Thickness(0), Background = System.Windows.Media.Brushes.Transparent, FontSize = 12.5, Height = 34,
             VerticalContentAlignment = VerticalAlignment.Center, Foreground = Br("#3A2A1E"),
         };
-        var hint = Text("Nói gì đó với Milo…", 12.5, "#9C8672", wrap: false);
+        var hint = Text(c.Hint ?? "Nói gì đó với Milo…", 12.5, "#9C8672", wrap: false);
         hint.IsHitTestVisible = false;
         hint.VerticalAlignment = VerticalAlignment.Center;
         hint.Margin = new Thickness(3, 0, 0, 0);
+        if (c.Focus) input.Loaded += (_, _) => input.Focus();
         input.TextChanged += (_, _) => hint.Visibility = input.Text.Length > 0 ? Visibility.Collapsed : Visibility.Visible;
         var send = new Button
         {

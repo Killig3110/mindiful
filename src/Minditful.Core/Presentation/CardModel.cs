@@ -23,7 +23,8 @@ public sealed record ScheduleBlock(string From, string To, IReadOnlyList<Schedul
 public sealed record ProgressBlock(string Left, string Right, double Fraction) : CardBlock;
 public sealed record TilesBlock(IReadOnlyList<(string Big, string Small)> Tiles) : CardBlock;
 public sealed record StatusDotBlock(string Text) : CardBlock;
-public sealed record ChatBlock(IReadOnlyList<ChatLine> Lines) : CardBlock;
+/// <summary>Khung chat. <paramref name="Focus"/>: đặt con trỏ vào ô gõ ngay (khung Trò chuyện). <paramref name="Hint"/>: chữ mờ trong ô gõ.</summary>
+public sealed record ChatBlock(IReadOnlyList<ChatLine> Lines, bool Focus = false, string? Hint = null) : CardBlock;
 
 public sealed record CardModel(CardVariant Variant, IReadOnlyList<CardBlock> Blocks, double Width = 310, string? SayText = null, bool Low = false)
 {

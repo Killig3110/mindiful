@@ -1,0 +1,98 @@
+using System.Text.RegularExpressions;
+using static Minditful.Core.Engine.Tm;
+
+namespace Minditful.Core.Engine;
+
+/// <summary>
+/// Trò chuyện tự do với Milo (người dùng tự mở, không gắn với lời nhắc nào).
+/// Có AI: AI trả lời dựa trên số liệu cả ngày. Không có AI hoặc AI lỗi: trả lời theo từ khoá bằng các câu dưới đây.
+/// Câu có dấu hiệu khủng hoảng luôn nhận câu an toàn cố định, không giao cho AI.
+/// </summary>
+public static class Talk
+{
+    public const string CrisisReply =
+        "Milo nghe bạn và lo cho bạn lắm. Bạn không một mình đâu: nói ngay với người bạn tin tưởng hoặc chuyên gia tâm lý nhé. Nếu đang nguy hiểm, gọi 115.";
+
+    private static readonly Regex Crisis = new(
+        "(tự tử|tự sát|muốn chết|không muốn sống|chán sống|kết liễu|tự làm hại|làm hại bản thân|kill myself|suicid)",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+    public static bool IsCrisis(string text) => Crisis.IsMatch(text);
+
+    /// <summary>Câu gợi ý bấm nhanh khi mới mở trò chuyện.</summary>
+    public static readonly string[] Suggestions = ["Hôm nay mình sao rồi?", "Mình thấy mệt", "Lịch họp còn gì?"];
+
+    /// <summary>Câu mở đầu theo mood hiện tại.</summary>
+    public static string Opener(MiloEngine e)
+    {
+        var s = e.S.Score;
+        return e.S.BandIdx switch
+        {
+            0 => $"Quả nho hôm nay đang mọng, {s} điểm. Có gì vui kể Milo nghe với?",
+            1 => $"Hôm nay bạn đang cân bằng, {s} điểm. Muốn tâm sự hay hỏi gì Milo cũng được nè.",
+            2 => $"Hôm nay hơi đuối rồi, {s} điểm. Kể Milo nghe bạn đang thấy sao nha.",
+            _ => $"Hôm nay nặng quá, mới {s} điểm. Milo ở đây, bạn cứ nói, hoặc mình thở chậm 1 phút trước nha.",
+        };
+    }
+
+    /// <summary>Số liệu cả ngày gửi cho AI khi trò chuyện (chỉ con số, không tiêu đề hay nội dung công việc).</summary>
+    public static string Facts(MiloEngine e)
+    {
+        var next = e.NextMeeting() is { } n
+            ? $"cuộc họp tới lúc {Hm(n.Start)}, dài {JsRound((n.End - n.Start) / 60)} phút"
+            : "hôm nay không còn cuộc họp nào";
+        return $"điểm cân bằng hiện tại {e.S.Score}/100 ({e.CurrentBand.Label}); {next}; {e.BuildMoodRequest().Facts}";
+    }
+
+    private static bool Has(string t, string pattern) =>
+        Regex.IsMatch(t, $@"(?<!\w)({pattern})(?!\w)", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+    /// <summary>Trả lời theo từ khoá khi không có AI. Thứ tự: cảm ơn → mệt → họp → nghỉ → về → hỏi về hôm nay → chào → vui.</summary>
+    public static string Reply(MiloEngine e, string text)
+    {
+        var t = text.ToLowerInvariant();
+        var s = e.S;
+        if (IsCrisis(t)) return CrisisReply;
+        if (Has(t, "cảm ơn|cám ơn|thank|thanks|tks")) return "Hihi, Milo luôn ở góc này nè. Cần gì cứ gọi Milo nha.";
+        if (Has(t, "mệt|căng|stress|áp lực|đuối|chán|buồn|oải|kiệt sức|quá tải|nản|không vui|không ổn|không khoẻ|không khỏe|mệt mỏi"))
+            return $"Nghe là biết hôm nay nặng rồi. {Why(e)} Mình thở chậm 1 phút cùng Milo nha, bấm Thở 1 phút bên dưới.";
+        if (Has(t, "họp|lịch|meeting|cuộc họp"))
+            return e.NextMeeting() is { } n
+                ? $"Cuộc họp tới lúc {Hm(n.Start)}, còn {JsRound((n.Start - s.T) / 60)} phút nữa. Tranh thủ đứng dậy uống nước trước đó nha."
+                : "Hôm nay không còn cuộc họp nào nữa. Tận dụng khoảng trống này để tập trung nhé.";
+        if (Has(t, "nghỉ|giải lao|uống nước|đi dạo|vươn vai|đứng dậy"))
+            return "Nghỉ ngắn 5 tới 10 phút giúp lấy lại sức rõ lắm. Đứng dậy, uống ngụm nước, nhìn ra xa một chút rồi quay lại nha.";
+        if (Has(t, "về nhà|tan làm|hết giờ|giờ về|đi về"))
+            return s.T >= e.Cfg.End
+                ? $"Qua giờ về {JsRound((s.T - e.Cfg.End) / 60)} phút rồi đó. Ghi lại một dòng việc dở cho mai rồi về nghỉ nha."
+                : $"Còn {Dur((e.Cfg.End - s.T) / 60)} nữa là tới giờ về {Hm(e.Cfg.End)}. Cố lên, Milo đếm cùng bạn.";
+        if (Has(t, "hôm nay|điểm|thế nào|sao rồi|ổn không|mood|năng lượng|tâm trạng"))
+            return $"Quả nho hôm nay {s.Score} điểm, {e.CurrentBand.Label.ToLowerInvariant()}. {Why(e)}";
+        if (Has(t, "chào|xin chào|hello|hi|hey|alo")) return "Chào bạn! Milo đây. Hôm nay bạn thấy sao, kể Milo nghe với.";
+        if (Has(t, "vui|tốt|ổn|khoẻ|khỏe|tuyệt|phấn khởi|yeah"))
+            return "Nghe vui ghê! Giữ nhịp này nha, nhớ xen vài lần nghỉ ngắn để chiều vẫn còn sức.";
+        return "Milo nghe nè. Không có AI thì Milo chỉ hiểu vài chuyện: điểm hôm nay, lịch họp, lúc bạn mệt hay muốn nghỉ.";
+    }
+
+    /// <summary>Lý do lớn nhất làm giảm điểm hôm nay, nói bằng lời.</summary>
+    private static string Why(MiloEngine e)
+    {
+        var s = e.S;
+        var top = s.Pen.Where(p => p.Value >= 3).OrderByDescending(p => p.Value).Select(p => p.Key).FirstOrDefault();
+        return top switch
+        {
+            "meet" => $"Bạn đã họp {Dur(e.MeetingMin())} rồi.",
+            "chain" => "Mấy cuộc họp nối liền nhau không có khoảng nghỉ.",
+            "streak" => $"Bạn làm liền {Dur(e.Streak())} chưa nghỉ.",
+            "ot" => $"Bạn đã quá giờ {JsRound(s.OtMin)} phút.",
+            "week" => "Cả tuần này làm quá giờ khá nhiều.",
+            "rest" => $"Cả ngày mới nghỉ {JsRound(s.Rest)} phút.",
+            "frag" => $"Bạn chuyển việc {e.SwitchesHour()} lần trong giờ qua.",
+            "work" => "Số việc đang ôm nhiều hơn thường lệ.",
+            "stuck" => "Có vài task đang kẹt.",
+            "email" => "Có mấy email đang chờ bạn trả lời.",
+            "stress" or "self" => "Hôm nay có vẻ là một ngày căng.",
+            _ => "Nhịp làm việc hôm nay khá nhẹ nhàng.",
+        };
+    }
+}

@@ -4,7 +4,7 @@ namespace Minditful.Core.Engine;
 
 public sealed partial class MiloEngine
 {
-    private static readonly CaseId[] NoRequeue = [CaseId.MeetingSoon, CaseId.TaskDone, CaseId.FocusDone, CaseId.Dashboard, CaseId.MicroBreak];
+    private static readonly CaseId[] NoRequeue = [CaseId.MeetingSoon, CaseId.TaskDone, CaseId.FocusDone, CaseId.Dashboard, CaseId.MicroBreak, CaseId.Talk];
     private static readonly CaseId[] Parkable =
         [CaseId.EmailWaiting, CaseId.CalendarPacked, CaseId.StuckTask, CaseId.MorningHello, CaseId.EodWrapup, CaseId.EodNudge, CaseId.FocusPlan, CaseId.WeekReport];
     private static bool IsBubble(CaseId c) => c is CaseId.TaskDone or CaseId.FocusDone or CaseId.MicroBreak;
@@ -163,7 +163,7 @@ public sealed partial class MiloEngine
         };
         S.Ep = ep;
         var m = Mem(c);
-        if (c != CaseId.Dashboard)
+        if (c is not (CaseId.Dashboard or CaseId.Talk))
         {
             m.Shown++;
             m.Half.Add(HalfOf(S.T));
@@ -345,6 +345,7 @@ public sealed partial class MiloEngine
                     Record(ep.C, Outcome.Ignored);
                     ExitEp(Clip.ClimbOutShort, "Sắp họp: 60 giây không bấm → tự thu, không nhắc lại cuộc này");
                 }
+                else if (ep.C == CaseId.Talk) ExitEp(Clip.ClimbOut, "Trò chuyện: 2 phút không gõ gì → Milo chào rồi leo xuống");
                 else if (ep.C == CaseId.CheckIn)
                 {
                     Mem(ep.C).Keys.Add(ep.Item.Key);
@@ -455,7 +456,16 @@ public sealed partial class MiloEngine
                 if (act == "week") { ep.Page = DashPage.Week; ep.CardVer++; Log("Dashboard → Xem cả tuần", LogKind.User); }
                 else if (act == "today") { ep.Page = DashPage.Today; ep.CardVer++; }
                 else if (act == "detail") { ep.Detail = !ep.Detail; ep.CardVer++; Log(ep.Detail ? "Dashboard → Xem chi tiết" : "Dashboard → về 4 quả", LogKind.User); }
+                else if (act == "talk") OpenTalk();
                 else if (act == "close") ExitEp(Clip.ClimbOut, "Đóng dashboard → leo xuống");
+                return;
+            case CaseId.Talk:
+                if (act == "breathe")
+                {
+                    Log("Trò chuyện → thở 1 phút cùng Milo", LogKind.User);
+                    StartBreathe(5);
+                }
+                else ExitEp(Clip.ClimbOut, "Kết thúc trò chuyện → Milo vẫy tay rồi leo xuống");
                 return;
             case CaseId.MorningHello:
                 m.Keys.Add(ep.Item.Key);
@@ -700,13 +710,35 @@ public sealed partial class MiloEngine
         text = (text ?? "").Trim();
         if (text.Length == 0) return;
         S.ChatHistory.Add(text);
+        var history = ep.Chat.TakeLast(6).ToList();
+        var def = Catalog.Def(ep.C);
+        // Câu có dấu hiệu khủng hoảng: luôn trả lời bằng câu cố định đã duyệt, không giao cho LLM
+        if (Talk.IsCrisis(text))
+        {
+            ep.Chat.Add(new ChatLine(text, Talk.CrisisReply));
+            Log("Chat có dấu hiệu khủng hoảng → Milo trả lời bằng câu an toàn cố định, khuyên tìm người hỗ trợ", LogKind.User);
+            ep.PhaseEnd = S.T + Dt(Math.Max(def.Timeout, Catalog.CareTimeout));
+            ep.CardVer++;
+            return;
+        }
+        if (ep.C == CaseId.Talk)
+        {
+            // Trò chuyện tự do: không đoán ý định để đóng thẻ, mọi câu đều được trả lời
+            var ask = ChatWanted is not null && !S.Instant;
+            ep.Chat.Add(new ChatLine(text, ask ? Lines.ChatThinking : Talk.Reply(this, text)));
+            Log($"Trò chuyện \"{text}\" → " + (ask ? "hỏi LLM" : "trả lời theo luật (chưa bật AI)"), LogKind.User);
+            if (ask) ChatWanted!(ep.Id, ep.Chat.Count - 1, new ChatRequest(ep.C, def.Name, Talk.Facts(this), text, history));
+            ep.PhaseEnd = S.T + Dt(def.Timeout);
+            ep.CardVer++;
+            return;
+        }
         var it = Intents.FirstOrDefault(i => i.Re.IsMatch(text));
         var askLlm = it is null && ChatWanted is not null && !S.Instant;
         ep.Chat.Add(new ChatLine(text, it?.Say ?? (askLlm ? Lines.ChatThinking : Lines.ChatFallback)));
         Record(ep.C, Outcome.Chat);
         Log($"Chat \"{text}\" → ý định: " + (it?.Key ?? (askLlm ? "không rõ → hỏi LLM (tối đa 2.5 giây)" : "không rõ (chưa bật LLM)")), LogKind.User);
-        if (askLlm) ChatWanted!(ep.Id, ep.Chat.Count - 1, new ChatRequest(ep.C, Catalog.Def(ep.C).Name, Lines.Facts(this, ep.C, ep.Data), text));
-        var def = Catalog.Def(ep.C);
+        if (askLlm) ChatWanted!(ep.Id, ep.Chat.Count - 1, new ChatRequest(ep.C, def.Name, Lines.Facts(this, ep.C, ep.Data), text, history,
+            def.Kind == CaseKind.Care || ep.C is CaseId.EodWrapup or CaseId.EodNudge ? Lines.PrimaryLabel(ep.C) : null));
         ep.PhaseEnd = S.T + Dt(def.Timeout > 0 ? def.Timeout : Catalog.CareTimeout);
         ep.CardVer++;
         if (it is not null)

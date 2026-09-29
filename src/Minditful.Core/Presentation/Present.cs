@@ -98,6 +98,7 @@ public static class Present
         Phase.Enter => $"Vào: {Catalog.ClipName(ep.Clip ?? Clip.ClimbIn)}.",
         Phase.Show => ep.Compact ? "Bạn gõ phím liên tục 5 phút nên Milo chỉ ló đầu với nhãn gọn."
             : ep.C == CaseId.Dashboard ? "Dashboard mở từ Milo. Bấm Milo, X hoặc Esc để đóng."
+            : ep.C == CaseId.Talk ? "Trò chuyện tự do: gõ gì cũng được, Milo trả lời bằng AI (hoặc theo từ khoá khi chưa bật AI)."
             : "Ở lại: thẻ đang chờ bạn trả lời." + (e.S.Auto && e.Script is not null ? " Người dùng mẫu sẽ tự bấm sau vài giây." : ""),
         Phase.Breathe => "Thở cùng Milo: vòng tròn phồng 4s, giữ 4s, xẹp 4s. Bấm Dừng lúc nào cũng được.",
         Phase.Thanks => "Cảm ơn rồi leo xuống.",
@@ -225,6 +226,20 @@ public static class Present
                 }
                 break;
             }
+            case CaseId.Talk:
+            {
+                b.Add(new EyebrowBlock("Trò chuyện với Milo"));
+                if (ep.Chat.Count == 0)
+                {
+                    b.Add(new ParagraphBlock(Talk.Opener(e)));
+                    b.Add(new ButtonsBlock(Talk.Suggestions.Select(q => new CardButton("chat", q, ButtonStyle.Ghost, Val: q)).ToList()));
+                }
+                // Chỉ hiện 4 lượt gần nhất cho thẻ gọn; AI vẫn nhận 6 lượt để nối mạch
+                b.Add(new ChatBlock(ep.Chat.TakeLast(4).ToList(), Focus: true, Hint: "Kể Milo nghe…"));
+                b.Add(new ParagraphBlock("Chỉ con số trong ngày được gửi cho AI, không gửi tiêu đề hay nội dung công việc.", Small: true, Color: "#9C8672"));
+                b.Add(new ButtonsBlock([new("breathe", "Thở 1 phút", ButtonStyle.Amber), new("close", "Xong", ButtonStyle.Ghost)]));
+                return new(CardVariant.Card, b, 300, Low: low);
+            }
             case CaseId.CheckIn:
                 b.Add(new ParagraphBlock(Lines.Text(e, ep)));
                 b.Add(new ButtonsBlock([new("thanks", "Cảm ơn Milo", ButtonStyle.Amber)]));
@@ -287,7 +302,7 @@ public static class Present
         var c = ep.C;
         var d = ep.Data;
         var def = Catalog.Def(c);
-        string label = "", acceptL = "Đồng ý, nghỉ chút";
+        string label = "", acceptL = Lines.PrimaryLabel(c);
         var text = Lines.Text(e, ep);
         CardButton? extra = null;
         switch (c)
@@ -297,24 +312,19 @@ public static class Present
                 break;
             case CaseId.Overtime:
                 label = $"Quá giờ làm · {JsRound(d.Over)} phút";
-                acceptL = "Chốt việc, về thôi";
                 break;
             case CaseId.LunchMissed:
                 label = "Chưa nghỉ trưa";
-                acceptL = "Đi ăn thôi";
                 if (e.Snap.CanWriteCalendar) extra = new("lunchLock", "Khoá 30' trong lịch", ButtonStyle.Ghost);
                 break;
             case CaseId.NoBreak:
                 label = "Làm liền · " + Dur(d.Min);
-                acceptL = "Thở 1 phút";
                 break;
             case CaseId.LowRest:
                 label = $"Nghỉ quá ít · {Fmt(d.Rest)} phút";
-                acceptL = "Nghỉ 15 phút";
                 break;
             case CaseId.HighFragmentation:
                 label = $"Bị cắt vụn · {d.Sw} lần/giờ";
-                acceptL = "Tập trung 30 phút";
                 break;
         }
         yield return new TopBlock(label, def.Bg!, def.Fg!, PillIcon.Clock, NextFreeText(e));

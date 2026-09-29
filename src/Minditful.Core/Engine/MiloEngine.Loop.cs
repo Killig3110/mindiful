@@ -120,6 +120,21 @@ public sealed partial class MiloEngine
         S.Ep!.Page = DashPage.Today;
     }
 
+    /// <summary>
+    /// Mở khung trò chuyện tự do với Milo: từ dashboard, menu khay, hoặc bấm Milo lúc Milo đang đứng ở góc.
+    /// Đang có lời nhắc khác thì không chen ngang (người dùng chat ngay trên thẻ đó).
+    /// </summary>
+    public void OpenTalk()
+    {
+        if (S.Ep is { C: CaseId.Talk }) return;
+        if (S.Ep is not null && S.Ep.C != CaseId.Dashboard) return;
+        if (HardGate() is Gate.Off or Gate.Locked or Gate.Presenting) return;
+        var swap = S.Ep is not null || S.Visit is not null;
+        S.Ep = null;
+        Log("Mở trò chuyện với Milo", LogKind.User);
+        StartEp(new QueueItem { C = CaseId.Talk, Key = "t" + S.T, Pri = 0, Sev = 0, Enq = S.T }, swap: swap);
+    }
+
     private void DotClick()
     {
         SortQueue();
@@ -155,7 +170,7 @@ public sealed partial class MiloEngine
             if (S.Ep is { } ep && g is { } gg && ep.Phase is Phase.Enter or Phase.Show or Phase.Breathe or Phase.Chat or Phase.Bubble && !ep.FromDot)
             {
                 Log($"Bị ngắt bởi cổng {Catalog.GateLabel[gg]} → thụt xuống nhanh, "
-                    + (ep.C is CaseId.MeetingSoon or CaseId.Dashboard ? "bỏ thẻ" : "thẻ quay lại hàng đợi"), LogKind.Gate);
+                    + (ep.C is CaseId.MeetingSoon or CaseId.Dashboard or CaseId.Talk ? "bỏ thẻ" : "thẻ quay lại hàng đợi"), LogKind.Gate);
                 if (ep.Phase is Phase.Enter or Phase.Show) Requeue(ep);
                 Record(ep.C, Outcome.Gated);
                 ep.Card = false;
@@ -439,7 +454,12 @@ public sealed partial class MiloEngine
 
     public void MiloClick()
     {
-        if (S.Ep is not { } ep) return;
+        if (S.Ep is not { } ep)
+        {
+            // Milo đang ghé hoặc đứng ở góc: bấm vào là mở trò chuyện
+            if (S.Visit is not null) OpenTalk();
+            return;
+        }
         if (ep.C == CaseId.MorningHello && ep.Phase == Phase.Enter && ep.Clip == Clip.HangPull)
         {
             Log("Bấm Milo lúc đang leo → nhảy thẳng tới Hello", LogKind.User);
@@ -451,7 +471,7 @@ public sealed partial class MiloEngine
 
     public void Escape()
     {
-        if (S.Ep is { C: CaseId.Dashboard, Phase: Phase.Show }) Reply("close");
+        if (S.Ep is { C: CaseId.Dashboard or CaseId.Talk, Phase: Phase.Show }) Reply("close");
     }
 
     /// <summary>Sandbox: đưa thẳng 1 case vào hàng đợi để thử tích hợp thật, bỏ qua điều kiện.</summary>
@@ -506,6 +526,9 @@ public sealed partial class MiloEngine
                 return;
             case CaseId.Dashboard:
                 if (S.Ep is null) OpenDash();
+                return;
+            case CaseId.Talk:
+                OpenTalk();
                 return;
         }
         var m = Mem(c);

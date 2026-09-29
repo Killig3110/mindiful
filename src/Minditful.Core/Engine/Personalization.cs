@@ -30,7 +30,7 @@ public static class Personalizer
         var result = new Dictionary<CaseId, CaseTuning>();
         foreach (var g in events.Where(x => x.Day >= from && x.Day < today).GroupBy(x => x.Case))
         {
-            if (g.Key is CaseId.Dashboard or CaseId.TaskDone or CaseId.FocusDone or CaseId.MeetingSoon or CaseId.MorningHello) continue;
+            if (g.Key is CaseId.Dashboard or CaseId.Talk or CaseId.TaskDone or CaseId.FocusDone or CaseId.MeetingSoon or CaseId.MorningHello) continue;
             var shown = g.Count(x => x.Kind == Outcome.Shown);
             if (shown < MinShown) continue;
             var rejected = g.Count(x => x.Kind is Outcome.Dismissed or Outcome.Ignored);

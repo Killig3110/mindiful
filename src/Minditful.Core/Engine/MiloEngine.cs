@@ -118,7 +118,7 @@ public sealed partial class MiloEngine
 
     private void Record(CaseId c, Outcome o)
     {
-        if (S.Instant || c == CaseId.Dashboard) return;
+        if (S.Instant || c is CaseId.Dashboard or CaseId.Talk) return;
         OutcomeRecorded?.Invoke(c, o);
     }
 
@@ -133,7 +133,8 @@ public sealed partial class MiloEngine
     public void ResolveChat(int epId, int index, string? text)
     {
         if (S.Ep is not { } ep || ep.Id != epId || index >= ep.Chat.Count) return;
-        ep.Chat[index] = ep.Chat[index] with { Milo = text ?? Lines.ChatFallback };
+        var line = ep.Chat[index];
+        ep.Chat[index] = line with { Milo = text ?? (ep.C == CaseId.Talk ? Talk.Reply(this, line.You) : Lines.ChatFallback) };
         ep.CardVer++;
     }
 

@@ -49,6 +49,7 @@ internal abstract partial class ControlShell
             (CaseId.WeekReport, "Sáng thứ Hai: tóm tắt tuần trước + 1 mẹo"),
             (CaseId.MicroBreak, "Ló lên 5 giây nhắc nghỉ ngắn: uống nước, vươn vai"),
             (CaseId.Dashboard, "Mở 4 quả quanh Milo (nho, cam, anh đào, táo)"),
+            (CaseId.Talk, "Mở khung trò chuyện tự do với Milo (AI hoặc theo từ khoá)"),
         ]),
     ];
 
@@ -240,9 +241,15 @@ internal abstract partial class ControlShell
             {
                 var run = await MoodEvaluation.RunLlmAsync(llm.Name, async (facts, ct) =>
                 {
-                    LlmBridge.Count();
-                    var m = await llm.AssessMoodAsync(new MoodRequest(0, facts, []), ct);
-                    return m?.Score;
+                    // Hết lượt theo phút (429) không phải lỗi của AI: chờ rồi hỏi lại, để không tính oan là "trả lời sai dạng"
+                    for (var attempt = 0; ; attempt++)
+                    {
+                        LlmBridge.Count();
+                        var m = await llm.AssessMoodAsync(new MoodRequest(0, facts, []), ct);
+                        if (m is not null || attempt >= 3 || llm.LastError?.Contains("hết lượt") != true) return m?.Score;
+                        progress.Text = $"AI báo hết lượt trong phút này, chờ 30 giây rồi hỏi lại ({attempt + 1}/3)…";
+                        await Task.Delay(30_000, ct);
+                    }
                 }, repeats, opts.EvalDelayMs, new Progress<string>(p => progress.Text = "Đang hỏi AI: " + p), _evalCts.Token);
                 _aiReport = MoodEvaluation.LlmSuite(run);
                 _compareReport = MoodEvaluation.Compare(run);
