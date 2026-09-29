@@ -7,7 +7,7 @@ Cả **3 môi trường đều là cùng một app**: Milo sống trên desktop 
 
 | Môi trường | Dữ liệu | Milo hiện ở đâu | Dùng để |
 | --- | --- | --- | --- |
-| **Demo** | Ngày mẫu Thứ Năm 24/9 của prototype: giờ, lịch, email, task và thao tác người dùng theo kịch bản | **Desktop thật** (overlay trong suốt ở góc màn hình) + khay hệ thống + bảng điều khiển kịch bản | Chạy đủ 16 case của prototype trên app thật: tua 60×/120×/300×, nhảy 17 mốc, bật từng case, "Bạn thử làm" để bẻ kịch bản |
+| **Demo** | Ngày mẫu Thứ Năm 24/9 của prototype: giờ, lịch, email, task và thao tác người dùng theo kịch bản | **Desktop thật** (overlay trong suốt ở góc màn hình) + khay hệ thống + bảng điều khiển kịch bản | Chạy đủ 16 case của prototype (+ 3 case mở rộng) trên app thật: tua 60×/120×/300×, nhảy 17 mốc, bật từng case, "Bạn thử làm" để bẻ kịch bản |
 | **Sandbox** | Tenant thử `mindiful.onmicrosoft.com` (Teams, Outlook) + Azure DevOps `mindiful-sandbox` — API thật | Desktop thật (overlay trong suốt) + khay hệ thống + Bảng điều khiển có công cụ test | Thử tích hợp thật mà không đụng tenant Bosch; ngưỡng hành vi rút gọn để test trong 1 buổi |
 | **Production** | Tenant Bosch: Teams presence, Outlook, Azure Boards | Desktop thật, ẩn khỏi share màn hình | Dùng hằng ngày |
 
@@ -72,6 +72,7 @@ notepad .env                    # hoặc mở bằng VS Code
 | Tuỳ chọn · Claude | `ANTHROPIC_API_KEY=sk-ant-…` rồi bật từng tính năng `…Llm__Features__Mood=Hybrid`, `…Features__Meetings=Llm` | Không có key thì app dùng luật + câu mẫu, vẫn chạy đủ |
 | Tuỳ chọn · mở thẳng môi trường | `MINDITFUL_ENV=Scenario` / `Sandbox` / `Prod` | Để trống = hiện màn hình chọn |
 | Tuỳ chọn · lưu trữ | `…Storage__RetentionPeriod=Week` hoặc `Month` | Mặc định tự xoá dữ liệu cá nhân theo tuần |
+| Tuỳ chọn · tính năng chăm sóc | `…Wellbeing__MicroBreakEveryMinutes=0` để tắt nhắc uống nước, `…Wellbeing__FocusPlan=false`… | Mặc định bật hết. Xem bảng đầy đủ ở [Tham chiếu biến `.env`](#tham-chiếu-biến-env) |
 
 Ví dụ `.env` tối thiểu để chạy Sandbox:
 
@@ -175,7 +176,7 @@ Dùng để present và để kiểm tra đủ 16 case của prototype. Giờ, l
 - *Không cần*: chờ lâu hơn, bấm lần 2 thì giãn ×3.
 - Gõ chat "mệt quá": Milo vào vòng thở. Gõ "đang bận": tương đương Để sau.
 
-**1c. Chạy từng case:** mục **Chạy từng case · 16 episode**, bấm một dòng là Milo giao ngay. Checklist:
+**1c. Chạy từng case:** mục **Chạy từng case**, bấm một dòng là Milo giao ngay (16 case của prototype + nhóm *Mở rộng*). Checklist:
 
 | Nhóm | Case | Cần thấy |
 | --- | --- | --- |
@@ -286,15 +287,115 @@ copy .env.sample .env    # rồi điền giá trị
 - Biến môi trường thật của máy luôn được ưu tiên hơn `.env`. Dòng để trống giá trị thì dùng mặc định trong appsettings.json.
 - Cú pháp `MINDITFUL__Minditful__Sandbox__Graph__ClientId` tương ứng khoá `Minditful:Sandbox:Graph:ClientId` trong appsettings.json.
 
-| Biến | Dùng cho |
-| --- | --- |
-| `ANTHROPIC_API_KEY` | Claude viết lời thoại. Để trống thì dùng câu mẫu |
-| `MINDITFUL_SANDBOX_ADO_PAT` | PAT Azure DevOps của org cá nhân |
-| `MINDITFUL_PROD_ADO_PAT` | PAT Azure DevOps của Bosch |
-| `MINDITFUL__Minditful__Sandbox__…` / `…Production__…` | ClientId, TenantId, Organization, Project, Team |
-| `MINDITFUL__Minditful__Environment` | Mở thẳng Demo / Sandbox / Production |
+Danh sách đầy đủ từng biến, giá trị hợp lệ và khi nào nên đổi: xem mục [Tham chiếu biến `.env`](#tham-chiếu-biến-env) ngay bên dưới.
 
 PAT và API key cũng có thể nhập trong Bảng điều khiển; khi đó chúng được lưu mã hoá DPAPI trên máy.
+
+### Tham chiếu biến `.env`
+
+**Cách viết:**
+- Mỗi dòng `TÊN=giá trị`, không cần dấu nháy, không có khoảng trắng thừa. Dòng bắt đầu bằng `#` là chú thích.
+- **Để trống sau dấu `=`** nghĩa là dùng mặc định trong `src/Minditful.App/appsettings.json` (cột *Mặc định* dưới đây).
+- `true` / `false` viết thường. Giờ viết dạng `HH:mm` (vd. `08:30`). Số phút là số nguyên.
+- Tên dài `MINDITFUL__Minditful__A__B` chính là khoá `Minditful:A:B` trong appsettings.json (mỗi `__` là một cấp).
+- **Sửa xong phải thoát hẳn app** (chuột phải icon ở khay → *Thoát*) rồi mở lại. App chỉ đọc `.env` lúc khởi động.
+- Biến môi trường đặt thật trong Windows luôn thắng giá trị trong `.env`.
+
+Trong các bảng, `…` là viết tắt của `MINDITFUL__Minditful__`.
+
+**Chung**
+
+| Biến | Giá trị | Mặc định | Khi nào đổi |
+| --- | --- | --- | --- |
+| `MINDITFUL_ENV` | `Scenario` (= `Demo`) · `Sandbox` · `Prod` (= `Production`) | trống = hiện màn hình chọn | Muốn app mở thẳng 1 môi trường, không hỏi. `--env` trên dòng lệnh thắng biến này |
+
+**Giờ làm (`WorkDay`)**
+
+| Biến | Giá trị | Mặc định | Khi nào đổi |
+| --- | --- | --- | --- |
+| `…WorkDay__Mode` | `Flexible` · `Fixed` | `Flexible` | `Flexible` kiểu Bosch: giờ vào = lần mở máy đầu ngày. `Fixed` nếu bạn làm giờ cố định |
+| `…WorkDay__FlexEarliestStart` | `HH:mm` | `08:00` | Mở máy sớm hơn giờ này vẫn tính là vào lúc này |
+| `…WorkDay__FlexLatestStart` | `HH:mm` | `10:00` | Mở máy muộn hơn giờ này vẫn tính là vào lúc này |
+| `…WorkDay__FlexHours` | số giờ | `9` | 8 tiếng làm + 1 tiếng nghỉ trưa. Giờ về = giờ vào + số này |
+| `…WorkDay__Start` / `…End` | `HH:mm` | `09:00` / `18:00` | Chỉ dùng khi `Mode=Fixed` |
+| `…WorkDay__AwayAfterMinutes` | phút | `5` | Rời máy (idle) bao lâu thì tính là 1 lần nghỉ |
+
+**Dữ liệu cá nhân trên máy (`Storage`)**
+
+| Biến | Giá trị | Mặc định | Khi nào đổi |
+| --- | --- | --- | --- |
+| `…Storage__RetentionPeriod` | `Week` · `Month` | `Week` | `Week`: sang thứ Hai tự xoá. `Month`: sang ngày 1 tự xoá |
+| `…Storage__KeepPreviousPeriod` | `true` · `false` | `true` | `false` = chỉ giữ tuần/tháng hiện tại (chặt nhất). Khi đó chùm nho 7 ngày và "so với tuần trước" đầu tuần sẽ trống |
+| `…Storage__MoodSampleMinutes` | phút | `15` | Nhịp lưu mẫu mood |
+
+**Tính năng chăm sóc mở rộng (`Wellbeing`, chỉ Sandbox/Production)**
+
+| Biến | Giá trị | Mặc định | Khi nào đổi |
+| --- | --- | --- | --- |
+| `…Wellbeing__FocusPlan` | `true` · `false` | `true` | Tắt nếu không muốn Milo đề nghị giữ giờ tập trung |
+| `…Wellbeing__FocusPlanMinMinutes` | phút | `60` | Khoảng trống ngắn nhất để đề nghị. Hạ xuống `30` khi test cho nhanh |
+| `…Wellbeing__WeekReport` | `true` · `false` | `true` | Báo cáo tuần sáng thứ Hai |
+| `…Wellbeing__MicroBreakEveryMinutes` | phút · `0` = tắt | `50` | Nhắc uống nước / 20-20-20. Để `5` khi test Sandbox, `0` nếu thấy phiền |
+| `…Wellbeing__MicroBreakMaxPerDay` | số lần | `6` | Trần số lần nhắc uống nước mỗi ngày |
+| `…Wellbeing__EveningCheck` | `true` · `false` | `true` | Thẻ tan tầm hỏi "Hôm nay thấy sao?" và gợi ý nghỉ giữa chuỗi họp ngày mai |
+| `…Wellbeing__HideWhenPresenting` | `true` · `false` | `true` | Milo trốn hẳn khi Teams báo đang trình chiếu |
+| `…Wellbeing__Wardrobe` | `true` · `false` | `true` | Tủ đồ (phụ kiện khi về đúng giờ nhiều ngày liền) |
+
+**Claude (`Llm`, tuỳ chọn)**
+
+| Biến | Giá trị | Mặc định | Khi nào đổi |
+| --- | --- | --- | --- |
+| `ANTHROPIC_API_KEY` | `sk-ant-…` | trống = không dùng Claude | Có key thì dán vào. Hoặc dán ở ô *Lưu key* trong Bảng điều khiển |
+| `…Llm__Enabled` | `true` · `false` | `true` | Công tắc tổng. `false` = chỉ luật + câu mẫu dù có key |
+| `…Llm__Model` | tên model | `claude-opus-5` | Thường không cần đổi |
+| `…Llm__UseInDemo` | `true` · `false` | `false` | Bật để Demo cũng gọi Claude |
+| `…Llm__Features__Lines` | `true` · `false` | `true` | Claude viết câu thoại trên thẻ |
+| `…Llm__Features__Chat` | `true` · `false` | `true` | Claude trả lời chat tự do |
+| `…Llm__Features__Mood` | `Rules` · `Hybrid` · `Llm` | `Rules` | `Hybrid` = luật + Claude chỉnh ±10 điểm (khuyên dùng khi có key). `Llm` = Claude chấm hẳn |
+| `…Llm__Features__Meetings` | `Rules` · `Llm` | `Rules` | `Llm` = Claude đánh giá mức nặng từng cuộc họp |
+| `…Llm__Features__MoodIntervalMinutes` | phút | `30` | Bao lâu hỏi Claude về mood 1 lần |
+| `…Llm__Features__IncludeChatInMood` | `true` · `false` | `false` | Gửi kèm tối đa 5 câu bạn tự gõ cho Milo để Claude đọc cảm xúc |
+
+Claude chỉ nhận tên case và số liệu, không bao giờ nhận tiêu đề/nội dung email, cuộc họp hay task.
+
+**Sandbox và Production**
+
+| Biến | Giá trị | Mặc định | Khi nào đổi |
+| --- | --- | --- | --- |
+| `MINDITFUL_SANDBOX_ADO_PAT` | PAT | trống | **Bắt buộc** để Sandbox đọc Azure Boards. Scope *Work Items (Read & write)* + *Project and Team (Read)* |
+| `…Sandbox__Graph__ClientId` / `…TenantId` | GUID | có sẵn trong appsettings.json | Chỉ khi tạo lại app registration |
+| `…Sandbox__AzureDevOps__Organization` | tên org | `mindiful-sandbox` | Chỉ khi đổi org |
+| `…Production__AzureDevOps__Organization` / `…Project` / `…Team` | tên | trống | **Bắt buộc** cho Production: org/project/team Azure DevOps của Bosch |
+| `MINDITFUL_PROD_ADO_PAT` | PAT | trống | **Bắt buộc** cho Production. Scope *Work Items (Read)* + *Project and Team (Read)* |
+
+**Công thức hay dùng** (chép vào `.env`, các dòng khác để nguyên):
+
+```ini
+# Chỉ chạy Sandbox, test nhanh tính năng mới trong 1 buổi
+MINDITFUL_ENV=Sandbox
+MINDITFUL_SANDBOX_ADO_PAT=<PAT>
+MINDITFUL__Minditful__Wellbeing__MicroBreakEveryMinutes=5
+MINDITFUL__Minditful__Wellbeing__FocusPlanMinMinutes=30
+
+# Có API key Claude: bật đủ Lớp 2
+ANTHROPIC_API_KEY=sk-ant-...
+MINDITFUL__Minditful__Llm__Features__Mood=Hybrid
+MINDITFUL__Minditful__Llm__Features__Meetings=Llm
+
+# Làm giờ cố định 08:30–17:30 thay cho giờ linh hoạt
+MINDITFUL__Minditful__WorkDay__Mode=Fixed
+MINDITFUL__Minditful__WorkDay__Start=08:30
+MINDITFUL__Minditful__WorkDay__End=17:30
+
+# Thấy phiền: tắt nhắc uống nước và báo cáo tuần
+MINDITFUL__Minditful__Wellbeing__MicroBreakEveryMinutes=0
+MINDITFUL__Minditful__Wellbeing__WeekReport=false
+
+# Riêng tư chặt nhất: chỉ giữ dữ liệu tuần hiện tại
+MINDITFUL__Minditful__Storage__KeepPreviousPeriod=false
+```
+
+Kiểm tra app đã nhận cấu hình: mở **Bảng điều khiển**. Mục *Chăm sóc mở rộng* ghi đang bật/tắt những gì, mục *Claude* ghi "Đang dùng claude-opus-5" hay "Chưa có API key", dòng *Khung giờ hôm nay* ghi giờ vào/về.
 
 `src/Minditful.App/appsettings.json` giữ các giá trị mặc định không bí mật. Giờ làm (`WorkDay`: mặc định **Flexible** kiểu Bosch, bắt đầu = lần mở máy đầu ngày trong 08:00–10:00, làm 9 tiếng → 8→17, 9→18, 10→19; đặt `Mode=Fixed` để dùng `Start/End` cố định), ngưỡng rời máy, ngưỡng phân mảnh và nhịp làm mới dữ liệu nằm trong mục `WorkDay`.
 
@@ -345,8 +446,8 @@ Mất mạng hoặc token hết hạn thì Milo không bật popup, chỉ hiện
 
 ```
 src/Minditful.Core            Bộ não, không phụ thuộc UI/Windows — test được trên mọi OS
-  Engine/                     Catalog (16 episode, clip, mức mood) · MiloEngine: tín hiệu, Rule Engine, Điều phối 8 bước,
-                              episode Vào→Ở lại→Ra, phản hồi & chat, Mood Engine, ghé ngang
+  Engine/                     Catalog (16 episode + 3 case mở rộng, clip, mức mood) · MiloEngine: tín hiệu, Rule Engine, Điều phối 8 bước,
+                              episode Vào→Ở lại→Ra, phản hồi & chat, Mood Engine, ghé ngang · Wardrobe (tủ đồ)
   Scenario/DemoScenario.cs    Ngày mẫu 24/9: lịch, email, task, kịch bản người dùng, tự trả lời, 17 mốc
   Presentation/               Nội dung thẻ/dashboard/chú thích + keyframes hoạt ảnh (chép từ CSS prototype)
 src/Minditful.Integrations    MSAL, Graph (calendarView, messages, presence, events), Azure Boards (WIQL, iteration),
@@ -355,10 +456,12 @@ src/Minditful.App             WPF: Launcher · CompanionWindow (overlay Milo tr�
                               DemoSession (đồng hồ + dữ liệu kịch bản) / LiveSession (đồng hồ thật + Graph/Azure Boards)
                               DemoControlWindow (điều khiển kịch bản) · ControlCenterWindow (kết nối, công cụ Sandbox)
                               MiloLayer (Milo, chóp đuôi, thì thầm, thẻ, dashboard, chấm chờ, hiệu ứng) · BrainPanel
+                              FruitDashboardView (4 quả) · DetailDashboardView (bảng chi tiết nhỏ) · MiloSkin (+ phụ kiện tủ đồ)
                               WindowsActivityMonitor (khoá máy, idle, gõ phím, toàn màn hình, chuyển app) · LiveSession
 tests/Minditful.Core.Tests    Ngày mẫu khớp mục 13 (08:58 chào sáng … 18:31 về thôi, 54 điểm), im lặng suốt họp, render mọi khung;
                               AllCasesTests: 16 episode tự bật đúng luật + mọi nút của mọi thẻ + chat, chấm chờ, chen ngang, cổng ngắt
                               LimitationsTests: lời thoại/LLM (không lộ tiêu đề), khung clip, cá nhân hoá 7 ngày, log phản hồi
+                              ExtendedFeaturesTests: 7 tính năng mở rộng + bảng chi tiết · DotEnvTests: .env, biến README/.env.sample khớp appsettings
 ```
 
 Đối chiếu tài liệu → code:

@@ -518,7 +518,20 @@ Chạy app với `--env Sandbox`, đăng nhập thulu@, dán PAT. Mở cửa s�
 | 13 | Đăng xuất Teams, chờ 10 phút | Log ghi "đang dùng lịch để đoán cuộc họp"; cổng họp vẫn đúng giờ theo lịch | 5.2 |
 | 14 | Xoá PAT (Cài đặt → Xoá) | Các tính năng Boards tắt, không popup lỗi; dashboard có dòng "Chưa kết nối Azure Boards" | 14 |
 
-**Dọn dẹp sau khi test:** trong Outlook, tìm và xoá các sự kiện có category **Milo**. Azure Boards thì để nguyên, sprint sau dùng tiếp.
+**Tính năng mở rộng** (bật bằng mục `Wellbeing`; để test trong 1 buổi đặt `MINDITFUL__Minditful__Wellbeing__MicroBreakEveryMinutes=5` và `…__FocusPlanMinMinutes=30` trong `.env`, xem README mục *Tham chiếu biến `.env`*):
+
+| # | Làm gì | Milo phải… |
+|---|---|---|
+| 15 | Mở máy, chờ 20 phút, lịch còn khoảng trống ≥ 30 phút (hoặc *Chạy thử 1 case* → Giữ giờ tập trung) | Thẻ **Giữ giờ tập trung** → Giữ → Outlook có "Tập trung · Milo giữ chỗ" (busy). Tới giờ: Teams chuyển **Do not disturb**, Milo im lặng tới hết khối |
+| 16 | *Chạy thử 1 case* → Báo cáo tuần (cần app đã chạy ít nhất 1 ngày tuần trước) | Thẻ "Tuần trước của bạn" + 1 mẹo → *Xem chùm nho* mở dashboard trang Tuần |
+| 17 | Ngồi máy liên tục 5 phút (ngưỡng test) | Milo ló lên 5 giây "Uống ngụm nước nha!", lần sau là câu 20-20-20 |
+| 18 | Trong cuộc họp Teams, bấm **Share / Present** (hoặc nút *Đang trình chiếu* ở mục giả lập) | Milo trốn hẳn, **cả chóp đuôi**; thôi trình chiếu thì chóp đuôi hiện lại |
+| 19 | Tạo 3 cuộc họp liền nhau cho **ngày mai**, rồi bấm *Giờ về = bây giờ + 2'* | Thẻ Tan tầm có dòng "Mai … có 3 cuộc họp liền" → *Giữ 10' nghỉ* → Outlook ngày mai có "Nghỉ cùng Milo" (tentative) |
+| 20 | Trên thẻ Tan tầm bấm *Mệt* | Nút Mệt tô đậm, điểm giảm 6; tuần sau dashboard chi tiết có dòng "Bạn tự thấy" |
+| 21 | Bảng điều khiển → *Tủ đồ* | Hiện chuỗi ngày về đúng giờ; món chưa mở khoá bị mờ. Về đúng giờ 3 ngày liền thì sáng thứ 4 thẻ Chào sáng báo "Milo được tặng khăn quàng" |
+| 22 | Bấm chóp đuôi → *Chi tiết* | Bảng nhỏ trên đầu Milo: dòng thời gian, Office Vibe, cuộc họp sắp tới; tab Tuần có 7 quả nho |
+
+**Dọn dẹp sau khi test:** trong Outlook, tìm và xoá các sự kiện có category **Milo** (gồm cả "Tập trung · Milo giữ chỗ" và "Nghỉ cùng Milo" ngày mai). Azure Boards thì để nguyên, sprint sau dùng tiếp.
 
 ---
 

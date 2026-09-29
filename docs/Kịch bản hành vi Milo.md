@@ -522,3 +522,25 @@ Cá nhân hoá không bao giờ tắt hẳn một case chăm sóc có mức Cao,
 - [ ] **Quyền tenant Bosch:** Mail.Read, Calendars.ReadWrite và Presence.ReadWrite có cần admin consent không? Nếu cần thì bản demo chạy theo cột "Nếu thiếu" ở mục 14.
 - [ ] **Baseline workload:** "trung bình sprint" lấy từ lịch sử Azure Boards hay từ log của Milo? Log của Milo cần vài tuần mới có đủ dữ liệu.
 - [ ] **Hệ số mood:** cần chạy thử 2–3 ngày thật của nhóm để kiểm tra một ngày bình thường có rơi vào khoảng 65–75 không.
+
+## 16. Tính năng mở rộng (thêm sau khi chốt kịch bản)
+
+Các hành vi dưới đây không có trong bản chốt ban đầu, được thêm khi làm app. Chúng đi cùng khung điều phối ở mục 4 (cổng im lặng, ngân sách, hàng đợi) và bật/tắt từng cái bằng mục `Wellbeing` trong cấu hình.
+
+| Hành vi | Loại / ưu tiên | Khi nào | Milo làm gì | Người dùng trả lời |
+| --- | --- | --- | --- | --- |
+| **Giữ giờ tập trung** | Hỗ trợ · P4 | 1 lần/ngày, ≥ 20 phút sau lần mở máy đầu, trước 15:00, còn khoảng trống ≥ 60 phút (bỏ giờ họp, 12:00–13:00) | Thẻ "Từ 16:15 tới 17:45 bạn trống 1h30. Milo giữ chỗ Tập trung nhé?" + task hợp để làm | *Giữ* → sự kiện busy trong lịch; tới giờ tự bật Không làm phiền như 7.4. *Thôi* → không hỏi lại hôm nay |
+| **Báo cáo tuần** | Xã giao · P4 | Sáng thứ Hai, ngay sau Chào sáng, khi máy còn dữ liệu tuần trước | Điểm TB, giờ họp, số lần nghỉ, ngày tốt/mệt nhất + 1 mẹo theo điểm yếu nhất | *Đã rõ* · *Xem chùm nho* (mở dashboard tuần) |
+| **Hôm nay thấy sao?** | Trong thẻ Tan tầm (6.2, 6.3) | Cùng lúc Tan tầm | 3 nút Vui / Bình thường / Mệt | Chỉ lưu trên máy. Mood Engine: Mệt −6, Vui +3. Gõ chat "mệt" ở thẻ tan tầm cũng tính là Mệt |
+| **Nghỉ giữa chuỗi họp ngày mai** | Trong thẻ Tan tầm | Mai có ≥ 3 cuộc họp liền | "Mai 13:30–16:15 có 3 cuộc họp liền" | *Giữ 10' nghỉ lúc 15:30* → sự kiện tentative ngày mai (cách giữ chỗ như 7.2) |
+| **Uống nước · 20-20-20** | Hỗ trợ · P5 · miễn ngân sách | Mỗi 50 phút ngồi máy liên tục (không tính giờ họp), tối đa 6 lần/ngày | Ló lên 5 giây, 1 bóng thoại, không thẻ, không nút (như 7.5) | Không cần trả lời. Rời máy ≥ 5 phút thì đếm lại |
+| **Trốn khi trình chiếu** | Cổng im lặng mới | Teams presence = Presenting | Trốn hẳn, **kể cả chóp đuôi và chấm chờ**; thẻ đang mở thu lại | — |
+| **Tủ đồ** | Không lời | Về đúng giờ (quá giờ < 15 phút) 3 / 5 / 10 ngày liền | Milo có khăn quàng / kẹp hoa / mũ nồi; sáng hôm sau bản tin Chào sáng báo món mới | Chọn món hoặc tắt ở Bảng điều khiển |
+
+Dashboard (9.6) có thêm nút **Chi tiết**: một bảng nhỏ cỡ 1 thẻ ngay trên đầu Milo, gồm dòng thời gian giờ làm, Office Vibe, cuộc họp sắp tới (trang Hôm nay) hoặc 7 quả nho, thống kê tuần, cách bạn trả lời Milo (trang Tuần).
+
+Câu hỏi mở thêm:
+
+- [ ] **Nhịp uống nước:** 50 phút có hợp với nhóm không, hay nên nhắc theo 20-20-20 thật (20 phút) nhưng chỉ bằng chóp đuôi nhấp nháy?
+- [ ] **Tủ đồ:** mốc 3/5/10 ngày và 3 món có đủ tạo động lực không? Designer có muốn vẽ thêm món theo mùa?
+

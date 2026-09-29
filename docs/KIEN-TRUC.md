@@ -64,7 +64,7 @@ flowchart LR
 
 | Project | Chứa gì | Vì sao tách |
 | --- | --- | --- |
-| **Minditful.Core** | Toàn bộ "bộ não": luật, hàng đợi, điều phối, episode, mood, cá nhân hoá, nội dung thẻ, keyframes hoạt ảnh, ngày mẫu | Không phụ thuộc Windows, UI hay mạng → **test được trên mọi OS** (87 test), và 3 môi trường dùng chung đúng một bộ não |
+| **Minditful.Core** | Toàn bộ "bộ não": luật, hàng đợi, điều phối, episode, mood, cá nhân hoá, nội dung thẻ, keyframes hoạt ảnh, ngày mẫu | Không phụ thuộc Windows, UI hay mạng → **test được trên mọi OS** (124 test), và 3 môi trường dùng chung đúng một bộ não |
 | **Minditful.Integrations** | Nói chuyện với thế giới ngoài: Entra/MSAL, Graph, Azure DevOps, Claude, SQLite, cấu hình, `.env` | Tách I/O khỏi logic; đổi nhà cung cấp mà không đụng bộ não |
 | **Minditful.App** | WPF: cửa sổ, overlay, vẽ Milo, khay hệ thống, tín hiệu Windows, vòng lặp thời gian của từng môi trường | Phần duy nhất cần Windows |
 
@@ -415,7 +415,7 @@ Thêm sau prototype, cùng khung Rule Engine → hàng đợi → điều phối
 | --- | --- | --- |
 | **LauncherWindow** | Chưa chọn môi trường | 3 thẻ, trạng thái cấu hình từng môi trường, "Nhớ lựa chọn" |
 | **CompanionWindow** | Luôn có (3 môi trường) | 480×620, **trong suốt hoàn toàn**, Topmost, không có trong Alt+Tab (`WS_EX_TOOLWINDOW`), không chiếm focus; neo góc màn hình đang chọn, ngay trên taskbar. Chỗ không có Milo thì chuột **đi xuyên** xuống desktop (pixel alpha = 0). Sandbox/Prod: `SetWindowDisplayAffinity(WDA_EXCLUDEFROMCAPTURE)` → **không lộ khi share màn hình** |
-| **DemoControlWindow** | Demo | Trái: đồng hồ kịch bản, chú thích "Milo đang làm gì", phát/tạm dừng, tốc độ, tự trả lời, 17 mốc, 16 case, "Bạn thử làm". Phải: Bộ não |
+| **DemoControlWindow** | Demo | Trái: đồng hồ kịch bản, chú thích "Milo đang làm gì", phát/tạm dừng, tốc độ, tự trả lời, 17 mốc, 16 case + nhóm Mở rộng, "Bạn thử làm" (có thêm Đang trình chiếu, Tủ đồ). Phải: Bộ não |
 | **ControlCenterWindow** | Sandbox/Prod | Kết nối Microsoft/Azure Boards, PAT, Claude, cá nhân hoá, dữ liệu local, góc neo; Sandbox thêm công cụ test. Phải: Bộ não |
 | **Khay hệ thống** | Luôn có | Icon chóp đuôi vẽ bằng code; menu theo môi trường |
 
@@ -848,7 +848,7 @@ Lỗi AADSTS được dịch sang tiếng Việt (admin consent, sai tenant, red
 
 ## 12. Cấu hình
 
-`src/Minditful.App/appsettings.json` (mục `Minditful`), ghi đè bằng `.env` với tiền tố `MINDITFUL__Minditful__…` (`__` = `:`).
+`src/Minditful.App/appsettings.json` (mục `Minditful`), ghi đè bằng `.env` với tiền tố `MINDITFUL__Minditful__…` (`__` = `:`). Bảng đầy đủ tên biến `.env`, giá trị hợp lệ và công thức hay dùng nằm ở README mục *Tham chiếu biến `.env`*. `Wellbeing` chỉ áp dụng cho Sandbox/Production; Demo tắt sẵn (`EngineConfig` mặc định) để ngày mẫu giữ đúng mốc.
 
 | Khoá | Mặc định | Ý nghĩa |
 | --- | --- | --- |
@@ -859,6 +859,13 @@ Lỗi AADSTS được dịch sang tiếng Việt (admin consent, sai tenant, red
 | `WorkDay.FragmentationPerHour` | 30 | Ngưỡng phân mảnh (Live) |
 | `Storage.RetentionPeriod` | Week | Week / Month |
 | `Storage.KeepPreviousPeriod` | true | Giữ thêm 1 kỳ trước |
+| `Storage.MoodSampleMinutes` | 15 | Nhịp lưu mẫu mood |
+| `Wellbeing.FocusPlan` / `FocusPlanMinMinutes` | true / 60 | Giữ giờ tập trung (§5.12) |
+| `Wellbeing.WeekReport` | true | Báo cáo tuần sáng thứ Hai |
+| `Wellbeing.MicroBreakEveryMinutes` / `MicroBreakMaxPerDay` | 50 / 6 | Uống nước · 20-20-20 (0 = tắt) |
+| `Wellbeing.EveningCheck` | true | "Hôm nay thấy sao?" + nghỉ giữa chuỗi họp ngày mai |
+| `Wellbeing.HideWhenPresenting` | true | Cổng `Presenting` từ Teams presence |
+| `Wellbeing.Wardrobe` | true | Tủ đồ |
 | `Llm.Enabled` | true | Công tắc tổng Claude |
 | `Llm.Model` / `Effort` | claude-opus-5 / low | |
 | `Llm.Features.Lines/Chat` | true | Câu thoại / chat |
@@ -875,7 +882,7 @@ Lỗi AADSTS được dịch sang tiếng Việt (admin consent, sai tenant, red
 
 ## 13. Kiểm thử
 
-`dotnet test` chạy 123 test trên Core + Integrations (không cần Windows, không gọi mạng):
+`dotnet test` chạy 124 test trên Core + Integrations (không cần Windows, không gọi mạng):
 
 | File | Kiểm tra |
 | --- | --- |
@@ -885,7 +892,7 @@ Lỗi AADSTS được dịch sang tiếng Việt (admin consent, sai tenant, red
 | `LimitationsTests` | Câu thoại xoay vòng; LLM không nhận tiêu đề; khung clip; cá nhân hoá 7 ngày; ngưỡng Sandbox; hạ cấp quyền |
 | `InsightTests` | Đánh giá cuộc họp luật/Claude; mood Hybrid ±10, Llm, hết hạn; công tắc cấu hình |
 | `StorageTests` | SQLite: lưu, thống kê tuần, tự xoá tuần/tháng, không lưu tiêu đề, xoá toàn bộ, chuyển dữ liệu cũ |
-| `DotEnvTests` | Đọc `.env`, biến thật được ưu tiên, `.env.sample` đủ khoá |
+| `DotEnvTests` | Đọc `.env`, biến thật được ưu tiên, `.env.sample` đủ khoá; mọi biến trong `.env.sample` và README đều có trong appsettings.json |
 | `WorkHoursTests`, `ChatGoHomeTests` | Giờ làm linh hoạt 8→17 / 9→18 / 10→19; chat "về thôi", "đồng ý" ở thẻ tan tầm |
 | `ExtendedFeaturesTests` | Giữ giờ tập trung (đề nghị, tới giờ bật DND), báo cáo tuần thứ Hai, uống nước / 20-20-20, trốn khi trình chiếu, "Hôm nay thấy sao?", nghỉ giữa chuỗi họp ngày mai, tủ đồ, bảng chi tiết dashboard |
 

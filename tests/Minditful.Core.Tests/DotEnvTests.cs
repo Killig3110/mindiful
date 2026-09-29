@@ -55,4 +55,46 @@ public class DotEnvTests
         foreach (var k in new[] { "ANTHROPIC_API_KEY", "MINDITFUL_SANDBOX_ADO_PAT", "MINDITFUL_PROD_ADO_PAT", "MINDITFUL_ENV", "Production__AzureDevOps__Organization" })
             Assert.Contains(k, sample);
     }
+
+    private static DirectoryInfo RepoRoot()
+    {
+        var root = new DirectoryInfo(AppContext.BaseDirectory);
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, ".env.sample"))) root = root.Parent;
+        Assert.NotNull(root);
+        return root!;
+    }
+
+    /// <summary>Mọi khoá cấu hình (a:b:c) có trong appsettings.json, không phân biệt hoa thường.</summary>
+    private static HashSet<string> SettingKeys(DirectoryInfo root)
+    {
+        var keys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        void Walk(System.Text.Json.JsonElement e, string path)
+        {
+            if (path.Length > 0) keys.Add(path);
+            if (e.ValueKind != System.Text.Json.JsonValueKind.Object) return;
+            foreach (var p in e.EnumerateObject()) Walk(p.Value, path.Length == 0 ? p.Name : path + ":" + p.Name);
+        }
+        using var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(Path.Combine(root.FullName, "src", "Minditful.App", "appsettings.json")));
+        Walk(doc.RootElement, "");
+        return keys;
+    }
+
+    [Fact]
+    public void Every_config_variable_in_env_sample_and_readme_exists_in_appsettings()
+    {
+        var root = RepoRoot();
+        var keys = SettingKeys(root);
+        var sample = File.ReadAllText(Path.Combine(root.FullName, ".env.sample"));
+        var names = System.Text.RegularExpressions.Regex.Matches(sample, @"^MINDITFUL__(Minditful__[A-Za-z_]+)=", System.Text.RegularExpressions.RegexOptions.Multiline)
+            .Select(m => m.Groups[1].Value.Replace("__", ":")).ToList();
+        Assert.True(names.Count > 30);
+        Assert.All(names, n => Assert.Contains(n, keys));
+
+        // README viết tắt "…Wellbeing__FocusPlan" (… = MINDITFUL__Minditful__)
+        var readme = File.ReadAllText(Path.Combine(root.FullName, "README.md"));
+        var docNames = System.Text.RegularExpressions.Regex.Matches(readme, @"`(?:MINDITFUL__Minditful__|…)((?:WorkDay|Storage|Wellbeing|Llm)__[A-Za-z_]+)")
+            .Select(m => "Minditful:" + m.Groups[1].Value.Replace("__", ":")).Distinct().ToList();
+        Assert.Contains("Minditful:Wellbeing:MicroBreakEveryMinutes", docNames);
+        Assert.All(docNames, n => Assert.Contains(n, keys));
+    }
 }
