@@ -11,6 +11,8 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <!-- DPI khai báo trong manifest là đúng cho WPF; cảnh báo này dành cho WinForms -->
     <NoWarn>$(NoWarn);WFAC010</NoWarn>
+    <!-- Logo: Milo đội mũ Bosch + dải 3 màu Bosch (Assets/Brand/logo.svg) -->
+    <ApplicationIcon>Assets\Brand\milo.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <!-- Chỉ dùng NotifyIcon của WinForms; tránh đụng tên với WPF -->
@@ -32,6 +34,8 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Assets\Milo\*.svg" />
+    <Resource Include="Assets\Brand\milo.ico" />
+    <Resource Include="Assets\Brand\*.png" />
     <None Update="appsettings*.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

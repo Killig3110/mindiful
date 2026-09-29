@@ -194,7 +194,7 @@ Vòng thở: vòng tròn phồng 4 giây (hít vào), giữ 4 giây, xẹp 4 gi�
 | **Hôm nay thấy sao?** | Trên thẻ tan tầm | 3 nút Vui / Bình thường / Mệt | Câu trả lời chỉ lưu trên máy, tính vào điểm mood |
 | **Nghỉ giữa chuỗi họp ngày mai** | Trên thẻ tan tầm, khi mai có ≥ 3 cuộc họp liền | "Mai 13:30–16:15 có 3 cuộc họp liền" | *Giữ 10' nghỉ lúc …* |
 | **Trốn khi trình chiếu** | Teams báo bạn đang trình chiếu | Trốn hẳn, kể cả chóp đuôi | — |
-| **Tủ đồ** | Về đúng giờ 3 / 5 / 10 ngày liền | Khăn quàng / kẹp hoa / mũ nồi; sáng hôm sau Milo khoe | Chọn món ở *Milo của bạn* |
+| **Tủ đồ** | Về đúng giờ 3 / 5 / 10 / 15 ngày liền | Khăn quàng / kẹp hoa / mũ nồi / **đồng phục Bosch** (mũ lưỡi trai đỏ băng 3 màu + thẻ nhân viên đeo cổ); sáng hôm sau Milo khoe | Chọn món ở *Milo của bạn* |
 
 Muốn tắt tính năng nào (vd. thấy nhắc uống nước phiền): xem README mục **Tham chiếu biến `.env`**, nhóm `Wellbeing`.
 
@@ -220,7 +220,7 @@ Có Claude và bật chế độ Hybrid thì Claude được chỉnh thêm tối
    - 18:31 chạy ra xe
 4. Muốn tự bấm: tắt công tắc tự bấm, rồi bấm nút trên thẻ của Milo hoặc gõ chat.
 5. Trang **Thử tình huống**: bấm bất kỳ thẻ nào để xem Milo làm tình huống đó. Bật *Đang trình chiếu* để thấy Milo trốn.
-6. Trang **Milo của bạn**: cho Milo đội mũ nồi.
+6. Trang **Milo của bạn**: cho Milo mặc đồng phục Bosch.
 
 Present: để bảng điều khiển ở màn hình thứ hai, màn hình chính chỉ có Milo. Chạy thử 1 lượt trước, rồi *Làm lại từ 08:50*.
 

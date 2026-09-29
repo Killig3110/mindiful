@@ -186,7 +186,7 @@ internal sealed class DemoControlWindow : ControlShell
 
     // ================= Milo của bạn =================
     private FrameworkElement Milo() => Page("Milo của bạn",
-        "Đổi phụ kiện và chỗ đứng của Milo. Ngày mẫu có sẵn chuỗi 10 ngày về đúng giờ nên mặc thử được cả 3 món.",
+        "Đổi phụ kiện và chỗ đứng của Milo. Ngày mẫu có sẵn chuỗi 15 ngày về đúng giờ nên mặc thử được cả 4 món, kể cả đồng phục Bosch.",
         WardrobeCard(AppEnvironment.Demo, () => Engine.Snap.Wardrobe?.Best ?? 0,
             () => $"Chuỗi về đúng giờ (mẫu): {Engine.Snap.Wardrobe?.Streak ?? 0} ngày."),
         CornerCard(AppEnvironment.Demo));

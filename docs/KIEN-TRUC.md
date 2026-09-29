@@ -419,6 +419,7 @@ Thêm sau prototype, cùng khung Rule Engine → hàng đợi → điều phối
 | **DemoControlWindow** | Demo | Khung `ControlShell`. Trang: *Bắt đầu* (phát/tạm dừng, tốc độ, công tắc tự trả lời, số liệu hôm nay, mẹo), *Ngày mẫu* (17 mốc, bấm để tua), *Thử tình huống* (19 case chia 4 nhóm + công tắc "Giả vờ bạn đang…"), *Milo của bạn* (tủ đồ, góc neo), *Bộ não Milo* |
 | **ControlCenterWindow** | Sandbox/Prod | Khung `ControlShell`. Trang: *Tổng quan* (3 thẻ kết nối chấm xanh/vàng/đỏ, Milo đang thấy gì), *Kết nối* (Microsoft, PAT, API key Claude), *Thử tình huống* (chỉ Sandbox: reset ngày, giờ về, dữ liệu mẫu, chạy case, giả lập tín hiệu), *Milo của bạn* (tủ đồ, góc neo, tính năng chăm sóc, cá nhân hoá, dữ liệu trên máy), *Bộ não Milo* |
 | **`ControlShell`** (`Views/Panel`) | — | Khung chung tông sáng (`P`: kem #F7F0E6, thẻ #FFFDF9, cam #E8772E). Thanh bên + dải "Milo đang làm gì" bằng lời thường (`Describe()`), đồng hồ, điểm mood. Mỗi trang dựng 1 lần; số liệu cập nhật 400 ms/lần qua `Tick()` chỉ cho trang đang mở |
+| **Nhận diện** (`Rendering/Brand.cs`, `Assets/Brand`) | Mọi cửa sổ + khay | Logo Milo đội mũ Bosch (`milo.ico` cho exe/cửa sổ/khay, `logo.png` cho giao diện); dải 3 màu Bosch đặc `Brand.Stripe()` (đỏ · xanh dương · xanh lá) trên đầu bảng điều khiển và màn hình chọn môi trường |
 | **Khay hệ thống** | Luôn có | Icon chóp đuôi vẽ bằng code; menu theo môi trường |
 
 ### 6.2 Bố cục góc Milo (`MiloLayer`)

@@ -54,7 +54,7 @@ public sealed class WellbeingOptions
     public bool EveningCheck { get; set; } = true;
     /// <summary>Teams báo đang trình chiếu (Presenting) → Milo trốn hẳn, kể cả chóp đuôi.</summary>
     public bool HideWhenPresenting { get; set; } = true;
-    /// <summary>Tủ đồ: Milo có phụ kiện mới khi bạn về đúng giờ 3/5/10 ngày liền.</summary>
+    /// <summary>Tủ đồ: Milo có phụ kiện mới khi bạn về đúng giờ 3/5/10/15 ngày liền (15 ngày: đồng phục Bosch).</summary>
     public bool Wardrobe { get; set; } = true;
 }
 

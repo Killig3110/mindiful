@@ -13,6 +13,8 @@ public static class Wardrobe
         new("scarf", "khăn quàng", 3),
         new("flower", "kẹp hoa", 5),
         new("beret", "mũ nồi", 10),
+        // Phần thưởng cao nhất: mũ lưỡi trai đỏ + thẻ nhân viên Bosch
+        new("bosch", "đồng phục Bosch", 15),
     ];
 
     public static IEnumerable<Accessory> Unlocked(int best) => Items.Where(i => best >= i.Streak);

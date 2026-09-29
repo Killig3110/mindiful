@@ -27,25 +27,51 @@ internal static class MiloSkin
 
     /// <summary>
     /// Phụ kiện tủ đồ, vẽ trong hệ toạ độ SVG của Milo và gắn vào nhóm bộ phận để đi theo đầu/thân khi Milo cử động.
-    /// Khăn quàng nằm trong "torso" (dưới cằm), kẹp hoa và mũ nồi nằm trong "head".
+    /// Khăn quàng, dây thẻ nằm trong "torso" (dưới cằm), kẹp hoa, mũ nồi, mũ Bosch nằm trong "head".
     /// </summary>
-    private static readonly Dictionary<string, (string Group, string Svg)> Accessories = new()
+    /// <summary>
+    /// Phụ kiện tủ đồ, vẽ trong hệ toạ độ SVG của Milo và gắn vào nhóm bộ phận để đi theo đầu/thân khi Milo cử động.
+    /// Mỗi món có thể gồm nhiều phần: "torso" (khăn, dây thẻ nằm dưới cằm), "head" (mũ, kẹp hoa).
+    /// </summary>
+    private static readonly Dictionary<string, (string Group, string Svg)[]> Accessories = new()
     {
-        ["scarf"] = ("torso", """
+        ["scarf"] = [("torso", """
             <path d="M90,131 Q120,147 150,131 L152,143 Q120,161 88,143 Z" fill="#E0526B" stroke="#45231F" stroke-width="3" stroke-linejoin="round"/>
             <path d="M100,137 L103,150 M112,141 L113,154 M128,141 L127,154 M140,137 L137,150" stroke="#FFF3E6" stroke-width="3" stroke-linecap="round"/>
             <path d="M131,147 L142,174 Q134,178 126,175 L122,150 Z" fill="#E0526B" stroke="#45231F" stroke-width="3" stroke-linejoin="round"/>
-            """),
-        ["flower"] = ("head", """
+            """)],
+        ["flower"] = [("head", """
             <g fill="#FF9FB2" stroke="#45231F" stroke-width="2.5"><circle cx="152" cy="44" r="7"/><circle cx="162" cy="50" r="7"/>
             <circle cx="159" cy="61" r="7"/><circle cx="146" cy="61" r="7"/><circle cx="143" cy="50" r="7"/></g>
             <circle cx="152.5" cy="53" r="5" fill="#FFD166" stroke="#45231F" stroke-width="2.5"/>
-            """),
-        ["beret"] = ("head", """
+            """)],
+        ["beret"] = [("head", """
             <path d="M86,50 C88,28 150,22 158,44 C160,54 146,56 120,56 C98,56 84,58 86,50 Z" fill="#7261B0" stroke="#45231F" stroke-width="3" stroke-linejoin="round"/>
             <path d="M92,52 Q120,60 152,52" fill="none" stroke="#5A4A96" stroke-width="3"/>
             <path d="M122,27 q2,-8 8,-8" fill="none" stroke="#45231F" stroke-width="3.5" stroke-linecap="round"/>
+            """)],
+        // Đồng phục Bosch (3 màu đặc đỏ · xanh dương · xanh lá): dây thẻ xanh vòng qua cổ, móc kẹp, thẻ nhân viên; mũ lưỡi trai đỏ có băng 3 màu
+        ["bosch"] =
+        [
+            ("torso", """
+            <path d="M103,141 C107,150 114,156 120,159 C126,156 133,150 137,141" fill="none" stroke="#45231F" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M103,141 C107,150 114,156 120,159 C126,156 133,150 137,141" fill="none" stroke="#007BC0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="116" y="158" width="8" height="7" rx="2" fill="#C9CED6" stroke="#45231F" stroke-width="2"/>
+            <rect x="107" y="164" width="26" height="30" rx="4" fill="#FFFFFF" stroke="#45231F" stroke-width="2.5"/>
+            <path d="M107,168 a4,4 0 0 1 4,-4 h18 a4,4 0 0 1 4,4 v3 h-26 Z" fill="#E20015"/>
+            <rect x="111" y="175" width="12" height="3" rx="1.5" fill="#C9B6A0"/><rect x="111" y="181" width="18" height="3" rx="1.5" fill="#C9B6A0"/>
+            <rect x="111" y="187.5" width="6" height="3" fill="#E20015"/><rect x="117" y="187.5" width="6" height="3" fill="#007BC0"/><rect x="123" y="187.5" width="6" height="3" fill="#00884A"/>
             """),
+            ("head", """
+            <path d="M84,52 C84,26 156,20 160,46 L160,54 C140,50 104,50 84,56 Z" fill="#E20015" stroke="#45231F" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M120,26 L120,51" stroke="#B80012" stroke-width="2"/>
+            <circle cx="120" cy="25" r="4" fill="#E20015" stroke="#45231F" stroke-width="2.5"/>
+            <path d="M87,52.5 C94,51 101,50.3 108,50" fill="none" stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="round"/>
+            <path d="M112,49.8 C119,49.6 127,49.6 134,49.8" fill="none" stroke="#007BC0" stroke-width="4.5" stroke-linecap="round"/>
+            <path d="M138,50 C145,50.3 151,50.8 157,51.6" fill="none" stroke="#00884A" stroke-width="4.5" stroke-linecap="round"/>
+            <path d="M150,50 C170,48 186,52 190,58 C176,60 162,58 152,56 Z" fill="#B80012" stroke="#45231F" stroke-width="3" stroke-linejoin="round"/>
+            """),
+        ],
     };
 
     /// <summary>Khung <paramref name="frame"/> của clip <paramref name="rig"/> ở tư thế <paramref name="pose"/>, kèm phụ kiện (id trong <see cref="Wardrobe"/>).</summary>
@@ -71,8 +97,10 @@ internal static class MiloSkin
         var doc = new XDocument(Template(pose));
         var groups = doc.Descendants().Where(e => e.Name.LocalName == "g" && e.Attribute("class") is not null)
             .ToLookup(e => e.Attribute("class")!.Value);
-        if (accessory is not null && Accessories.TryGetValue(accessory, out var acc) && groups[acc.Group].FirstOrDefault() is { } host)
-            host.Add(XElement.Parse($"<g xmlns=\"http://www.w3.org/2000/svg\" class=\"acc-{accessory}\">{acc.Svg}</g>"));
+        if (accessory is not null && Accessories.TryGetValue(accessory, out var parts))
+            foreach (var (group, svg) in parts)
+                if (groups[group].FirstOrDefault() is { } host)
+                    host.Add(XElement.Parse($"<g xmlns=\"http://www.w3.org/2000/svg\" class=\"acc-{accessory}\">{svg}</g>"));
         foreach (var m in MiloRig.Frame(rig, frame, blink))
         {
             if (!MiloRig.Pivots.TryGetValue(m.Part, out var pv)) continue;

@@ -9,3 +9,6 @@ TestResults/
 .env.*
 !.env.sample
 src/Minditful.App/appsettings.local.json
+
+# Bản đóng gói (có thể chứa .env với PAT/API key)
+dist/

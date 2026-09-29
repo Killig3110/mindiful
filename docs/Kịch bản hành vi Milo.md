@@ -535,12 +535,12 @@ Các hành vi dưới đây không có trong bản chốt ban đầu, được t
 | **Nghỉ giữa chuỗi họp ngày mai** | Trong thẻ Tan tầm | Mai có ≥ 3 cuộc họp liền | "Mai 13:30–16:15 có 3 cuộc họp liền" | *Giữ 10' nghỉ lúc 15:30* → sự kiện tentative ngày mai (cách giữ chỗ như 7.2) |
 | **Uống nước · 20-20-20** | Hỗ trợ · P5 · miễn ngân sách | Mỗi 50 phút ngồi máy liên tục (không tính giờ họp), tối đa 6 lần/ngày | Ló lên 5 giây, 1 bóng thoại, không thẻ, không nút (như 7.5) | Không cần trả lời. Rời máy ≥ 5 phút thì đếm lại |
 | **Trốn khi trình chiếu** | Cổng im lặng mới | Teams presence = Presenting | Trốn hẳn, **kể cả chóp đuôi và chấm chờ**; thẻ đang mở thu lại | — |
-| **Tủ đồ** | Không lời | Về đúng giờ (quá giờ < 15 phút) 3 / 5 / 10 ngày liền | Milo có khăn quàng / kẹp hoa / mũ nồi; sáng hôm sau bản tin Chào sáng báo món mới | Chọn món hoặc tắt ở Bảng điều khiển |
+| **Tủ đồ** | Không lời | Về đúng giờ (quá giờ < 15 phút) 3 / 5 / 10 / 15 ngày liền | Milo có khăn quàng / kẹp hoa / mũ nồi / đồng phục Bosch; sáng hôm sau bản tin Chào sáng báo món mới | Chọn món hoặc tắt ở Bảng điều khiển |
 
 Dashboard (9.6) có thêm nút **Chi tiết**: một bảng nhỏ cỡ 1 thẻ ngay trên đầu Milo, gồm dòng thời gian giờ làm, Office Vibe, cuộc họp sắp tới (trang Hôm nay) hoặc 7 quả nho, thống kê tuần, cách bạn trả lời Milo (trang Tuần).
 
 Câu hỏi mở thêm:
 
 - [ ] **Nhịp uống nước:** 50 phút có hợp với nhóm không, hay nên nhắc theo 20-20-20 thật (20 phút) nhưng chỉ bằng chóp đuôi nhấp nháy?
-- [ ] **Tủ đồ:** mốc 3/5/10 ngày và 3 món có đủ tạo động lực không? Designer có muốn vẽ thêm món theo mùa?
+- [ ] **Tủ đồ:** mốc 3/5/10/15 ngày và 4 món có đủ tạo động lực không? Designer có muốn vẽ thêm món theo mùa?
 

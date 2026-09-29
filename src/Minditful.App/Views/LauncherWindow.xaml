@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Minditful · Chọn môi trường" Width="920" Height="520" ResizeMode="CanMinimize"
         Background="#F7F0E6" Foreground="#3A2A1E" FontFamily="{StaticResource Sans}" FontSize="13"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen" Icon="pack://application:,,,/Assets/Brand/milo.ico">
     <Window.Resources>
         <Style x:Key="EnvCard" TargetType="Button">
             <Setter Property="Cursor" Value="Hand" />
@@ -27,17 +27,28 @@
             </Setter>
         </Style>
     </Window.Resources>
+    <DockPanel>
+    <!-- Dải 3 màu Bosch: đỏ · xanh dương · xanh lá, màu đặc chia đều -->
+    <UniformGrid DockPanel.Dock="Top" Rows="1" Height="5">
+        <Border Background="#E20015" />
+        <Border Background="#007BC0" />
+        <Border Background="#00884A" />
+    </UniformGrid>
     <Grid Margin="24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <StackPanel>
-            <TextBlock Style="{StaticResource Eyebrow}" Text="MINDITFUL · MILO" />
-            <TextBlock Text="Hôm nay chạy Milo ở đâu?" FontSize="22" FontWeight="Bold" Foreground="#3A2A1E" Margin="0,4,0,0" />
-            <TextBlock Style="{StaticResource Hint}" Margin="0,6,0,0" Text="Cả ba đều là Milo thật ở góc màn hình. Chỉ khác nhau chỗ Milo lấy lịch, email, task từ đâu. Lần đầu dùng thì chọn Demo." />
-        </StackPanel>
+        <DockPanel>
+            <Image Source="pack://application:,,,/Assets/Brand/logo.png" Width="64" Height="64" Margin="0,0,16,0" VerticalAlignment="Top"
+                   RenderOptions.BitmapScalingMode="HighQuality" DockPanel.Dock="Left" />
+            <StackPanel>
+                <TextBlock Style="{StaticResource Eyebrow}" Text="MINDITFUL · MILO" />
+                <TextBlock Text="Hôm nay chạy Milo ở đâu?" FontSize="22" FontWeight="Bold" Foreground="#3A2A1E" Margin="0,4,0,0" />
+                <TextBlock Style="{StaticResource Hint}" Margin="0,6,0,0" Text="Cả ba đều là Milo thật ở góc màn hình. Chỉ khác nhau chỗ Milo lấy lịch, email, task từ đâu. Lần đầu dùng thì chọn Demo." />
+            </StackPanel>
+        </DockPanel>
 
         <UniformGrid Grid.Row="1" Columns="3" Margin="0,18,0,0">
             <Button Style="{StaticResource EnvCard}" Margin="0,0,8,0" Click="Demo_Click">
@@ -75,4 +86,5 @@
             <TextBlock Style="{StaticResource Hint}" HorizontalAlignment="Right" VerticalAlignment="Center" Text="Cũng có thể chạy: Minditful.exe --env Demo | Sandbox | Production" />
         </DockPanel>
     </Grid>
+    </DockPanel>
 </Window>

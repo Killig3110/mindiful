@@ -1,5 +1,8 @@
 # Minditful · Milo (WPF, Windows)
 
+<img src="src/Minditful.App/Assets/Brand/logo.png" width="96" alt="Logo Minditful: Milo đội mũ Bosch, đáy 3 dải màu đỏ, xanh dương, xanh lá">
+
+
 Ứng dụng desktop hiện thực hoá prototype **"Milo sống"** và tài liệu [Kịch bản hành vi Milo](docs/Kịch%20bản%20hành%20vi%20Milo.md).
 Milo là chú cáo ẩn ở góc phải dưới màn hình (chỉ chừa chóp đuôi). Milo chỉ ló ra vào đúng lúc: không chen vào cuộc họp, và tối đa 1 lời nhắc chủ động mỗi 15 phút.
 
@@ -195,7 +198,7 @@ Dùng để present và để kiểm tra đủ 16 case của prototype. Giờ, l
 - *Nhảy việc 12 lần/giờ*: case Phân mảnh.
 - *Giả lập ngày căng*: Milo đổi dáng mệt, có chữ z bay.
 - *Teams: đang trình chiếu*: Milo trốn hẳn, kể cả chóp đuôi và chấm chờ; bấm lại thì hiện lại.
-- Trang **Milo của bạn** → *Tủ đồ*: bấm khăn quàng / kẹp hoa / mũ nồi để Milo mặc ngay (ngày mẫu có sẵn chuỗi 10 ngày về đúng giờ).
+- Trang **Milo của bạn** → *Tủ đồ*: bấm khăn quàng / kẹp hoa / mũ nồi / đồng phục Bosch để Milo mặc ngay (ngày mẫu có sẵn chuỗi 15 ngày về đúng giờ).
 - Ở thẻ **Tan tầm** (18:00): bấm *Vui / Bình thường / Mệt* để thấy điểm đổi (+3 / 0 / −6), bấm *Giữ 10' nghỉ lúc 15:30* cho chuỗi họp ngày mai.
 
 **1e. Tương tác chung** (cả 3 môi trường):
@@ -569,9 +572,22 @@ Milo chớp mắt 4.5 giây/lần, khi mệt thì nhắm lâu hơn (§9.4). Chuy
 | Nghỉ giữa chuỗi họp ngày mai | Thẻ Tan tầm, khi mai có ≥ 3 cuộc họp liền | *Giữ 10' nghỉ lúc HH:mm* tạo sự kiện tentative trong lịch ngày mai | `EveningCheck` |
 | Uống nước · 20-20-20 | Mỗi 50 phút ngồi máy liên tục (không tính giờ họp), tối đa 6 lần/ngày | Ló lên 5 giây với 1 bóng thoại, không nút, không tính ngân sách lời nhắc. Rời máy ≥ 5 phút thì đếm lại | `MicroBreakEveryMinutes` (0 = tắt), `MicroBreakMaxPerDay` |
 | Trốn khi trình chiếu | Teams presence = Presenting | Trốn hẳn, kể cả chóp đuôi và chấm chờ; thẻ đang mở thu lại | `HideWhenPresenting` |
-| Tủ đồ của Milo | Về đúng giờ (quá giờ < 15 phút) 3 / 5 / 10 ngày liền | Mở khoá khăn quàng / kẹp hoa / mũ nồi, sáng hôm sau thẻ Chào sáng báo. Chọn món ở bảng điều khiển → *Milo của bạn* (mặc định: món mới nhất) | `Wardrobe` |
+| Tủ đồ của Milo | Về đúng giờ (quá giờ < 15 phút) 3 / 5 / 10 / 15 ngày liền | Mở khoá khăn quàng / kẹp hoa / mũ nồi / **đồng phục Bosch** (phần thưởng cao nhất), sáng hôm sau thẻ Chào sáng báo. Chọn món ở bảng điều khiển → *Milo của bạn* (mặc định: món mới nhất) | `Wardrobe` |
 
 Test nhanh trên Sandbox: trang **Thử tình huống** → nhóm *Mới thêm* (Giữ giờ tập trung, Báo cáo tuần, Uống nước · nhìn xa); công tắc *Đang trình chiếu*; *Giờ về = bây giờ + 2 phút* để thấy thẻ Tan tầm có 3 nút cảm xúc. Báo cáo tuần cần dữ liệu tuần trước trên máy (chạy app ít nhất 1 ngày tuần trước).
+
+## Logo và đồng phục Bosch
+
+- **Logo** (`src/Minditful.App/Assets/Brand/`):
+  - Hình: Milo đội mũ lưỡi trai đỏ Bosch trên nền kem, đáy là 3 dải màu đặc chia đều: đỏ `#E20015` · xanh dương `#007BC0` · xanh lá `#00884A`. Không dùng màu chuyển.
+  - Dùng cho: file `Minditful.exe`, thanh tiêu đề, taskbar, biểu tượng ở khay, thanh bên bảng điều khiển, màn hình chọn môi trường.
+  - `logo.svg` là bản gốc; `milo.ico` (16–256 px) và `logo.png` được xuất từ đó. Xem các cỡ: [docs/brand/logo-cac-co.png](docs/brand/logo-cac-co.png).
+- **Dải 3 màu Bosch** (đỏ · xanh dương · xanh lá, màu đặc) chạy trên đầu bảng điều khiển và màn hình chọn môi trường.
+- **Đồng phục Bosch** là món cao nhất trong tủ đồ, mở khoá khi về đúng giờ **15 ngày liền**:
+  - Gồm mũ lưỡi trai đỏ có băng 3 màu và thẻ nhân viên: dây xanh vòng qua cổ, móc kẹp, thẻ trắng đầu đỏ có vạch 3 màu.
+  - Đi theo mọi dáng của Milo: [docs/brand/milo-dong-phuc-bosch.png](docs/brand/milo-dong-phuc-bosch.png).
+  - Ngày mẫu Demo có sẵn chuỗi 15 ngày, nên Milo mặc sẵn để present. Đổi món ở *Milo của bạn* → *Tủ đồ*.
+- Logo **không dùng biểu tượng chính thức của Bosch** (vòng tròn "armature"), chỉ dùng 3 màu Bosch. Nếu ban tổ chức cho phép dùng logo chính thức, thay `logo.svg` rồi xuất lại `milo.ico` và `logo.png`.
 
 ## Góc neo (§9.1)
 

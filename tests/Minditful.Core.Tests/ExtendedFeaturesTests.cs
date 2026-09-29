@@ -249,7 +249,7 @@ public sealed class ExtendedFeaturesTests : IDisposable
         e.SetAuto(false);
         e.SetLocked(false);
         Until(e, () => e.S.Ep is { C: CaseId.MorningHello, Phase: Phase.Show });
-        Assert.Contains(Present.Card(e).Blocks, b => b is ParagraphBlock p && p.Text.Contains("Milo được tặng mũ nồi"));
+        Assert.Contains(Present.Card(e).Blocks, b => b is ParagraphBlock p && p.Text.Contains("Milo được tặng đồng phục Bosch"));
     }
 
     // ================= bảng chi tiết =================

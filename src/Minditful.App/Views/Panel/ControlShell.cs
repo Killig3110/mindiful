@@ -48,10 +48,12 @@ internal abstract partial class ControlShell : Window
         FontSize = 13;
         Foreground = Br(P.Ink);
         UseLayoutRounding = true;
+        Icon = Brand.WindowIcon();
 
         // ---- thanh bên ----
         var brand = new StackPanel { Margin = new Thickness(18, 20, 18, 18) };
-        var avatar = new Image { Width = 46, Height = 46, Source = MiloSkin.Get(Pose.Greeting, 1), Margin = new Thickness(0, 0, 10, 0) };
+        var avatar = new Image { Width = 46, Height = 46, Source = Brand.Logo(), Margin = new Thickness(0, 0, 10, 0) };
+        RenderOptions.SetBitmapScalingMode(avatar, BitmapScalingMode.HighQuality);
         var names = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
         names.Children.Add(Text("Milo", 17, P.Ink, FontWeights.Bold, false));
         names.Children.Add(Text("Minditful", 11.5, P.Muted, null, false));
@@ -72,6 +74,10 @@ internal abstract partial class ControlShell : Window
         var foot = Text("Đóng cửa sổ này thì Milo vẫn chạy ở góc màn hình. Mở lại bằng biểu tượng chóp đuôi ở khay hệ thống.", 11, P.Muted);
         foot.Margin = new Thickness(18, 0, 18, 18);
         var side = new DockPanel { LastChildFill = true };
+        // Dải 3 màu Bosch (đỏ · xanh dương · xanh lá) trên đầu thanh bên
+        var stripe = new Border { Height = 5, Background = Brand.Stripe() };
+        DockPanel.SetDock(stripe, Dock.Top);
+        side.Children.Add(stripe);
         DockPanel.SetDock(brand, Dock.Top);
         DockPanel.SetDock(foot, Dock.Bottom);
         side.Children.Add(brand);

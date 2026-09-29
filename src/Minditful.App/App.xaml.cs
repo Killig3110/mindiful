@@ -168,15 +168,15 @@ public partial class App : Application
         _tray = new WinForms.NotifyIcon
         {
             Text = $"Milo · Minditful ({env})",
-            Icon = TailIcon(),
+            Icon = Rendering.Brand.TrayIcon(),
             ContextMenuStrip = menu,
             Visible = true,
         };
         _tray.DoubleClick += (_, _) => ShowControlCenter();
     }
 
-    /// <summary>Icon khay vẽ từ chóp đuôi Milo (không cần file .ico).</summary>
-    private static System.Drawing.Icon TailIcon()
+    /// <summary>Icon khay dự phòng vẽ từ chóp đuôi Milo (khi không đọc được milo.ico).</summary>
+    internal static System.Drawing.Icon TailIcon()
     {
         var dv = new DrawingVisual();
         using (var dc = dv.RenderOpen())
