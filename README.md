@@ -161,7 +161,7 @@ dotnet test
 
 Làm xong mục **[Cài đặt từ đầu](#cài-đặt-từ-đầu)** ở trên: `dotnet test` ra `Passed! … 160`, và `.env` đã điền cho môi trường cần test.
 
-Mở thẳng một môi trường: `--env Scenario` (= Demo), `--env Sandbox`, `--env Prod`. Nếu đã tick "Nhớ lựa chọn", **giữ Shift** khi mở app để hiện lại màn hình chọn.
+Đang chạy mà muốn đổi: menu khay → **Chuyển môi trường** (hoặc bảng điều khiển → *⇄ Chuyển môi trường*): app mở Milo ở môi trường mới với `--env` rồi tự đóng bản cũ, dữ liệu hôm nay được lưu trước. Mở thẳng một môi trường: `--env Scenario` (= Demo), `--env Sandbox`, `--env Prod`. Nếu đã tick "Nhớ lựa chọn", **giữ Shift** khi mở app để hiện lại màn hình chọn.
 
 Cả 3 môi trường đều là **cùng một app**:
 - Milo sống ở **góc phải dưới màn hình thật**, ngay trên taskbar.
@@ -280,7 +280,7 @@ Flow đầy đủ, checklist tối hôm trước và 15 phút trước giờ: **
 | --- | --- | --- |
 | 0–1 | Mở app → màn hình chọn 3 môi trường → **Demo** | "Một app, 3 môi trường, một bộ não." |
 | 1–14 | Trang **Kịch bản trình diễn**, bấm 12 bước: 1, 2→3, 4, 8, 9, 12, 21, 22, 24, 26, 27, 28 | Nhắc đúng lúc, im lặng khi họp, làm giúp thật, dashboard trái cây, chat + nút tính năng, có mới, ngủ khi tập trung, mood realtime, tính cách hài hước, tủ đồ + Bosch |
-| 14–15 | Khay → *Thoát Milo* → giữ **Shift** mở lại → **Sandbox** | "Giờ xem Milo chạy thật với Teams, Outlook, Azure Boards." |
+| 14–15 | Menu khay → **Chuyển môi trường → Sandbox** | "Giờ xem Milo chạy thật với Teams, Outlook, Azure Boards." |
 | 15–24 | Người phụ gửi mail, mời họp, giao task; kéo task Closed; cuộc họp tạo sẵn → Sắp họp → Tham gia → Share → Rời → DND | Milo báo trong ~20 giây, im lặng khi họp, ẩn khỏi màn hình chia sẻ |
 | 24–25 | Kết | "Lên tenant Bosch chỉ cần IT cấp quyền cho app, không đổi code." |
 

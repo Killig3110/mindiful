@@ -68,6 +68,27 @@ internal abstract partial class ControlShell : Window
         _envNote = Text("", 11.5, P.Ink2);
         _envNote.Margin = new Thickness(0, 6, 0, 0);
         brand.Children.Add(_envNote);
+        // Chuyển môi trường ngay trong app: mở Milo ở môi trường khác rồi đóng bản này
+        var switchEnv = new Button
+        {
+            Style = (Style)Application.Current.FindResource("SoftLink"), Content = "⇄  Chuyển môi trường", Foreground = Br(P.Accent),
+            FontWeight = FontWeights.SemiBold, FontSize = 12, Margin = new Thickness(0, 8, 0, 0), HorizontalAlignment = HorizontalAlignment.Left,
+            ToolTip = "Mở Milo ở Demo / Sandbox / Production. Dữ liệu hôm nay được lưu trước khi đổi.",
+        };
+        switchEnv.Click += (_, _) =>
+        {
+            var app = (App)Application.Current;
+            var menu = new ContextMenu { PlacementTarget = switchEnv, Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom };
+            foreach (var (target, name, hint) in App.Environments)
+            {
+                var item = new MenuItem { Header = name, ToolTip = hint, IsChecked = target == app.CurrentEnv, IsEnabled = target != app.CurrentEnv };
+                item.Click += (_, _) => app.SwitchEnvironment(target);
+                menu.Items.Add(item);
+            }
+            menu.IsOpen = true;
+        };
+        System.Windows.Automation.AutomationProperties.SetName(switchEnv, "Chuyển môi trường");
+        brand.Children.Add(switchEnv);
         SetBadge(envLabel, envColor, envNote);
 
         _navPanel.Margin = new Thickness(10, 0, 10, 0);

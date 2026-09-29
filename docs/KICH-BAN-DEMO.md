@@ -14,7 +14,7 @@ Dành cho người đứng present Milo, ví dụ ở vòng chấm cuộc thi. D
 | --- | --- | --- | --- |
 | Mở đầu | 1' | Màn hình chọn môi trường | "Một app, 3 môi trường, một bộ não" |
 | **Phần 1 · Demo** | 13' | Demo | Milo làm được gì: đủ tình huống, hoạt ảnh, tính cách, tủ đồ |
-| Chuyển cảnh | 1' | Thoát Demo → giữ **Shift** mở lại → Sandbox | "Giờ xem Milo chạy thật" |
+| Chuyển cảnh | 30" | Menu khay → **Chuyển môi trường → Sandbox** | "Giờ xem Milo chạy thật" |
 | **Phần 2 · Sandbox realtime** | 9' | Sandbox, chế độ *Như Production* | Gửi mail / mời họp / giao task thật → Milo báo trong ~20 giây; im lặng khi họp; ẩn khỏi màn hình chia sẻ |
 | Kết + hỏi đáp | 1' + | — | Riêng tư, cơ sở khoa học, lên tenant Bosch không đổi code |
 
@@ -38,7 +38,7 @@ Dành cho người đứng present Milo, ví dụ ở vòng chấm cuộc thi. D
    - HDMI / máy chiếu: người xem luôn thấy Milo.
    - Chia sẻ qua Teams: Demo luôn hiện Milo. Sandbox phải bật **Hiện Milo khi chia sẻ màn hình** (bảng điều khiển → *Tổng quan* → thẻ *Chế độ Sandbox*, hoặc menu khay).
 4. **Sandbox:** tạo sẵn 1 cuộc họp **Teams meeting** bắt đầu vào khoảng phút thứ 22 của buổi present, đặt tên như *"Demo Milo cho ban giám khảo"* (Milo hiện gợi ý cho người trình bày). Mở sẵn 3 tab trình duyệt bằng thulu@: Outlook Mail, Outlook Calendar, Azure Boards. Chọn *Chạy như Production*.
-5. **Demo:** mở app → **Demo** → trang *Bắt đầu*: tốc độ *Nhanh 300×*, bật *Người dùng mẫu tự bấm nút*. Mỗi lúc chỉ chạy 1 môi trường.
+5. **Demo:** mở app → **Demo** → trang *Bắt đầu*: tốc độ *Nhanh 300×*, bật *Người dùng mẫu tự bấm nút*. Đã đăng nhập Sandbox từ tối hôm trước thì lúc chuyển sang không phải đăng nhập lại.
 
 ### 0.3 Phần 1 · Demo (13 phút): bấm thẳng các bước trong *Kịch bản trình diễn*
 
@@ -59,7 +59,7 @@ Dành cho người đứng present Milo, ví dụ ở vòng chấm cuộc thi. D
 
 Còn thời gian thì thêm: 6 Lịch kín, 7 Email chờ, 23 Dashboard chi tiết, 25 Trốn khi trình chiếu, và trang *Mood Engine* (mục 3 · Tuỳ chọn).
 
-**Câu chuyển cảnh:** *"Đó là ngày mẫu. Giờ xem Milo chạy thật với Teams, Outlook và Azure Boards."* → khay → **Thoát Milo** → giữ **Shift** mở `Minditful.exe` → **Sandbox**.
+**Câu chuyển cảnh:** *"Đó là ngày mẫu. Giờ xem Milo chạy thật với Teams, Outlook và Azure Boards."* → menu khay → **Chuyển môi trường → Sandbox** (hoặc bảng điều khiển → *⇄ Chuyển môi trường*). Milo Demo đóng, Milo Sandbox mở ra ngay.
 
 ### 0.4 Phần 2 · Sandbox realtime (9 phút)
 
@@ -199,6 +199,7 @@ Chữ nhỏ ở góc mỗi quả là nguồn dữ liệu: T = Teams, O = Outlook
 | Không có AI thì sao? | Chạy đủ bằng luật và câu mẫu. Có API key thì Claude viết lời tự nhiên hơn và chấm mood tinh hơn (±10 điểm) |
 | Có chạy thật với Teams không? | Có, xem [KICH-BAN-SANDBOX.md](KICH-BAN-SANDBOX.md): đổi dữ liệu trên Teams/Outlook/Azure Boards thật là Milo phản ứng |
 | Milo đọc phím tôi gõ à? | Không. Chỉ biết lúc nào có thao tác (để không nói khi bạn đang gõ) và app nào đang mở phía trước (để biết nhảy việc) |
+| Milo có tự đặt lịch, đổi trạng thái Teams không? | Không. Mọi hành động (giữ chỗ trong lịch, khoá tập trung + Không làm phiền, mở Teams / Outlook / Azure Boards) chỉ chạy sau khi bạn bấm. Chỉ 2 việc tự động, đều nằm trong việc bạn đã đồng ý: tới giờ tập trung đã giữ thì bật Không làm phiền, hết giờ thì trả Teams về như cũ |
 | Milo đọc tiêu đề cuộc họp? | Chỉ **ngay trên máy**, để đoán loại cuộc họp (trình bày, ra quyết định, ngồi nghe, làm việc nhóm, 1:1) và đưa gợi ý. AI chỉ nhận **nhãn** đó, không nhận tiêu đề hay agenda. Có test kiểm tra |
 | Có báo realtime không? | Có: email mới gửi thẳng cho bạn, lời mời họp mới, task mới được giao. Production đọc email 5 phút/lần, Sandbox ~20 giây. Đang họp thì giữ lại, hết họp mới báo |
 | Sao lại có meme? | Tính cách mặc định *Pha trộn*: phần lớn dễ thương, lâu lâu hài cho bớt khô khan. Chỉ lấy cảm hứng cử chỉ, vẽ lại theo Milo. Ai không thích thì chọn *Dễ thương* |

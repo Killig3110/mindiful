@@ -33,12 +33,20 @@ Mở `Minditful.exe` (hoặc chạy từ Visual Studio). Màn hình đầu tiên
 
 Tick **"Nhớ lựa chọn"** để lần sau mở thẳng. Muốn chọn lại: **giữ Shift** khi mở app.
 
+**Chuyển môi trường khi đang chạy** (không cần tắt app bằng tay):
+- Menu khay → **Chuyển môi trường** → *Demo* / *Sandbox* / *Production*.
+- Hoặc bảng điều khiển → **⇄ Chuyển môi trường** (ngay dưới nhãn môi trường ở thanh bên).
+- Milo ở môi trường cũ lưu dữ liệu hôm nay rồi đóng, Milo ở môi trường mới mở ra. Mỗi môi trường có dữ liệu, đăng nhập, tủ đồ, cài đặt riêng nên không trộn lẫn.
+- Đã tick "Nhớ lựa chọn" thì lần mở sau vào thẳng môi trường vừa chuyển tới.
+
 App chạy nền. Biểu tượng **chóp đuôi cáo** nằm ở khay hệ thống (góc phải taskbar, có thể nằm trong mũi tên ^). Chuột phải vào biểu tượng:
 
 - **Mở dashboard của Milo**
 - **Mở bảng điều khiển**
 - Demo: **Phát / tạm dừng ngày mẫu**, **Làm lại ngày mẫu**
-- Sandbox/Production: **Đăng nhập Microsoft**, **Làm mới dữ liệu**
+- **Trò chuyện với Milo**, **Thay đồ cho Milo**
+- Sandbox: **Chế độ test**, **Hiện Milo khi chia sẻ màn hình**; Sandbox/Production: **Khởi động cùng Windows**, **Đăng nhập Microsoft**, **Làm mới dữ liệu**
+- **Chuyển môi trường**: sang Demo / Sandbox / Production ngay
 - **Thoát Milo**: tắt hẳn app
 
 Nhấp đúp biểu tượng cũng mở bảng điều khiển.
@@ -399,6 +407,15 @@ Không thấy cả chóp đuôi:
 **Gửi mail mà Milo không báo?** Mail phải gửi thẳng cho bạn (ô To) từ tài khoản khác. Những thứ có sẵn lúc mở app không được báo lại. Đang họp hay tập trung thì thẻ chờ ở chấm chờ. Production đọc email 5 phút/lần, Sandbox ~20 giây; bấm *Làm mới ngay* nếu không muốn chờ.
 
 **Milo đọc tiêu đề cuộc họp của tôi à?** Có, nhưng chỉ **ngay trên máy** để đoán loại cuộc họp (trình bày, ra quyết định, ngồi nghe, làm việc nhóm, 1:1) và đưa gợi ý trên thẻ Sắp họp. AI chỉ nhận **nhãn** đó, không nhận tiêu đề hay agenda.
+
+**Milo có tự đặt lịch, đổi trạng thái Teams, mở Outlook mà không hỏi không?** Không. Mọi hành động chỉ chạy **sau khi bạn bấm** nút trên thẻ:
+- *Giữ chỗ* / *Khoá 30' nghỉ trưa* / *Giữ 10' nghỉ ngày mai* → tạo sự kiện trong Outlook (cần quyền ghi lịch; thiếu quyền thì chỉ nhắc).
+- *Khoá 90 phút* / *Tập trung 30 phút* → chặn lịch "Tập trung" + đặt Teams *Không làm phiền*.
+- *Giữ* ở thẻ Giữ giờ tập trung → giữ chỗ trong lịch; **tới giờ đó** Milo tự bật Không làm phiền (bạn đã đồng ý từ trước).
+- **Hết khối tập trung** Milo tự trả Teams về trạng thái tự động, chỉ khi chính Milo đã bật Không làm phiền.
+- *Tham gia*, *Mở slide*, *Mở Outlook*, *Mở email*, *Mở task* → mở Teams / Outlook / Azure Boards.
+
+Ở Demo, công tắc *Người dùng mẫu tự bấm nút* bấm hộ theo kịch bản, và mọi hành động chỉ ghi vào nhật ký, không đụng dịch vụ thật.
 
 **Không thích Milo làm trò?** Chuột phải Milo → *Tính cách Milo* → **Dễ thương**.
 

@@ -54,7 +54,7 @@ Kịch bản dưới đây chỉ dùng những phản ứng **không phụ thu�
 3. Tạo sẵn 1 cuộc họp Teams **bắt đầu sau 12 phút tính từ lúc bắt đầu phần Sandbox** (bước 5 cần nó). Tick *Teams meeting*. Đặt tên như *"Demo Milo cho ban giám khảo"*: thulu@ là người tổ chức nên thẻ Sắp họp hiện gợi ý cho người trình bày.
 4. Tắt thông báo Windows khác. Để Teams mở nhưng thu nhỏ.
 5. Chiếu cho người xem qua **Teams / Zoom**: bật **Hiện Milo khi chia sẻ màn hình** (*Tổng quan* → thẻ *Chế độ Sandbox*, hoặc menu khay). Chiếu bằng HDMI thì không cần.
-6. Chỉ chạy 1 môi trường mỗi lúc: nếu vừa present Demo thì khay → *Thoát Milo*, giữ **Shift** khi mở lại để chọn Sandbox.
+6. Vừa present Demo: menu khay → **Chuyển môi trường → Sandbox** (hoặc bảng điều khiển → *⇄ Chuyển môi trường* dưới nhãn môi trường). Milo Demo đóng lại, Milo Sandbox mở ra, không cần tắt app bằng tay.
 
 ## 3. Kịch bản · khoảng 10 phút
 

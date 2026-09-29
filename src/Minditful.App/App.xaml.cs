@@ -21,6 +21,40 @@ public partial class App : Application
 
     internal CompanionWindow? Companion { get; private set; }
 
+    /// <summary>Môi trường đang chạy (để bảng điều khiển và menu khay biết chuyển sang đâu).</summary>
+    internal AppEnvironment? CurrentEnv { get; private set; }
+
+    public static readonly (AppEnvironment Env, string Name, string Hint)[] Environments =
+    [
+        (AppEnvironment.Demo, "Demo", "Ngày mẫu theo kịch bản, không cần tài khoản"),
+        (AppEnvironment.Sandbox, "Sandbox", "Tenant thử mindiful.onmicrosoft.com, dữ liệu thật"),
+        (AppEnvironment.Production, "Production", "Tenant Bosch"),
+    ];
+
+    /// <summary>
+    /// Chuyển môi trường ngay lúc đang chạy: mở Milo ở môi trường mới (tham số --env) rồi đóng bản hiện tại
+    /// (dữ liệu hôm nay được lưu khi đóng). Mỗi môi trường có dữ liệu, đăng nhập, tủ đồ riêng nên không trộn lẫn.
+    /// </summary>
+    internal void SwitchEnvironment(AppEnvironment target)
+    {
+        if (target == CurrentEnv || System.Environment.ProcessPath is not { } exe) return;
+        // Đã tick "Nhớ lựa chọn" thì lần mở sau cũng vào môi trường mới
+        if (File.Exists(AppPaths.RememberedEnvFile)) File.WriteAllText(AppPaths.RememberedEnvFile, target.ToString());
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(exe, $"--env {target}")
+            {
+                UseShellExecute = false, WorkingDirectory = AppContext.BaseDirectory,
+            });
+        }
+        catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException)
+        {
+            MessageBox.Show("Không mở được Milo ở môi trường mới: " + ex.Message, "Minditful");
+            return;
+        }
+        Shutdown();
+    }
+
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
@@ -34,6 +68,7 @@ public partial class App : Application
             return;
         }
 
+        CurrentEnv = env;
         _single = new Mutex(true, $"Minditful.{env}", out var first);
         if (!first)
         {
@@ -186,7 +221,15 @@ public partial class App : Application
             menu.Items.Add("Đăng nhập Microsoft", null, async (_, _) => await live.SignInAsync(true));
             menu.Items.Add("Làm mới dữ liệu", null, async (_, _) => await live.RefreshAsync());
         }
+        var switcher = new WinForms.ToolStripMenuItem("Chuyển môi trường");
+        foreach (var (target, name, hint) in Environments)
+        {
+            var item = new WinForms.ToolStripMenuItem(name) { ToolTipText = hint, Checked = target == env, Enabled = target != env };
+            item.Click += (_, _) => SwitchEnvironment(target);
+            switcher.DropDownItems.Add(item);
+        }
         menu.Items.Add(new WinForms.ToolStripSeparator());
+        menu.Items.Add(switcher);
         menu.Items.Add("Thoát Milo", null, (_, _) => Shutdown());
         _tray = new WinForms.NotifyIcon
         {
