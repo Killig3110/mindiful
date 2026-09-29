@@ -20,7 +20,7 @@ Milo là một chú cáo sống ở **góc màn hình Windows** của kỹ sư. 
 
 Mỗi lần xuất hiện là một **episode** gồm 3 nhịp: **Vào** (hoạt ảnh leo lên) → **Ở lại** (thẻ nhắc + nút bấm) → **Ra** (leo xuống). Có 16 loại episode (gọi là **case**), chia 4 nhóm: xã giao, hỗ trợ công việc, chăm sóc, người dùng tự mở.
 
-Ngoài ra Milo có **điểm mood** 0–100 trong ngày (Mood Engine) thể hiện bằng màu sắc, dáng đứng và **chùm nho 7 ngày** trong dashboard.
+Ngoài ra Milo có **điểm mood** 0–100 trong ngày (Mood Engine) thể hiện bằng màu sắc, dáng đứng và **dashboard trái cây** quanh Milo (nho = mood, cam = cuộc họp, anh đào = email chờ, táo cắn dở = sprint; trang tuần có chùm nho 7 ngày).
 
 ---
 
@@ -415,7 +415,7 @@ Giữ đúng toạ độ prototype (tính từ góc neo, đơn vị px; "đáy" 
 | Chóp đuôi | 96, 0 | 46×40 | Quầng thở 5s, màu theo mood, chấm số/đếm ngược; **kéo để đổi góc** |
 | Thì thầm | 150, 68 | — | Khi ló đầu |
 | Thẻ | 26, 162 (bấm chấm chờ: 26, 16) | 280–310 rộng | Hiệu ứng pop 0,35s |
-| Dashboard | 22, 156 | 350×≤330 | Hiệu ứng rise 0,3s |
+| Dashboard trái cây | 0, 0 (khung 340×360) | 4 bong bóng 84px (chùm nho tuần 100px) | Vòng cung bán kính 160 quanh đầu Milo; bung ra từ Milo, lần lượt 90 ms; thanh tiêu đề nhỏ ở trên (Hôm nay/Tuần này, ×) |
 | Chấm chờ | 22, 10 | — | "N lời nhắc đang chờ" khi Im lặng |
 
 Góc trái: lật ngang Milo và đổi neo sang trái. Góc trên: lật dọc (Milo thò xuống từ mép trên), mọi thứ neo theo mép trên.
@@ -433,10 +433,10 @@ sequenceDiagram
     U->>L: bấm đuôi
     L->>E: TailClick() → có chấm chờ? mở lại case đó : mở Dashboard (P0)
     E-->>L: Episode Dashboard (ClimbIn → nảy lên → Show)
-    L-->>U: Dashboard "Hôm nay" (chùm nho, 3 ô, cuộc họp kế)
-    U->>L: "Xem cả tuần →"
+    L-->>U: 4 quả bung ra từ Milo theo vòng cung: nho · cam · anh đào · táo (rê chuột = thẻ chi tiết)
+    U->>L: "Tuần này →"
     L->>E: UserReply("week")
-    L-->>U: 7 quả nho, thống kê tuần, Office Vibe, sprint, lịch + mức nặng cuộc họp
+    L-->>U: Nho thành chùm 7 ngày (thống kê tuần trong thẻ), cam 5 múi = 5 ngày làm việc, anh đào, táo sprint
     U->>L: Esc / X / bấm Milo
     L->>E: Escape() → leo xuống
 ```
@@ -827,7 +827,8 @@ Lỗi AADSTS được dịch sang tiếng Việt (admin consent, sai tenant, red
 | Khoá | Mặc định | Ý nghĩa |
 | --- | --- | --- |
 | `Environment` / `MINDITFUL_ENV` / `--env` | trống | `Scenario`/`Demo`, `Sandbox`, `Prod`/`Production` |
-| `WorkDay.Start/End` | 09:00/18:00 | Khung giờ làm |
+| `WorkDay.Mode` | Flexible | Flexible: bắt đầu = lần mở máy đầu ngày trong `FlexEarliestStart`–`FlexLatestStart` (08:00–10:00), giờ về = bắt đầu + `FlexHours` (9). Giờ bắt đầu lưu trong bảng `day_start` nên mở lại app giữa ngày không bị tính lại. Fixed: dùng `Start/End` |
+| `WorkDay.Start/End` | 09:00/18:00 | Khung cố định (Mode=Fixed) và ngày mẫu Demo |
 | `WorkDay.AwayAfterMinutes` | 5 | Idle bao lâu thì là rời máy |
 | `WorkDay.FragmentationPerHour` | 30 | Ngưỡng phân mảnh (Live) |
 | `Storage.RetentionPeriod` | Week | Week / Month |

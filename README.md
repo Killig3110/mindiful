@@ -164,7 +164,7 @@ Dùng để present và để kiểm tra đủ 16 case của prototype. Giờ, l
 | 12:07 | Bóng thoại "90 phút sâu xong rồi!" → thẻ **Nghỉ quá ít** → *Để sau* | |
 | 12:55 | Thẻ **Lịch kín** + lịch mini → *Giữ chỗ* → khối xanh "Nghỉ 10'" trượt vào, dấu **Đã giữ** | |
 | 13:10 | Thẻ **Email chờ** (3 email) → *Mở Outlook* | |
-| 13:14–13:15 | Milo ló đầu thì thầm "Hôm nay mọng 80" → mở **dashboard** (chùm nho) → *Xem cả tuần* → đóng | |
+| 13:14–13:15 | Milo ló đầu thì thầm "Hôm nay mọng 80" → mở **dashboard trái cây** quanh Milo → *Tuần này →* → đóng | |
 | 13:30–16:10 | Im lặng suốt 3 cuộc họp liền | Điểm tụt xuống 57 → **Mệt dần**, Milo nhạt màu |
 | 16:12 | JumpIn → **Họp liên tục · 2h40** → *Đồng ý* → **vòng thở 4-4-4** × 3 → "Cảm ơn…" → leo xuống | |
 | 17:45 | Milo nhảy tưng "Xong #4821 rồi!", điểm hồi lại | Mức về *Cân bằng* |
@@ -182,7 +182,7 @@ Dùng để present và để kiểm tra đủ 16 case của prototype. Giờ, l
 | Xã giao | Chào sáng · Chào hỏi · Tan tầm · Nhắc lại tan tầm | Hello! + bản tin · thẻ 1 nút "Cảm ơn Milo" · tổng kết 3 ô · 1 nút "Về thôi" |
 | Hỗ trợ | Sắp họp · Lịch kín · Email chờ · Task kẹt · Task xong · Hết giờ tập trung | Thẻ Teams · lịch mini · 3 email · thanh sprint · bóng thoại 3s · bóng thoại 3s |
 | Chăm sóc | Họp liên tục · Quá giờ · Chưa nghỉ trưa · Làm liền · Nghỉ quá ít · Phân mảnh | Nhãn màu riêng từng case, nút Đồng ý / Để sau (Np) / Không cần, ô chat |
-| Người dùng | Dashboard | Chùm nho 7 ngày, Office Vibe, lịch hôm nay kèm **mức nặng cuộc họp** (5 chấm) |
+| Người dùng | Dashboard | 4 quả quanh Milo: nho (mood) · cam (cuộc họp, múi đã ăn = đã họp) · anh đào (email chờ) · táo cắn dở (sprint); rê chuột lên từng quả xem chi tiết (lịch + mức nặng cuộc họp, Office Vibe, email…) |
 
 **1d. Bẻ kịch bản** (mục *Bạn thử làm*):
 - *Đang gõ phím*: lời nhắc bị hoãn; gõ liên tục 5' thì chỉ hiện nhãn gọn "Milo có lời nhắn".
@@ -219,7 +219,7 @@ Dùng để present và để kiểm tra đủ 16 case của prototype. Giờ, l
    - *Giữ chỗ*: Outlook của thulu@ có sự kiện "Nghỉ cùng Milo" (tentative, category **Milo**).
    - *Khoá 90 phút*: có sự kiện "Tập trung: #id" (busy), và Teams chuyển **Do not disturb** nếu Teams đang mở.
    - Share màn hình trong Teams: người xem **không thấy** Milo.
-5. Kiểm tra dữ liệu local: dashboard → *Xem cả tuần* có mục **Thống kê tuần**. Bảng điều khiển → *Dữ liệu cá nhân trên máy* ghi chính sách xoá và có nút **Xoá toàn bộ dữ liệu thống kê ngay**.
+5. Kiểm tra dữ liệu local: dashboard → *Tuần này →* → rê chuột lên **chùm nho** để xem **Thống kê tuần**. Bảng điều khiển → *Dữ liệu cá nhân trên máy* ghi chính sách xoá và có nút **Xoá toàn bộ dữ liệu thống kê ngay**.
 6. (Có API key) điền `ANTHROPIC_API_KEY`, đặt `…Features__Mood=Hybrid` và `…Features__Meetings=Llm`, mở lại app:
    - Bảng Bộ não có "Nguồn: luật X + Claude ±Y" và câu nhận xét.
    - Dashboard có mức nặng cuộc họp nguồn *Claude*.
@@ -249,7 +249,7 @@ Dọn dẹp sau khi test: trong Outlook, xoá các sự kiện category **Milo**
 | 3–4 | Mốc **09:25** → **09:30** | Nhắc họp đúng lúc; vào họp thì Milo **im lặng**, lời nhắc dồn thành chấm chờ |
 | 4–5 | Mốc **10:37** | JumpIn sau họp, Task kẹt → khoá 90' tập trung (tạo lịch + Teams DND) |
 | 5–6 | Mốc **16:12**, bỏ tick tự trả lời, tự bấm *Đồng ý* | Vòng thở 4-4-4 ngay trong thẻ |
-| 6–7 | Rê chuột lên đuôi → bấm → *Xem cả tuần* | Chùm nho 7 ngày, Office Vibe, **mức nặng từng cuộc họp**, thống kê tuần |
+| 6–7 | Rê chuột lên đuôi → bấm → rê lên từng quả → *Tuần này →* | Dashboard trái cây: nho mood, cam họp, anh đào email, táo sprint; tuần là chùm nho 7 ngày + thống kê tuần |
 | 7–8 | Bảng **Bộ não Milo** (cột phải) | Mọi quyết định có lý do: cổng im lặng, ngân sách 15', hàng đợi ưu tiên; mood tính minh bạch |
 | 8–9 | (Tuỳ chọn) chuyển sang **Sandbox** đã đăng nhập sẵn: Tạo dữ liệu mẫu → 2' sau Milo nhắc Teams meeting thật | Cùng bộ não, dữ liệu thật từ Graph + Azure Boards |
 | 9–10 | Kéo đuôi sang góc khác; nhắc riêng tư | Chỉ gửi số liệu cho LLM, dữ liệu cá nhân tự xoá mỗi tuần, ẩn khi share màn hình |
@@ -292,7 +292,7 @@ copy .env.sample .env    # rồi điền giá trị
 
 PAT và API key cũng có thể nhập trong Bảng điều khiển; khi đó chúng được lưu mã hoá DPAPI trên máy.
 
-`src/Minditful.App/appsettings.json` giữ các giá trị mặc định không bí mật. Khung giờ làm (`WorkDay.Start/End`), ngưỡng rời máy, ngưỡng phân mảnh và nhịp làm mới dữ liệu nằm trong mục `WorkDay`.
+`src/Minditful.App/appsettings.json` giữ các giá trị mặc định không bí mật. Giờ làm (`WorkDay`: mặc định **Flexible** kiểu Bosch, bắt đầu = lần mở máy đầu ngày trong 08:00–10:00, làm 9 tiếng → 8→17, 9→18, 10→19; đặt `Mode=Fixed` để dùng `Start/End` cố định), ngưỡng rời máy, ngưỡng phân mảnh và nhịp làm mới dữ liệu nằm trong mục `WorkDay`.
 
 ### Sandbox (tenant `mindiful.onmicrosoft.com`)
 

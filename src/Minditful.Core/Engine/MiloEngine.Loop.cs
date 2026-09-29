@@ -9,15 +9,38 @@ public sealed partial class MiloEngine
         if (!S.DayStarted)
         {
             S.DayStarted = true;
-            S.FirstAct = S.T;
+            var resumed = S.KnownDayStart is { } known && known < S.T;
+            S.FirstAct = resumed ? S.KnownDayStart : S.T;
             S.LastBreakEnd = S.T;
             S.NextVisit = S.T + RandMin(Cfg.VisitMinMinutes, Cfg.VisitMaxMinutes);
+            if (Cfg.IsFlexible) SetFlexibleDay(S.FirstAct!.Value);
+            if (resumed)
+            {
+                // Mở lại app giữa ngày: giữ giờ bắt đầu thật, không chào sáng lần nữa
+                Log($"Mở lại app · hôm nay bắt đầu làm từ {Tm.Hm(S.FirstAct!.Value)}", LogKind.User);
+                return;
+            }
             Log("Mở khoá lần đầu trong ngày", LogKind.User);
             if (Cfg.MorningHelloUntil is not { } until || S.T < until)
                 Enqueue(CaseId.MorningHello, "mh", new CaseData());
         }
         else Log("Mở khoá máy", LogKind.User);
     }
+
+    /// <summary>
+    /// Giờ linh hoạt: bắt đầu = lần mở máy đầu ngày (làm tròn xuống 5 phút), kẹp trong [08:00, 10:00];
+    /// giờ về = bắt đầu + 9 tiếng → vào 8h về 17h, 9h về 18h, 10h về 19h.
+    /// </summary>
+    private void SetFlexibleDay(double firstAct)
+    {
+        var start = Math.Clamp(Math.Floor(firstAct / 300) * 300, Cfg.FlexEarliestStart!.Value, Cfg.FlexLatestStart);
+        Cfg.Start = start;
+        Cfg.End = start + Cfg.FlexHours * 3600;
+        Log($"Giờ làm linh hoạt: hôm nay {Tm.Hm(Cfg.Start)}–{Tm.Hm(Cfg.End)} (tính từ lúc mở máy {Tm.Hm(firstAct)})", LogKind.Sig);
+    }
+
+    /// <summary>Host báo giờ bắt đầu thật của hôm nay (lưu trên máy) trước khi mở khoá lần đầu.</summary>
+    public void RestoreDayStart(double firstAct) => S.KnownDayStart = firstAct;
 
     private void WorldAct(string a, string? id = null)
     {

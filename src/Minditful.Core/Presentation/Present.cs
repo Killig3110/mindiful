@@ -148,6 +148,7 @@ public static class Present
                 if (e.Snap.BoardsAvailable && inProg / Math.Max(0.1, e.Snap.AvgInProgress) > 1.5)
                     extra.Add($"{inProg} task đang mở, nhiều hơn thường lệ. Chọn 1 việc quan trọng nhất nhé?");
                 if (e.Snap.YesterdayScore is { } y) extra.Add($"Hôm qua: {y} điểm");
+                if (e.Cfg.IsFlexible) extra.Add($"Hôm nay về lúc {Hm(e.Cfg.End)}");
                 if (extra.Count > 0) b.Add(new ParagraphBlock(string.Join(" · ", extra), Small: true));
                 b.Add(new ButtonsBlock([new("gotIt", "Đã rõ", ButtonStyle.Dark), new("remindAt", $"Nhắc lúc {HourLabel(e.MorningRemindAt())}", ButtonStyle.Ghost)]));
                 break;
@@ -329,6 +330,76 @@ public static class Present
         var insight = e.Cfg.MoodMode != MoodMode.Rules && s.MoodInsight is { } mi ? $"Milo nhận xét: {mi.Insight}" : null;
         return new DashboardModel(ep.Page, s.Score, BandPhrase(s.BandIdx), yLine, days, tiles, next, s.Vibe, e.Snap.Sprint, events, e.Snap.StatusNote, insight,
             WeekSummary(e.Snap.ThisWeek, e.Snap.LastWeek));
+    }
+
+    /// <summary>Dashboard dạng "vườn trái cây" quanh Milo: 4 quả, mọi chi tiết cũ nằm trong thẻ khi rê chuột.</summary>
+    public static FruitDashboard? Fruits(MiloEngine e)
+    {
+        if (Dashboard(e) is not { } d) return null;
+        var s = e.S;
+        var vibe = $"Office Vibe · tập trung {d.Vibe.F}/5 · năng lượng {d.Vibe.E}/5 · căng thẳng {d.Vibe.S}/5";
+
+        // --- cuộc họp hôm nay ---
+        var total = e.Meetings.Count;
+        var done = e.Meetings.Count(m => m.End <= s.T);
+        var meetLines = d.Events.Select(r => $"{r.Time}  {r.Name} · {r.Tag}" + (r.Load is { } l ? $" · nặng {l}/5" : "")).ToList();
+        if (d.Next is { } nx) meetLines.Add($"Kế tiếp {nx.Time} · {nx.Tag}");
+        if (meetLines.Count == 0) meetLines.Add("Hôm nay không có cuộc họp nào.");
+
+        // --- email chờ ---
+        var waiting = e.WaitingEmails();
+        var mail = e.Snap.MailAvailable
+            ? new FruitItem("mail", FruitKind.Cherries, waiting.Count.ToString(), waiting.Count > 0 ? "email chờ" : "đã trả lời", "O", "#0F6CBD",
+                $"Anh đào email · {waiting.Count} email chờ bạn",
+                waiting.Take(3).Select(m => $"{m.From} · {m.Subject} · {(m.Days >= 2 ? $"{m.Days} ngày" : "hôm qua")}")
+                    .Append($"Mỗi quả là 1 email hỏi thẳng bạn, chưa trả lời. Chưa đọc: {e.Snap.Unread}.").ToList(),
+                Count: waiting.Count)
+            : new FruitItem("mail", FruitKind.Cherries, "—", "email", "O", "#0F6CBD", "Email", ["Chưa kết nối Outlook hoặc thiếu quyền Mail.Read."], Available: false);
+
+        // --- sprint / task ---
+        var sp = e.Snap.Sprint;
+        var apple = sp is { Total: > 0 }
+            ? new FruitItem("sprint", FruitKind.Apple, $"{sp.Done:0.#}/{sp.Total:0.#}", sp.Name, "B", "#0078D4",
+                $"Táo sprint · {Math.Round(sp.Done / sp.Total * 100)}% xong",
+                [$"Còn {sp.DaysLeft} ngày làm việc · {sp.Done:0.#}/{sp.Total:0.#} điểm", $"{e.InProgress()} task đang làm · {e.StuckTasks().Count} task kẹt",
+                 "Sprint càng gần xong táo càng bị cắn nhiều; xong hẳn còn lõi."], Progress: sp.Done / sp.Total)
+            : e.Snap.BoardsAvailable
+                ? new FruitItem("sprint", FruitKind.Apple, $"{e.InProgress()}", "task đang làm", "B", "#0078D4", "Task đang làm",
+                    [$"{s.TasksDone} task xong hôm nay · {e.StuckTasks().Count} task kẹt", "Team chưa chọn sprint hiện tại nên táo tính theo task xong/đang làm."],
+                    Progress: s.TasksDone + e.InProgress() == 0 ? 0 : (double)s.TasksDone / (s.TasksDone + e.InProgress()))
+                : new FruitItem("sprint", FruitKind.Apple, "—", "sprint", "B", "#0078D4", "Azure Boards", ["Chưa kết nối Azure Boards."], Available: false);
+
+        if (d.Page == DashPage.Today)
+        {
+            var moodLines = new List<string> { d.Phrase, d.YesterdayLine, vibe };
+            if (d.Insight is { } ins) moodLines.Add(ins);
+            if (d.StatusNote is { } note) moodLines.Add(note);
+            return new FruitDashboard(DashPage.Today, "Hôm nay của bạn",
+            [
+                new("mood", FruitKind.Grape, s.Score.ToString(), Catalog.Bands[s.BandIdx].Label, "★", "#E8A33D", $"Quả nho hôm nay · {s.Score} điểm", moodLines, Score: s.Score),
+                new("meet", FruitKind.Orange, $"{done}/{total}", "cuộc họp", "T", "#5B5FC7", $"Cam họp · {total} cuộc · {Dur(e.MeetingMin())} họp", meetLines, Total: total, Done: done),
+                mail,
+                apple,
+            ]);
+        }
+
+        // --- trang tuần: cùng 4 quả, nho thành chùm 7 ngày ---
+        var real = d.Days.Where(x => x.Score >= 0).ToList();
+        var avg = real.Count > 0 ? (int)Math.Round(real.Average(x => x.Score)) : s.Score;
+        var weekLines = (WeekSummary(e.Snap.ThisWeek, e.Snap.LastWeek) ?? "Chưa có thống kê tuần (cần dữ liệu các ngày trước).").Replace("**", "").Split('\n').ToList();
+        weekLines.Add(vibe);
+        var workday = ((int)e.Day.DayOfWeek + 6) % 7; // T2 = 0
+        var weekMeetMin = e.Snap.ThisWeek?.MeetingMin is { } wm && wm > 0 ? wm : e.MeetingMin();
+        return new FruitDashboard(DashPage.Week, "Tuần này của bạn",
+        [
+            new("mood", FruitKind.Bunch, avg.ToString(), "TB tuần", "★", "#E8A33D", $"Chùm nho tuần · trung bình {avg} điểm",
+                weekLines.Prepend("Mỗi quả là 1 ngày, quả dưới cùng viền cam là hôm nay. Rê lên từng quả để xem điểm.").ToList(), Score: avg, Days: d.Days),
+            new("meet", FruitKind.Orange, Dur(weekMeetMin), "họp tuần", "T", "#5B5FC7", "Cam tuần · 5 múi = 5 ngày làm việc",
+                [$"Đã qua {Math.Min(workday, 5)}/5 ngày làm việc", $"Tổng thời gian họp: {Dur(weekMeetMin)}", "Múi đã ăn = ngày đã qua."],
+                Total: 5, Done: Math.Min(workday, 5)),
+            mail,
+            apple,
+        ]);
     }
 
     /// <summary>Thống kê tuần từ dữ liệu local (SQLite), kèm so sánh tuần trước nếu còn giữ.</summary>

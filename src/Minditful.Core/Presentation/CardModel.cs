@@ -39,3 +39,15 @@ public sealed record DashboardModel(
     (int F, int E, int S) Vibe, SprintInfo? Sprint, IReadOnlyList<DashRow> Events, string? StatusNote, string? Insight = null, string? WeekSummary = null);
 
 public sealed record Caption(string Tag, string Text, string Ref);
+
+public enum FruitKind { Grape, Bunch, Orange, Cherries, Apple }
+
+/// <summary>
+/// Một quả trong "vườn trái cây" quanh Milo (dashboard mới). Hình quả đổi theo số liệu:
+/// nho = mood · chùm nho = 7 ngày · cam = cuộc họp (múi đã ăn = đã họp) · anh đào = email chờ · táo cắn dở = sprint.
+/// </summary>
+public sealed record FruitItem(
+    string Key, FruitKind Kind, string Big, string Small, string Badge, string BadgeColor, string TipTitle, IReadOnlyList<string> TipLines,
+    int Score = 0, int Total = 0, int Done = 0, int Count = 0, double Progress = 0, IReadOnlyList<DayScore>? Days = null, bool Available = true);
+
+public sealed record FruitDashboard(DashPage Page, string Title, IReadOnlyList<FruitItem> Items);

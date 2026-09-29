@@ -203,7 +203,7 @@ public sealed class MiloLayer : Grid
         _cardHost = new ContentControl { Focusable = false };
         Place(_cardHost, 26, 162);
         _dashHost = new ContentControl { Focusable = false };
-        Place(_dashHost, 22, 156);
+        Place(_dashHost, 0, 0); // vườn trái cây neo đúng góc, xếp vòng cung quanh đầu Milo
 
         var pulse = new Ellipse { Width = 10, Height = 10, Fill = Br("#E8A33D"), Margin = new Thickness(0, 0, 8, 0) };
         _dotText = new System.Windows.Controls.TextBlock { FontSize = 12, Foreground = Br("#3A2A1E") };
@@ -351,15 +351,14 @@ public sealed class MiloLayer : Grid
         if (_cards.Breathe is { } br && Present.Breathe(e) is { } bs) br.Update(Present.BreatheElapsed(e), bs.Phase, bs.Count, bs.Label);
 
         // ---- dashboard ----
-        var dashKey = showDash ? $"{ep!.Id}:{ep.CardVer}:{ep.Page}" : null;
+        // ---- dashboard: vườn trái cây quanh Milo ----
+        var dashKey = showDash ? $"{ep!.Id}:{ep.CardVer}:{ep.Page}:{_corner}" : null;
         if (dashKey != _dashKey)
         {
-            var first = _dashKey is null;
             _dashKey = dashKey;
-            var dm = dashKey is null ? null : Present.Dashboard(e);
-            var el = dm is null ? null : DashboardRenderer.Build(dm, act => Act(x => x.UserReply(act)));
-            _dashHost.Content = el;
-            if (el is not null && first) Rise(el);
+            _dashHost.Content = dashKey is not null && Present.Fruits(e) is { } fruits
+                ? new FruitDashboardView(fruits, _corner, act => Act(x => x.UserReply(act)))
+                : null;
         }
 
         RenderFx(e, clip, elapsed);
@@ -401,14 +400,6 @@ public sealed class MiloLayer : Grid
         sc.BeginAnimation(ScaleTransform.ScaleYProperty, s);
         tr.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(14, 0, TimeSpan.FromSeconds(.25)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
         el.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromSeconds(.25)));
-    }
-
-    private static void Rise(FrameworkElement el)
-    {
-        var tr = new TranslateTransform();
-        el.RenderTransform = tr;
-        tr.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(50, 0, TimeSpan.FromSeconds(.3)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
-        el.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromSeconds(.3)));
     }
 
     // ================= hiệu ứng =================

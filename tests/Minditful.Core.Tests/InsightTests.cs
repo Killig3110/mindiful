@@ -92,6 +92,52 @@ public class InsightTests
         Assert.Contains("Chưa có dữ liệu hôm qua", d.YesterdayLine);
     }
 
+    private static MiloEngine OpenDashboard(WorkSnapshot snap, string at = "13:40")
+    {
+        var e = new MiloEngine(new EngineConfig(), snap, null, DemoScenario.Day, T(at));
+        e.SetAuto(false);
+        e.SetLocked(false);
+        for (var i = 0; i < 200 && e.S.Ep is not { Phase: Phase.Show }; i++) e.Advance(0.25, false);
+        e.UserReply("gotIt");
+        e.S.Queue.Clear();
+        for (var i = 0; i < 200 && e.S.Ep is not null; i++) e.Advance(0.25, false);
+        e.TailClick();
+        for (var i = 0; i < 40 && e.S.Ep is not { C: CaseId.Dashboard, Phase: Phase.Show }; i++) e.Advance(0.25, false);
+        return e;
+    }
+
+    [Fact]
+    public void Fruit_dashboard_today_and_week()
+    {
+        var e = OpenDashboard(DemoScenario.Snapshot());
+        var today = Present.Fruits(e)!;
+        Assert.Equal([FruitKind.Grape, FruitKind.Orange, FruitKind.Cherries, FruitKind.Apple], today.Items.Select(i => i.Kind));
+        var meet = today.Items[1];
+        Assert.Equal((4, 1), (meet.Total, meet.Done));                 // 13:40: Sprint Planning đã xong, còn 3 cuộc
+        Assert.Contains(meet.TipLines, l => l.Contains("Design sync") && l.Contains("nặng"));
+        Assert.Equal(5, today.Items[2].Count);                         // 5 email chờ = 5 quả anh đào
+        Assert.Equal(13 / 21.0, today.Items[3].Progress, 3);           // táo cắn theo sprint 13/21
+        Assert.All(today.Items, i => Assert.True(i.Big.Length <= 7, $"'{i.Big}' quá dài cho bong bóng"));
+
+        e.UserReply("week");
+        var week = Present.Fruits(e)!;
+        Assert.Equal(DashPage.Week, week.Page);
+        Assert.Equal(FruitKind.Bunch, week.Items[0].Kind);
+        Assert.Equal(7, week.Items[0].Days!.Count);
+    }
+
+    [Fact]
+    public void Fruit_dashboard_degrades_without_mail_or_boards()
+    {
+        var e = OpenDashboard(new WorkSnapshot { MailAvailable = false, BoardsAvailable = false });
+        var f = Present.Fruits(e)!;
+        Assert.False(f.Items[2].Available);
+        Assert.Equal("—", f.Items[2].Big);
+        Assert.False(f.Items[3].Available);
+        Assert.Equal((0, 0), (f.Items[1].Total, f.Items[1].Done));
+        Assert.Contains("không có cuộc họp", f.Items[1].TipLines[0]);
+    }
+
     // ================= đánh giá cảm xúc (mood) =================
     [Fact]
     public void Rules_mode_never_asks_claude()

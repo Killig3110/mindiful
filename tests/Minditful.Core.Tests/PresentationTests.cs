@@ -31,6 +31,7 @@ public class PresentationTests
             var card = Present.Card(e);
             if (card.Variant == CardVariant.Card && e.S.Ep is { } ep) cards.Add(ep.C);
             _ = Present.Dashboard(e);
+            _ = Present.Fruits(e);
             // Không tự trả lời: bấm nút đầu tiên của thẻ như một người dùng thật
             if (!auto && e.S.Ep is { Phase: Phase.Show } cur && e.S.T - cur.PhaseStart > 3)
             {

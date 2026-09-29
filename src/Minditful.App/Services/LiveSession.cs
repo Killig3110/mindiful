@@ -98,6 +98,8 @@ internal sealed class LiveSession : IMiloSession
         var cfg = new EngineConfig
         {
             Start = Tm.T(_day.Start), End = Tm.T(_day.End), FragThreshold = _day.FragmentationPerHour,
+            FlexEarliestStart = _day.IsFlexible ? Tm.T(_day.FlexEarliestStart) : null,
+            FlexLatestStart = Tm.T(_day.FlexLatestStart), FlexHours = _day.FlexHours,
             MorningHelloUntil = Tm.T("12:00"), Scripted = false, Seed = (uint)now.Ticks,
             // Sandbox: ngưỡng rút gọn (docs/KET-NOI-SANDBOX.md mục 3.2); Prod không có khối này → ngưỡng chuẩn
             StuckMinDays = ov?.StuckTaskMinBusinessDays ?? std.StuckMinDays,
@@ -124,6 +126,7 @@ internal sealed class LiveSession : IMiloSession
         {
             Engine.AdvanceTo(DateTime.Now.TimeOfDay.TotalSeconds);
             Engine.SetLocked(locked);
+            if (!locked && Engine.S.FirstAct is { } first) History.SaveDayStart(Engine.Day, first); // chỉ ghi lần đầu trong ngày
             if (!locked) _ = RefreshAsync();
         };
         Monitor.AppSwitched += () => Engine.RecordSwitch();
@@ -143,8 +146,8 @@ internal sealed class LiveSession : IMiloSession
 
     public async Task StartAsync()
     {
-        // Mở app lúc máy đang mở khoá = lần mở máy đầu ngày.
-        Engine.SetLocked(false);
+        // Mở app lúc máy đang mở khoá = lần mở máy đầu ngày — trừ khi hôm nay đã bắt đầu làm từ trước (mở lại app)
+        RestoreOrMarkDayStart();
         _tick.Start();
         _refresh.Start();
         _presence.Start();
@@ -170,7 +173,7 @@ internal sealed class LiveSession : IMiloSession
             if (Engine.S.DayStarted && !Engine.S.OffDuty) SaveToday();
             Engine.StartNewDay(today, now.TimeOfDay.TotalSeconds, Engine.Snap);
             ApplyTuning();
-            if (!Monitor.Locked) Engine.SetLocked(false);
+            if (!Monitor.Locked) RestoreOrMarkDayStart();
             _ = RefreshAsync();
         }
 
@@ -219,6 +222,17 @@ internal sealed class LiveSession : IMiloSession
     }
 
     public string StorageText => $"{History.RetentionText} · file: {History.Path}";
+
+    private void RestoreOrMarkDayStart()
+    {
+        if (History.DayStart(Engine.Day) is { } known) Engine.RestoreDayStart(known);
+        Engine.SetLocked(false);
+        if (Engine.S.FirstAct is { } first) History.SaveDayStart(Engine.Day, first);
+    }
+
+    public string WorkHoursText =>
+        $"Khung giờ hôm nay: {Tm.Hm(Engine.Cfg.Start)}–{Tm.Hm(Engine.Cfg.End)}" +
+        (Engine.Cfg.IsFlexible ? $" (linh hoạt: bắt đầu từ lần mở máy đầu ngày trong {Tm.Hm(Engine.Cfg.FlexEarliestStart!.Value)}–{Tm.Hm(Engine.Cfg.FlexLatestStart)}, làm {Engine.Cfg.FlexHours:0} tiếng)" : " (cố định)");
 
     /// <summary>Luật cá nhân hoá 7 ngày (§14) tính lại mỗi đầu ngày từ log phản hồi local.</summary>
     private void ApplyTuning()

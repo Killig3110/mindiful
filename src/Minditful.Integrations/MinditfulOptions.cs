@@ -40,6 +40,15 @@ public sealed class MinditfulOptions
 
 public sealed class WorkDayOptions
 {
+    /// <summary>
+    /// "Flexible" (mặc định, kiểu Bosch): giờ bắt đầu = lần mở máy đầu ngày trong [FlexEarliestStart, FlexLatestStart],
+    /// giờ về = bắt đầu + FlexHours. "Fixed": dùng đúng Start–End.
+    /// </summary>
+    public string Mode { get; set; } = "Flexible";
+    public string FlexEarliestStart { get; set; } = "08:00";
+    public string FlexLatestStart { get; set; } = "10:00";
+    public double FlexHours { get; set; } = 9;
+    public bool IsFlexible => !string.Equals(Mode, "Fixed", StringComparison.OrdinalIgnoreCase);
     public string Start { get; set; } = "09:00";
     public string End { get; set; } = "18:00";
     /// <summary>Idle bao lâu thì coi là rời máy (spec: một lần nghỉ = idle ≥ 5 phút).</summary>

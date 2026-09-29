@@ -68,7 +68,7 @@ public partial class ControlCenterWindow : Window
             ? (_session.HasPat ? "Đã có PAT (lưu mã hoá trên máy này)." : $"Chưa có PAT. Nhập ở trên hoặc đặt biến môi trường {_session.Conn.AzureDevOps.PatEnvVar}.")
             : "Azure DevOps dùng chung đăng nhập Microsoft (Entra).";
         var snap = e.Snap;
-        SnapSummary.Text =
+        SnapSummary.Text = _session.WorkHoursText + "\n" +
             $"{snap.Calendar.Count} cuộc họp hôm nay" + (e.NextMeeting() is { } n ? $" · kế tiếp {Tm.Hm(n.Start)} {n.Subject}" : "") + "\n" +
             (snap.MailAvailable ? $"{snap.Unread} email chưa đọc · {e.WaitingEmails().Count} email đang chờ bạn trả lời" : "Email: chưa có") + "\n" +
             (snap.BoardsAvailable ? $"{e.InProgress()} task đang làm · {e.StuckTasks().Count} task kẹt (≥ 3 ngày) · baseline {snap.AvgInProgress:0.#}" : "Azure Boards: chưa có") + "\n" +

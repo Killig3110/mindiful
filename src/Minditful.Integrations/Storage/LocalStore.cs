@@ -44,7 +44,7 @@ public sealed record CleanupResult(DateOnly Cutoff, int Days, int Outcomes, int 
 /// </summary>
 public sealed class LocalStore
 {
-    private const int SchemaVersion = 1;
+    private const int SchemaVersion = 2;
     private readonly string _cs;
     private readonly StorageOptions _opt;
     private readonly object _gate = new();
@@ -120,6 +120,7 @@ public sealed class LocalStore
                 CREATE TABLE IF NOT EXISTS meeting_assessment (
                     day TEXT NOT NULL, event_hash TEXT NOT NULL, start TEXT, duration_min REAL, load INTEGER, kind TEXT,
                     recovery_min INTEGER, source TEXT, PRIMARY KEY (day, event_hash));
+                CREATE TABLE IF NOT EXISTS day_start (day TEXT PRIMARY KEY, first_act REAL NOT NULL);
                 """;
             cmd.ExecuteNonQuery();
             cmd.CommandText = $"PRAGMA user_version = {SchemaVersion};";
@@ -170,6 +171,14 @@ public sealed class LocalStore
         r => (D(r.GetString(0)), r.GetDouble(1), r.GetString(2), r.GetString(3), r.GetInt32(4)), ("$f", D(from)))
         .Where(x => Enum.TryParse<CaseId>(x.Item3, out _) && Enum.TryParse<Outcome>(x.Item4, out _))
         .Select(x => new OutcomeEvent(x.Item1, x.Item2, Enum.Parse<CaseId>(x.Item3), Enum.Parse<Outcome>(x.Item4), x.Item5)).ToList();
+
+    // ================= giờ bắt đầu làm (giờ linh hoạt) =================
+    /// <summary>Ghi giờ bắt đầu làm của hôm nay — chỉ lần đầu, mở lại app không ghi đè.</summary>
+    public void SaveDayStart(DateOnly day, double firstAct) =>
+        Exec("INSERT OR IGNORE INTO day_start VALUES ($d,$t)", ("$d", D(day)), ("$t", firstAct));
+
+    public double? DayStart(DateOnly day) =>
+        Query("SELECT first_act FROM day_start WHERE day = $d", r => r.GetDouble(0), ("$d", D(day))).Cast<double?>().FirstOrDefault();
 
     // ================= mẫu mood & đánh giá cuộc họp =================
     public void SampleMood(DateOnly day, double t, int score, int ruleScore, string band, string source) => Exec(
@@ -237,6 +246,7 @@ public sealed class LocalStore
                 cmd.Parameters.AddWithValue("$c", c0);
                 return cmd.ExecuteNonQuery();
             }
+            Del("day_start");
             var result = new CleanupResult(cutoff, Del("day_record"), Del("outcome_event"), Del("mood_sample"), Del("meeting_assessment"));
             if (result.Total > 0)
             {
@@ -253,7 +263,7 @@ public sealed class LocalStore
     /// <summary>Xoá toàn bộ dữ liệu thống kê của môi trường này (nút trong Bảng điều khiển).</summary>
     public void WipeAll()
     {
-        Exec("DELETE FROM day_record; DELETE FROM outcome_event; DELETE FROM mood_sample; DELETE FROM meeting_assessment;");
+        Exec("DELETE FROM day_record; DELETE FROM outcome_event; DELETE FROM mood_sample; DELETE FROM meeting_assessment; DELETE FROM day_start;");
         Exec("VACUUM;");
     }
 

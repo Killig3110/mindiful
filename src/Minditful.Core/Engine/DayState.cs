@@ -58,6 +58,8 @@ public sealed class DayState
     public readonly HashSet<string> AnnouncedDone = [];
     public readonly HashSet<string> HandledMail = [];
     public bool DoneSeeded;
+    /// <summary>Giờ bắt đầu làm thật của hôm nay đọc lại từ máy (mở lại app giữa ngày).</summary>
+    public double? KnownDayStart;
     /// <summary>Case do Sandbox ép vào hàng đợi: không bị bỏ khi điều kiện không đúng.</summary>
     public readonly HashSet<CaseId> Forced = [];
     public readonly Dictionary<CaseId, int> VariantCounter = [];

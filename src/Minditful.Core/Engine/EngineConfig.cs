@@ -36,6 +36,14 @@ public sealed class EngineConfig
     public double VisitMinMinutes { get; init; } = 30;
     public double VisitMaxMinutes { get; init; } = 60;
 
+    // ---- Giờ làm linh hoạt (Bosch flexible time): bắt đầu = lần mở máy đầu ngày, kẹp trong [FlexEarliestStart, FlexLatestStart] ----
+    /// <summary>null = khung cố định Start–End. Có giá trị = linh hoạt (vd. 08:00).</summary>
+    public double? FlexEarliestStart { get; init; }
+    public double FlexLatestStart { get; init; } = Tm.T("10:00");
+    /// <summary>Số tiếng từ lúc bắt đầu tới giờ về (8h làm + 1h nghỉ trưa = 9).</summary>
+    public double FlexHours { get; init; } = 9;
+    public bool IsFlexible => FlexEarliestStart is not null;
+
     // ---- Lớp 2 (LLM). Host hạ về Rules khi không có API key. ----
     public MoodMode MoodMode { get; set; } = MoodMode.Rules;
     public MeetingMode MeetingMode { get; set; } = MeetingMode.Rules;
