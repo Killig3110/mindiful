@@ -337,6 +337,32 @@ internal sealed class ControlCenterWindow : ControlShell
             Card(new StackPanel { Children = { you, Spacer(6), Label("Làm 1 lần"), Spacer(6), once } }, "Giả vờ bạn đang…"));
     }
 
+    /// <summary>Công tắc khởi động cùng Windows (ghi HKCU\...\Run, không cần quyền admin).</summary>
+    private Border StartupCard()
+    {
+        var env = _session.Env;
+        var note = Text("", 11.5, P.Ink2);
+        void Explain() => note.Text = AutoStart.OtherEnvironment(env) is { } other
+            ? $"Đang tự khởi động bản {other}. Bật ở đây sẽ chuyển sang {env} (mỗi lần chỉ 1 môi trường)."
+            : "Tắt thì bạn tự mở Milo khi cần. Menu khay cũng có công tắc này.";
+        Explain();
+        Tick(Explain);
+        return Card(new StackPanel
+        {
+            Children =
+            {
+                Switch("Khởi động cùng Windows", $"Đăng nhập Windows là Milo ({env}) tự chạy, không hiện màn hình chọn môi trường.",
+                    () => AutoStart.IsEnabled(env),
+                    () =>
+                    {
+                        if (AutoStart.Set(env, !AutoStart.IsEnabled(env)) is { } err) MessageBox.Show(err, "Minditful");
+                        Explain();
+                    }),
+                note,
+            },
+        }, "Khởi động");
+    }
+
     // ================= Milo của bạn =================
     private FrameworkElement Milo()
     {
@@ -392,7 +418,7 @@ internal sealed class ControlCenterWindow : ControlShell
             wb.Wardrobe
                 ? WardrobeCard(_session.Env, () => e.Snap.Wardrobe?.Best ?? 0, () => _session.WardrobeText)
                 : Card(Text("Tủ đồ đang tắt (Wellbeing.Wardrobe = false).", 12, P.Ink2), "Tủ đồ của Milo"),
-            CornerCard(_session.Env), care, data);
+            CornerCard(_session.Env), StartupCard(), care, data);
     }
 
     // ================= Kiểm chứng điểm (WHO-5) =================

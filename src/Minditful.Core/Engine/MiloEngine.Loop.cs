@@ -475,7 +475,8 @@ public sealed partial class MiloEngine
     }
 
     /// <summary>Sandbox: đưa thẳng 1 case vào hàng đợi để thử tích hợp thật, bỏ qua điều kiện.</summary>
-    public void ForceCase(CaseId c)
+    /// <param name="fromChat">Người dùng bấm tính năng Milo đề nghị trong chat: cũng bỏ qua điều kiện và ngân sách vì chính họ yêu cầu.</param>
+    public void ForceCase(CaseId c, bool fromChat = false)
     {
         var d = new CaseData();
         switch (c)
@@ -542,6 +543,6 @@ public sealed partial class MiloEngine
         S.Forced.Add(c);
         S.LastProactive = -1e9;
         S.HourList.Clear();
-        Log($"Sandbox: đưa {def.Name} vào hàng đợi (bỏ qua điều kiện & ngân sách)", LogKind.Queue);
+        Log(fromChat ? $"Chat: bạn chọn {def.Name} → Milo mang thẻ lên ngay" : $"Sandbox: đưa {def.Name} vào hàng đợi (bỏ qua điều kiện & ngân sách)", LogKind.Queue);
     }
 }

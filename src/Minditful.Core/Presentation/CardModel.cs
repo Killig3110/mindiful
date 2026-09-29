@@ -24,7 +24,8 @@ public sealed record ProgressBlock(string Left, string Right, double Fraction) :
 public sealed record TilesBlock(IReadOnlyList<(string Big, string Small)> Tiles) : CardBlock;
 public sealed record StatusDotBlock(string Text) : CardBlock;
 /// <summary>Khung chat. <paramref name="Focus"/>: đặt con trỏ vào ô gõ ngay (khung Trò chuyện). <paramref name="Hint"/>: chữ mờ trong ô gõ.</summary>
-public sealed record ChatBlock(IReadOnlyList<ChatLine> Lines, bool Focus = false, string? Hint = null) : CardBlock;
+/// <param name="Suggested">Nút tính năng Milo đề nghị ở câu trả lời mới nhất (act "do").</param>
+public sealed record ChatBlock(IReadOnlyList<ChatLine> Lines, bool Focus = false, string? Hint = null, IReadOnlyList<CardButton>? Suggested = null) : CardBlock;
 
 public sealed record CardModel(CardVariant Variant, IReadOnlyList<CardBlock> Blocks, double Width = 310, string? SayText = null, bool Low = false)
 {

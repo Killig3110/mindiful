@@ -146,7 +146,8 @@ public enum LogKind { None, Queue, Deliver, Wait, User, Gate, Sig, Mood, Action,
 /// <summary>Dòng nhật ký quyết định. Text có thể chứa **đậm**.</summary>
 public sealed record LogEntry(double T, string Text, LogKind Kind);
 
-public sealed record ChatLine(string You, string Milo);
+/// <param name="Actions">Mã tính năng Milo đề nghị kèm câu trả lời (xem <see cref="Talk.Actions"/>), hiện thành nút ngay dưới câu.</param>
+public sealed record ChatLine(string You, string Milo, IReadOnlyList<string>? Actions = null);
 
 public enum DashPage { Today, Week }
 

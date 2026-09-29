@@ -259,7 +259,8 @@ Dọn dẹp sau khi test: trong Outlook, xoá các sự kiện category **Milo**
    - Tham gia một cuộc gọi Teams: Milo và chóp đuôi ẩn trong vòng ≤ 30s, lời nhắc dồn thành chấm chờ.
    - Share màn hình: người xem không thấy Milo.
    - Khoá máy rồi mở lại: Milo tiếp tục đúng trạng thái.
-4. Prod dùng **ngưỡng chuẩn** của tài liệu: làm liền 120', task kẹt ≥ 3 ngày, 2 lời nhắc cách nhau ≥ 15'. Vì vậy trong 1 buổi sẽ thấy ít lời nhắc hơn Sandbox. Đó là thiết kế, không phải lỗi.
+4. Khởi động cùng Windows: menu khay → **Khởi động cùng Windows** (hoặc bảng điều khiển → *Milo của bạn*). Tắt mặc định. Bật thì Milo ghi `"<đường dẫn Minditful.exe>" --env Prod` vào `HKCU\...\CurrentVersion\Run` (không cần admin). Đăng xuất rồi đăng nhập lại để thử. Sandbox cũng có công tắc này; mỗi lần chỉ 1 môi trường tự chạy.
+5. Prod dùng **ngưỡng chuẩn** của tài liệu: làm liền 120', task kẹt ≥ 3 ngày, 2 lời nhắc cách nhau ≥ 15'. Vì vậy trong 1 buổi sẽ thấy ít lời nhắc hơn Sandbox. Đó là thiết kế, không phải lỗi.
 
 ### 4. Kịch bản present ~10 phút
 

@@ -129,12 +129,17 @@ public sealed partial class MiloEngine
         if (S.Ep is { } ep && ep.Item == item && !ep.Opened) ep.CardVer++;
     }
 
-    /// <summary>LLM trả lời câu chat (null = hết giờ/lỗi → câu mặc định).</summary>
-    public void ResolveChat(int epId, int index, string? text)
+    /// <summary>
+    /// LLM trả lời câu chat (null = hết giờ/lỗi → câu theo từ khoá). <paramref name="actions"/>: tính năng AI đề nghị,
+    /// được lọc lại theo danh sách cho phép và những gì đang dùng được.
+    /// </summary>
+    public void ResolveChat(int epId, int index, string? text, IReadOnlyList<string>? actions = null)
     {
         if (S.Ep is not { } ep || ep.Id != epId || index >= ep.Chat.Count) return;
         var line = ep.Chat[index];
-        ep.Chat[index] = line with { Milo = text ?? (ep.C == CaseId.Talk ? Talk.Reply(this, line.You) : Lines.ChatFallback) };
+        ep.Chat[index] = text is null
+            ? line with { Milo = ep.C == CaseId.Talk ? Talk.Reply(this, line.You) : Lines.ChatFallback, Actions = Talk.Suggest(this, line.You) }
+            : line with { Milo = text, Actions = Talk.Pick(this, actions) };
         ep.CardVer++;
     }
 

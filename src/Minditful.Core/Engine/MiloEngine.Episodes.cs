@@ -423,6 +423,11 @@ public sealed partial class MiloEngine
             Chat(val);
             return;
         }
+        if (act == "do")
+        {
+            DoAction(val);
+            return;
+        }
         // Thẻ tan tầm: tự đánh giá ngày và giữ chỗ nghỉ ngày mai — không đóng thẻ, không tính là trả lời lời nhắc
         if (act == "feel")
         {
@@ -725,20 +730,21 @@ public sealed partial class MiloEngine
         {
             // Trò chuyện tự do: không đoán ý định để đóng thẻ, mọi câu đều được trả lời
             var ask = ChatWanted is not null && !S.Instant;
-            ep.Chat.Add(new ChatLine(text, ask ? Lines.ChatThinking : Talk.Reply(this, text)));
+            ep.Chat.Add(ask ? new ChatLine(text, Lines.ChatThinking) : new ChatLine(text, Talk.Reply(this, text), Talk.Suggest(this, text)));
             Log($"Trò chuyện \"{text}\" → " + (ask ? "hỏi LLM" : "trả lời theo luật (chưa bật AI)"), LogKind.User);
-            if (ask) ChatWanted!(ep.Id, ep.Chat.Count - 1, new ChatRequest(ep.C, def.Name, Talk.Facts(this), text, history));
+            if (ask) ChatWanted!(ep.Id, ep.Chat.Count - 1, new ChatRequest(ep.C, def.Name, Talk.Facts(this), text, history, Offer: Talk.Available(this)));
             ep.PhaseEnd = S.T + Dt(def.Timeout);
             ep.CardVer++;
             return;
         }
         var it = Intents.FirstOrDefault(i => i.Re.IsMatch(text));
         var askLlm = it is null && ChatWanted is not null && !S.Instant;
-        ep.Chat.Add(new ChatLine(text, it?.Say ?? (askLlm ? Lines.ChatThinking : Lines.ChatFallback)));
+        // Không khớp ý định và không có AI: câu mặc định + tính năng hợp với câu gõ (vd. "mệt mà nhiều task" → Tìm giờ tập trung)
+        ep.Chat.Add(new ChatLine(text, it?.Say ?? (askLlm ? Lines.ChatThinking : Lines.ChatFallback), it is null && !askLlm ? Talk.Suggest(this, text) : null));
         Record(ep.C, Outcome.Chat);
         Log($"Chat \"{text}\" → ý định: " + (it?.Key ?? (askLlm ? "không rõ → hỏi LLM (tối đa 2.5 giây)" : "không rõ (chưa bật LLM)")), LogKind.User);
         if (askLlm) ChatWanted!(ep.Id, ep.Chat.Count - 1, new ChatRequest(ep.C, def.Name, Lines.Facts(this, ep.C, ep.Data), text, history,
-            def.Kind == CaseKind.Care || ep.C is CaseId.EodWrapup or CaseId.EodNudge ? Lines.PrimaryLabel(ep.C) : null));
+            def.Kind == CaseKind.Care || ep.C is CaseId.EodWrapup or CaseId.EodNudge ? Lines.PrimaryLabel(ep.C) : null, Talk.Available(this)));
         ep.PhaseEnd = S.T + Dt(def.Timeout > 0 ? def.Timeout : Catalog.CareTimeout);
         ep.CardVer++;
         if (it is not null)
@@ -746,6 +752,56 @@ public sealed partial class MiloEngine
             ep.Intent = it.Key;
             ep.Phase = Phase.Chat;
             ep.PhaseEnd = S.T + Dt(1.8);
+        }
+    }
+
+    /// <summary>
+    /// Người dùng bấm 1 tính năng Milo đề nghị trong chat. Kiểm tra lại còn dùng được không (lịch/task có thể đã đổi),
+    /// rồi làm ngay trên thẻ đang mở hoặc chuyển sang thẻ của tính năng đó.
+    /// </summary>
+    private void DoAction(string? key)
+    {
+        var ep = S.Ep!;
+        if (key is null || !Talk.Actions.TryGetValue(key, out var a)) return;
+        if (!Talk.Available(this).Contains(key))
+        {
+            ep.Chat.Add(new ChatLine(a.Label, "Tiếc quá, lúc này Milo chưa làm được việc đó. Mình thử cách khác nha."));
+            ep.CardVer++;
+            return;
+        }
+        Log($"Bấm tính năng Milo đề nghị trong chat: {a.Label}", LogKind.User);
+        if (ep.C != CaseId.Talk)
+        {
+            Mem(ep.C).Keys.Add(ep.Item.Key); // lời nhắc coi như đã được trả lời
+            Record(ep.C, Outcome.Accepted);
+        }
+        switch (key)
+        {
+            case "breathe":
+                StartBreathe(5);
+                break;
+            case "break15":
+                StartBreathe(5);
+                ep.LongBreak = true;
+                break;
+            case "focus30":
+                S.FocusUntil = S.T + 1800;
+                S.FocusStart = S.T;
+                S.FocusTask = new WorkTask { Id = "tập trung", Title = "Tập trung" };
+                ep.AfterClip = Clip.ClimbOutFast;
+                ep.Confirmed = true;
+                Raise(new MiloAction.StartFocus("tập trung", "Tập trung", S.T, S.T + 1800));
+                SetPhase(Phase.Confirm, 2.4, Clip.Reminder);
+                break;
+            case "planFocus" or "stuck":
+                // Thẻ của tính năng đó hiện ngay khi Milo leo xuống xong
+                ExitEp(Clip.ClimbOutShort);
+                ForceCase(key == "stuck" ? CaseId.StuckTask : CaseId.FocusPlan, fromChat: true);
+                break;
+            case "dashboard":
+                S.Ep = null;
+                StartEp(new QueueItem { C = CaseId.Dashboard, Key = "d" + S.T, Pri = 0, Sev = 0, Enq = S.T }, swap: true);
+                break;
         }
     }
 

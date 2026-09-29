@@ -60,8 +60,10 @@ internal static class LlmBridge
                     var reply = llm.Available ? await llm.ReplyChatAsync(req) : null;
                     OnUi(() =>
                     {
-                        engine.ResolveChat(epId, index, reply);
+                        engine.ResolveChat(epId, index, reply?.Text, reply?.Actions);
                         if (reply is null && llm.LastError is { } err) engine.LogExternal("Chat: " + err, LogKind.Error);
+                        else if (reply is { Actions.Count: > 0 })
+                            engine.LogExternal($"{llm.Name} đề nghị tính năng: {string.Join(", ", reply.Actions.Select(a => Talk.Actions[a].Label))}", LogKind.Action);
                     });
                 }
             };

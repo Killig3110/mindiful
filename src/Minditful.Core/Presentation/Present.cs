@@ -235,7 +235,7 @@ public static class Present
                     b.Add(new ButtonsBlock(Talk.Suggestions.Select(q => new CardButton("chat", q, ButtonStyle.Ghost, Val: q)).ToList()));
                 }
                 // Chỉ hiện 4 lượt gần nhất cho thẻ gọn; AI vẫn nhận 6 lượt để nối mạch
-                b.Add(new ChatBlock(ep.Chat.TakeLast(4).ToList(), Focus: true, Hint: "Kể Milo nghe…"));
+                b.Add(ChatOf(ep, 4, focus: true, hint: "Kể Milo nghe…"));
                 b.Add(new ParagraphBlock("Chỉ con số trong ngày được gửi cho AI, không gửi tiêu đề hay nội dung công việc.", Small: true, Color: "#9C8672"));
                 b.Add(new ButtonsBlock([new("breathe", "Thở 1 phút", ButtonStyle.Amber), new("close", "Xong", ButtonStyle.Ghost)]));
                 return new(CardVariant.Card, b, 300, Low: low);
@@ -259,14 +259,14 @@ public static class Present
                     b.Add(new ParagraphBlock($"Mai {tm.Time} có {tm.Subject} — Milo nhắc lúc mở máy.", Small: true, Color: "#7A6455"));
                 if (e.Cfg.EveningCheck) b.AddRange(FeelBlocks(s));
                 b.Add(new ButtonsBlock([new("goHome", "Về thôi", ButtonStyle.Amber), new("extend", "Thêm 30 phút", ButtonStyle.Ghost, s.ExtendedUntil is null)]));
-                b.Add(new ChatBlock(ep.Chat)); // gõ "về thôi" / "đồng ý" để về, "chưa" / "bận" để làm thêm
+                b.Add(ChatOf(ep)); // gõ "về thôi" / "đồng ý" để về, "chưa" / "bận" để làm thêm
                 break;
             }
             case CaseId.EodNudge:
                 b.Add(new ParagraphBlock(Lines.Text(e, ep)));
                 if (e.Cfg.EveningCheck && s.Feeling == 0) b.AddRange(FeelBlocks(s));
                 b.Add(new ButtonsBlock([new("goHome", "Về thôi", ButtonStyle.Amber)]));
-                b.Add(new ChatBlock(ep.Chat));
+                b.Add(ChatOf(ep));
                 return new(CardVariant.Card, b, 280, Low: low);
             case CaseId.FocusPlan:
             {
@@ -294,6 +294,16 @@ public static class Present
         }
         if (def.Kind == CaseKind.Care) b.AddRange(CareBlocks(e, ep));
         return new(CardVariant.Card, b, Low: low);
+    }
+
+    /// <summary>Khung chat; câu trả lời mới nhất có tính năng đề nghị thì hiện thành nút ngay dưới (chỉ câu mới nhất, tránh nút cũ).</summary>
+    private static ChatBlock ChatOf(Episode ep, int take = int.MaxValue, bool focus = false, string? hint = null)
+    {
+        var last = ep.Chat.LastOrDefault();
+        var suggested = last?.Actions is { Count: > 0 } acts && last.Milo != Lines.ChatThinking
+            ? acts.Where(Talk.Actions.ContainsKey).Select(a => new CardButton("do", Talk.Actions[a].Label, ButtonStyle.Dark, Val: a)).ToList()
+            : null;
+        return new ChatBlock(ep.Chat.TakeLast(take).ToList(), focus, hint, suggested);
     }
 
     private static IEnumerable<CardBlock> CareBlocks(MiloEngine e, Episode ep)
@@ -335,7 +345,7 @@ public static class Present
         if (e.SnoozeCount(c) < 2) sub.Add(new("snooze", $"Để sau ({e.SnoozeMinutes(c)}p)", ButtonStyle.Ghost));
         sub.Add(new("dismiss", "Không cần", ButtonStyle.Ghost));
         yield return new ButtonsBlock(sub);
-        yield return new ChatBlock(ep.Chat);
+        yield return ChatOf(ep);
     }
 
     private static IEnumerable<CardBlock> FeelBlocks(DayState s)

@@ -353,6 +353,7 @@ Mỗi phase có `PhaseEnd`; `Tick` gọi `AdvanceEp()` khi tới hạn. `CardVer
 | Không trả lời | Thẻ thu vào, chấm "1" trên đuôi 30' (bấm đuôi để mở lại) |
 | Chat | Nhận diện từ khoá local: *bận* → Để sau · *mệt* → vòng thở · *thôi/không* → Không cần · *cảm ơn* → +1. Không khớp → hỏi AI (nếu bật, kèm 6 lượt trước và tên nút chính) hoặc câu mặc định |
 | Trò chuyện (`CaseId.Talk`) | Case người dùng tự mở (`OpenTalk`: nút *Trò chuyện* trên dashboard, bấm Milo lúc đang ghé, menu khay). Không đoán ý định để đóng thẻ; mọi câu hỏi AI với số liệu cả ngày (`Talk.Facts`), AI lỗi → `Talk.Reply` theo từ khoá. Nút *Thở 1 phút* (5 nhịp), *Xong*/Esc; 120 giây không gõ → leo xuống. Không chen ngang lời nhắc khác, bị chặn khi trình chiếu |
+| Tính năng đề nghị trong chat | `Talk.Actions` (allowlist: breathe, break15, focus30, planFocus, stuck, dashboard), lọc theo `Talk.Available` (đang họp/tập trung, `FocusSlot`, `StuckTasks`). AI trả JSON `{reply, actions}`; `ParseChat` bỏ mã ngoài `ChatRequest.Offer`, đổi mã lỡ viết trong câu thành tên hiển thị. Không AI → `Talk.Suggest` theo từ khoá. Hiện ở câu mới nhất (`ChatBlock.Suggested`, act `do`); bấm → `DoAction` kiểm tra lại rồi chạy (thở, nghỉ 15', khoá 30' + `StartFocus`, `ForceCase(FocusPlan/StuckTask, fromChat)`, mở dashboard) |
 | Câu khủng hoảng | `Talk.IsCrisis` khớp ("muốn chết", "không muốn sống"…) ở mọi ô chat → câu cố định `Talk.CrisisReply`, **không gửi AI** |
 
 ### 5.9 Mood Engine (§11) và 2 hướng tính
@@ -722,8 +723,8 @@ Qua **Anthropic C# SDK** (`client.Beta.Messages.Create`), model mặc định `c
 | Loại | Kích hoạt | Gửi đi | Nhận về | Timeout | Lỗi/hết giờ → |
 | --- | --- | --- | --- | --- | --- |
 | Câu thoại | Case vào hàng đợi (`LineWanted`) | Tên case, số liệu, nút chính, câu mẫu | 1 câu ≤ 25 từ (kiểm tra `Lines.Clean`) | 2,5s | Template |
-| Chat | Chat không khớp từ khoá (`ChatWanted`) | Tên case, số liệu, nút chính, 6 lượt trước, **câu người dùng gõ** | 1–2 câu (≤ 40 từ) | 2,5s | Câu mặc định |
-| Trò chuyện | Mọi câu trong khung Trò chuyện (`ChatWanted`, `Case = Talk`) | Số liệu cả ngày (`Talk.Facts`), 6 lượt trước, câu người dùng gõ | 1–3 câu (≤ 60 từ, nối thành 1 đoạn) | 20s | `Talk.Reply` theo từ khoá |
+| Chat | Chat không khớp từ khoá (`ChatWanted`) | Tên case, số liệu, nút chính, 6 lượt trước, tính năng dùng được, **câu người dùng gõ** | JSON `{reply: 1–2 câu ≤ 40 từ, actions: 0–2 mã}` | 2,5s | Câu mặc định + `Talk.Suggest` |
+| Trò chuyện | Mọi câu trong khung Trò chuyện (`ChatWanted`, `Case = Talk`) | Số liệu cả ngày (`Talk.Facts`), 6 lượt trước, tính năng dùng được, câu người dùng gõ | JSON `{reply: 1–3 câu ≤ 60 từ, actions: 0–2 mã}` | 20s | `Talk.Reply` + `Talk.Suggest` theo từ khoá |
 | Mood | Mỗi 30' (`MoodWanted`) | Số liệu cả ngày (+ câu chat nếu bật) | JSON: score, adjust, focus, energy, stress, label, insight | 20s | Điểm luật |
 | Cuộc họp | Cuộc họp mới (`MeetingWanted`) | Độ dài, giờ, số người, vai trò, vị trí trong chuỗi, trống sau đó | JSON: load, kind, recovery_min, note | 20s | Đánh giá luật |
 

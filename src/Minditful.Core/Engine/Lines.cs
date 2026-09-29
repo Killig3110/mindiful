@@ -9,7 +9,12 @@ public sealed record LineRequest(CaseId Case, string CaseName, string Facts, str
 /// Người dùng gõ câu mà bộ nhận diện từ khoá không hiểu → hỏi LLM (§10 · Chat tự do).
 /// <see cref="History"/>: các lượt trước trong cùng thẻ để LLM nối mạch. Với <see cref="CaseId.Talk"/>, <see cref="Facts"/> là số liệu cả ngày.
 /// </summary>
-public sealed record ChatRequest(CaseId Case, string CaseName, string Facts, string UserText, IReadOnlyList<ChatLine>? History = null, string? Primary = null);
+/// <param name="Offer">Mã tính năng đang dùng được (<see cref="Talk.Available"/>); AI chỉ được chọn trong danh sách này.</param>
+public sealed record ChatRequest(CaseId Case, string CaseName, string Facts, string UserText, IReadOnlyList<ChatLine>? History = null, string? Primary = null,
+    IReadOnlyList<string>? Offer = null);
+
+/// <summary>Câu trả lời chat của AI + tối đa 2 tính năng đề nghị (app lọc lại theo <see cref="ChatRequest.Offer"/>).</summary>
+public sealed record ChatReply(string Text, IReadOnlyList<string> Actions);
 
 /// <summary>
 /// Câu chính của thẻ (§14 · Lời thoại): LLM viết sẵn khi case vào hàng đợi; hết giờ/lỗi thì dùng template.

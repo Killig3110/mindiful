@@ -19,6 +19,59 @@ public static class Talk
 
     public static bool IsCrisis(string text) => Crisis.IsMatch(text);
 
+    /// <summary>
+    /// Tính năng Milo có thể đề nghị ngay trong chat (AI hoặc từ khoá chọn, người dùng bấm mới chạy).
+    /// Mô tả gửi kèm cho AI để AI biết khi nào nên đề nghị.
+    /// </summary>
+    public static readonly IReadOnlyDictionary<string, (string Label, string When)> Actions = new Dictionary<string, (string, string)>
+    {
+        ["breathe"] = ("Thở 1 phút", "thở chậm 4-4-4 cùng Milo 1 phút; khi mệt, căng thẳng, cáu, hồi hộp"),
+        ["break15"] = ("Nghỉ 15 phút", "Milo giữ chỗ 15 phút để đứng dậy, đi dạo, uống nước; khi mệt nhiều hoặc làm lâu không nghỉ"),
+        ["focus30"] = ("Tập trung 30 phút", "khoá 30 phút tập trung và bật Không làm phiền; khi bị ngắt quãng, nhảy việc, cần làm cho xong 1 việc"),
+        ["planFocus"] = ("Tìm giờ tập trung", "Milo tìm khoảng trống dài nhất trong lịch hôm nay và đề nghị giữ chỗ; khi nhiều việc, sợ không kịp deadline"),
+        ["stuck"] = ("Xem task kẹt", "mở task đang kẹt lâu nhất để chặn giờ xử lý; khi nói tới việc tồn, task kẹt, backlog"),
+        ["dashboard"] = ("Xem hôm nay", "mở dashboard điểm, họp, email, sprint hôm nay; khi hỏi hôm nay của họ thế nào"),
+    };
+
+    /// <summary>Tính năng dùng được lúc này (vd. không có task kẹt thì không đề nghị "Xem task kẹt").</summary>
+    public static IReadOnlyList<string> Available(MiloEngine e)
+    {
+        var s = e.S;
+        var list = new List<string> { "breathe", "break15" };
+        var busy = e.Ongoing() is not null || s.FocusUntil is { } fu && fu > s.T;
+        if (!busy) list.Add("focus30");
+        if (!busy && e.FocusSlot() is not null && !s.Holds.Any(h => h.Kind is "focus" or "focusPlan")) list.Add("planFocus");
+        if (e.StuckTasks().Count > 0) list.Add("stuck");
+        if (s.Ep?.C != CaseId.Dashboard) list.Add("dashboard");
+        return list;
+    }
+
+    /// <summary>Giữ tối đa 2 mã hợp lệ và đang dùng được, theo thứ tự đề nghị.</summary>
+    public static IReadOnlyList<string> Pick(MiloEngine e, IEnumerable<string>? proposed)
+    {
+        if (proposed is null) return [];
+        var ok = Available(e);
+        return proposed.Select(a => a.Trim()).Where(ok.Contains).Distinct().Take(2).ToList();
+    }
+
+    /// <summary>Không có AI: chọn tính năng theo từ khoá. Mỗi nhóm lấy 1 tính năng đầu tiên dùng được, rồi mới lấy thêm.</summary>
+    public static IReadOnlyList<string> Suggest(MiloEngine e, string text)
+    {
+        var t = text.ToLowerInvariant();
+        if (IsCrisis(t)) return [];
+        var groups = new List<string[]>();
+        if (Has(t, "nhiều việc|nhiều task|quá nhiều|deadline|dí|không kịp|ngập việc|quá tải|dồn việc|chạy deadline")) groups.Add(["planFocus", "focus30", "stuck"]);
+        if (Has(t, "mệt|căng|stress|đuối|oải|kiệt sức|nản|chán|cáu|mệt mỏi|áp lực|buồn ngủ")) groups.Add(["breathe", "break15"]);
+        if (Has(t, "nhảy việc|phân tâm|bị làm phiền|ngắt quãng|ping|tập trung|xao nhãng")) groups.Add(["focus30", "planFocus"]);
+        if (Has(t, "task kẹt|việc tồn|backlog|kẹt|tồn đọng")) groups.Add(["stuck", "planFocus"]);
+        if (Has(t, "nghỉ|giải lao|đi dạo|uống nước")) groups.Add(["break15", "breathe"]);
+        if (Has(t, "hôm nay|điểm|thế nào|sao rồi|mood")) groups.Add(["dashboard"]);
+        var ok = Available(e);
+        var firsts = groups.Select(g => g.FirstOrDefault(ok.Contains)).Where(a => a is not null).Cast<string>();
+        var rest = groups.SelectMany(g => g).Where(ok.Contains);
+        return firsts.Concat(rest).Distinct().Take(2).ToList();
+    }
+
     /// <summary>Câu gợi ý bấm nhanh khi mới mở trò chuyện.</summary>
     public static readonly string[] Suggestions = ["Hôm nay mình sao rồi?", "Mình thấy mệt", "Lịch họp còn gì?"];
 

@@ -99,6 +99,7 @@ public partial class App : Application
     {
         var live = new LiveSession(env, opt);
         _session = live;
+        AutoStart.Repair(env);
         ShowMilo();
         CreateTray(env);
         // Sandbox ở chế độ test mở sẵn bảng điều khiển như Demo; chạy như Production thì chỉ có Milo ở góc màn hình
@@ -160,6 +161,18 @@ public partial class App : Application
                 };
                 menu.Opening += (_, _) => test.Checked = live.TestMode;
                 menu.Items.Add(test);
+            }
+            if (AutoStart.Supported(env))
+            {
+                var boot = new WinForms.ToolStripMenuItem("Khởi động cùng Windows") { CheckOnClick = true, Checked = AutoStart.IsEnabled(env) };
+                boot.CheckedChanged += (_, _) =>
+                {
+                    if (boot.Checked == AutoStart.IsEnabled(env)) return; // đồng bộ lúc mở menu, không phải người dùng bấm
+                    if (AutoStart.Set(env, boot.Checked) is { } err) MessageBox.Show(err, "Minditful");
+                    boot.Checked = AutoStart.IsEnabled(env);
+                };
+                menu.Opening += (_, _) => boot.Checked = AutoStart.IsEnabled(env);
+                menu.Items.Add(boot);
             }
             menu.Items.Add("Đăng nhập Microsoft", null, async (_, _) => await live.SignInAsync(true));
             menu.Items.Add("Làm mới dữ liệu", null, async (_, _) => await live.RefreshAsync());

@@ -13,7 +13,8 @@ public interface IMiloLlm
     bool Available { get; }
     string? LastError { get; }
     Task<string?> WriteLineAsync(LineRequest r, CancellationToken ct = default);
-    Task<string?> ReplyChatAsync(ChatRequest r, CancellationToken ct = default);
+    /// <summary>Câu trả lời chat + tối đa 2 tính năng đề nghị (đã lọc theo <see cref="ChatRequest.Offer"/>).</summary>
+    Task<ChatReply?> ReplyChatAsync(ChatRequest r, CancellationToken ct = default);
     Task<MoodInsight?> AssessMoodAsync(MoodRequest r, CancellationToken ct = default);
     Task<MeetingAssessment?> AssessMeetingAsync(MeetingRequest r, CancellationToken ct = default);
 }

@@ -115,15 +115,17 @@ public sealed class OpenAiCompatibleWriter(LlmOptions opt, Func<string?> apiKey)
         return line;
     }
 
-    public async Task<string?> ReplyChatAsync(ChatRequest r, CancellationToken ct = default)
+    public async Task<ChatReply?> ReplyChatAsync(ChatRequest r, CancellationToken ct = default)
     {
         var talk = r.Case == CaseId.Talk;
-        var raw = await AskAsync(ClaudeLineWriter.Voice + (talk ? ClaudeLineWriter.TalkRules : ClaudeLineWriter.ChatRules),
-            ClaudeLineWriter.ChatUser(r), talk ? opt.InsightTimeoutMs : opt.TimeoutMs, false, ct);
-        return ClaudeLineWriter.CleanChat(raw, r);
+        var raw = await AskAsync(ClaudeLineWriter.Voice + (talk ? ClaudeLineWriter.TalkRules : ClaudeLineWriter.ChatRules) + ClaudeLineWriter.ChatJson,
+            ClaudeLineWriter.ChatUser(r), talk ? opt.InsightTimeoutMs : opt.TimeoutMs, true, ct, temperature: 0.7);
+        var reply = ClaudeLineWriter.ParseChat(raw, r);
+        if (raw is not null && reply is null) LastError = $"{Host()} trả lời chat không đúng dạng → dùng câu theo từ khoá";
+        return reply;
     }
 
-    private async Task<string?> AskAsync(string system, string user, int timeoutMs, bool json, CancellationToken ct)
+    private async Task<string?> AskAsync(string system, string user, int timeoutMs, bool json, CancellationToken ct, double? temperature = null)
     {
         if (!Available) return null;
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
@@ -132,7 +134,7 @@ public sealed class OpenAiCompatibleWriter(LlmOptions opt, Func<string?> apiKey)
         {
             ["model"] = opt.Model,
             ["messages"] = new object[] { new { role = "system", content = system }, new { role = "user", content = user } },
-            ["temperature"] = json ? 0 : 0.7, // chấm điểm: 0 để cùng số liệu cho cùng điểm (bộ kiểm chứng đo độ ổn định)
+            ["temperature"] = temperature ?? (json ? 0 : 0.7), // chấm điểm: 0 để cùng số liệu cho cùng điểm; chat: 0.7 cho tự nhiên
             ["max_tokens"] = 600,
         };
         if (json) body["response_format"] = new { type = "json_object" };

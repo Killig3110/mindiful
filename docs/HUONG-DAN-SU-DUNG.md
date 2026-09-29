@@ -110,6 +110,19 @@ Không cần đợi Milo nhắc, bạn có thể tự mở trò chuyện (cách 
 - **Có AI:** Milo trả lời tự nhiên, nối mạch 6 lượt gần nhất. AI chỉ nhận con số trong ngày (điểm, giờ họp, làm liền, nghỉ, quá giờ, giờ cuộc họp tới), **không** nhận tiêu đề email, cuộc họp hay task.
 - **Không có AI** (hoặc AI lỗi, hết lượt): Milo trả lời theo từ khoá: điểm hôm nay, lịch họp, mệt, nghỉ, giờ về, cảm ơn, chào.
 - Milo không trả lời câu hỏi lập trình hay kiến thức chung, chỉ là bạn đồng hành sức khoẻ.
+- **Milo đề nghị tính năng ngay trong chat** (cả ở khung Trò chuyện lẫn ô chat trên thẻ nhắc): dưới câu trả lời hiện tối đa 2 nút "Milo có thể giúp". Bấm mới chạy, Milo không tự làm.
+
+  | Bạn nói kiểu | Nút có thể hiện |
+  | --- | --- |
+  | "mệt quá", "căng thẳng" | *Thở 1 phút*, *Nghỉ 15 phút* |
+  | "nhiều task quá", "sợ trễ deadline" | *Tìm giờ tập trung* (khoảng trống dài nhất trong lịch), *Tập trung 30 phút*, *Xem task kẹt* |
+  | "bị ping liên tục", "không tập trung được" | *Tập trung 30 phút* (khoá 30 phút + Không làm phiền) |
+  | "hôm nay mình sao rồi?" | *Xem hôm nay* (dashboard) |
+  | "cảm ơn", chuyện đời thường | Không có nút |
+
+  - Có AI thì AI chọn nút, chỉ trong danh sách trên. Không có AI thì chọn theo từ khoá.
+  - Chỉ hiện nút dùng được lúc đó: đang họp thì không có *Tập trung 30 phút*; lịch không còn khoảng trống ≥ 60 phút thì không có *Tìm giờ tập trung*; không có task kẹt thì không có *Xem task kẹt*.
+- Nút gợi ý có chữ dài hơn nút: rê chuột lên để chữ chạy ngang đọc hết.
 - **An toàn:** câu có dấu hiệu khủng hoảng (vd. "muốn chết", "không muốn sống") luôn nhận 1 câu cố định khuyên tìm người thân tin cậy, chuyên gia tâm lý, hoặc gọi 115 nếu đang nguy hiểm. Câu đó không được gửi cho AI.
 
 ## 4. Bảng điều khiển
@@ -142,7 +155,7 @@ Lúc Milo ẩn, đồng hồ kịch bản tua nhanh. Lúc Milo xuất hiện, th
 | **Thử tình huống** (chỉ Sandbox ở chế độ test) | *Chuẩn bị*: Reset ngày (chào sáng lại), đặt giờ về (*Giờ về = bây giờ + 2 phút*), *Tạo dữ liệu mẫu* trong tenant. *Cho Milo làm ngay* và *Giả vờ bạn đang…* như Demo |
 | **Mood Engine** | Như Demo: công tắc luật ↔ AI và 3 bộ kiểm chứng |
 | **Kiểm chứng điểm** | 5 câu WHO-5 mỗi tuần, bảng so sánh điểm Milo với WHO-5, hệ số tương quan *r*, nút *Xuất CSV ẩn danh* (mục 5.5) |
-| **Milo của bạn** | Tủ đồ, góc màn hình, *Milo chăm sóc bạn thế nào* (tính năng nào đang Bật/Tắt), *Riêng tư & dữ liệu* (Milo tự điều chỉnh theo 7 ngày ra sao, dữ liệu giữ trên máy, nút **Xoá toàn bộ dữ liệu thống kê ngay**) |
+| **Milo của bạn** | Tủ đồ, góc màn hình, công tắc **Khởi động cùng Windows**, *Milo chăm sóc bạn thế nào* (tính năng nào đang Bật/Tắt), *Riêng tư & dữ liệu* (Milo tự điều chỉnh theo 7 ngày ra sao, dữ liệu giữ trên máy, nút **Xoá toàn bộ dữ liệu thống kê ngay**) |
 | **Bộ não Milo** | Như Demo |
 
 Production mặc định không tự mở bảng điều khiển (Milo chỉ ở góc màn hình). Mở bằng biểu tượng ở khay.
@@ -278,6 +291,12 @@ Present: dùng trang **Kịch bản trình diễn** và làm theo [KICH-BAN-DEMO
 2. Không cần làm gì thêm: Milo tự chào sáng, nhắc họp, im lặng khi bạn họp hoặc trình chiếu, rủ nghỉ khi cần, nhắc về.
 3. Nếu thẻ ghi "Nhắc tôi lúc đó" thay cho "Giữ chỗ trong lịch": tenant chưa cấp quyền ghi lịch. Milo vẫn nhắc đúng giờ nhưng không ghi vào Outlook. Đây là đúng thiết kế.
 4. Muốn Milo nói tự nhiên hơn: dán API key Claude ở trang **Kết nối** (không bắt buộc).
+5. Muốn Milo tự chạy mỗi lần mở máy: menu khay → tick **Khởi động cùng Windows**, hoặc bảng điều khiển → **Milo của bạn** → công tắc *Khởi động cùng Windows*.
+   - Tắt mặc định. Bỏ tick là Milo thôi tự chạy.
+   - Milo mở thẳng đúng môi trường đã bật, không hiện màn hình chọn.
+   - Mỗi lần chỉ 1 môi trường được tự chạy (Sandbox hoặc Production). Demo không có công tắc này.
+   - Không cần quyền admin: Milo ghi 1 mục `Minditful.Milo` trong `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` của riêng tài khoản bạn. Cũng thấy và tắt được ở Task Manager → Startup apps.
+   - Giải nén bản mới sang thư mục khác thì mở Milo 1 lần, Milo tự cập nhật đường dẫn.
 
 ## 7. Vì sao Milo không hiện?
 

@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Effects;
 using System.Windows.Shapes;
 using Minditful.Core.Presentation;
@@ -143,18 +144,70 @@ internal sealed class CardRenderer(Action<string, string?> onAct)
             var btn = new Button
             {
                 Style = (Style)Application.Current.FindResource("Round"),
-                Content = cb.Label, Background = Br(bg), Foreground = Br(fg), IsEnabled = cb.Enabled,
+                Background = Br(bg), Foreground = Br(fg), IsEnabled = cb.Enabled,
                 FontWeight = cb.Style == ButtonStyle.Ghost ? FontWeights.SemiBold : FontWeights.Bold,
                 Height = cb.Style == ButtonStyle.Ghost ? 34 : 38, Padding = new Thickness(10, 0, 10, 0),
                 HorizontalContentAlignment = HorizontalAlignment.Center,
                 BorderBrush = border is null ? null : Br(border), BorderThickness = new Thickness(border is null ? 0 : 1.5),
                 Margin = new Thickness(bb.Buttons.Count > 1 && cb != bb.Buttons[0] ? 3 : 0, 0, bb.Buttons.Count > 1 && cb != bb.Buttons[^1] ? 3 : 0, 0),
             };
+            btn.Content = Marquee(btn, cb.Label);
             var (act, val) = (cb.Act, cb.Val);
             btn.Click += (_, _) => onAct(act, val);
             g.Children.Add(btn);
         }
         return g;
+    }
+
+    /// <summary>
+    /// Chữ trên nút: vừa thì canh giữa; dài hơn nút thì hiện "…" và khi rê chuột chữ chạy ngang để đọc hết,
+    /// dừng nửa giây ở 2 đầu rồi lặp lại cho tới khi rời chuột.
+    /// </summary>
+    private static FrameworkElement Marquee(Button btn, string text)
+    {
+        var tb = new TextBlock
+        {
+            Text = text, TextTrimming = TextTrimming.CharacterEllipsis, TextWrapping = TextWrapping.NoWrap,
+            HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center,
+        };
+        var move = new TranslateTransform();
+        tb.RenderTransform = move;
+        var host = new Grid { ClipToBounds = true, Children = { tb } };
+        btn.HorizontalContentAlignment = HorizontalAlignment.Stretch;
+        System.Windows.Automation.AutomationProperties.SetName(btn, text);
+        btn.ToolTip = null;
+        btn.MouseEnter += (_, _) =>
+        {
+            tb.TextTrimming = TextTrimming.None;
+            tb.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            var full = tb.DesiredSize.Width;
+            var over = full - host.ActualWidth;
+            if (over <= 1)
+            {
+                tb.TextTrimming = TextTrimming.CharacterEllipsis;
+                return;
+            }
+            tb.HorizontalAlignment = HorizontalAlignment.Left;
+            tb.Width = full;
+            var run = Math.Max(0.8, over / 40); // khoảng 40 px/giây, đọc kịp
+            static KeyTime At(double s) => KeyTime.FromTimeSpan(TimeSpan.FromSeconds(s));
+            var anim = new DoubleAnimationUsingKeyFrames { RepeatBehavior = RepeatBehavior.Forever };
+            anim.KeyFrames.Add(new DiscreteDoubleKeyFrame(0, At(0)));
+            anim.KeyFrames.Add(new DiscreteDoubleKeyFrame(0, At(0.5)));
+            anim.KeyFrames.Add(new LinearDoubleKeyFrame(-over, At(0.5 + run)));
+            anim.KeyFrames.Add(new DiscreteDoubleKeyFrame(-over, At(1.3 + run)));
+            anim.KeyFrames.Add(new LinearDoubleKeyFrame(0, At(1.3 + run * 1.5)));
+            move.BeginAnimation(TranslateTransform.XProperty, anim);
+        };
+        btn.MouseLeave += (_, _) =>
+        {
+            move.BeginAnimation(TranslateTransform.XProperty, null);
+            move.X = 0;
+            tb.Width = double.NaN;
+            tb.HorizontalAlignment = HorizontalAlignment.Center;
+            tb.TextTrimming = TextTrimming.CharacterEllipsis;
+        };
+        return host;
     }
 
     private static FrameworkElement People(PeopleBlock p)
@@ -264,6 +317,16 @@ internal sealed class CardRenderer(Action<string, string?> onAct)
         {
             sp.Children.Add(Bubble(line.You, true));
             sp.Children.Add(Bubble(line.Milo, false));
+        }
+        if (c.Suggested is { Count: > 0 } sug)
+        {
+            // Tính năng Milo đề nghị: nút nhỏ ngay dưới câu trả lời, bấm là chạy
+            var help = Text("Milo có thể giúp:", 11, "#9C8672", wrap: false);
+            help.Margin = new Thickness(2, 0, 0, 4);
+            sp.Children.Add(help);
+            var row = Buttons(new ButtonsBlock(sug));
+            row.Margin = new Thickness(0, 0, 0, 4);
+            sp.Children.Add(row);
         }
         var input = new TextBox
         {
