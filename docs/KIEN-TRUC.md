@@ -67,7 +67,7 @@ flowchart LR
 
 | Project | Chứa gì | Vì sao tách |
 | --- | --- | --- |
-| **Minditful.Core** | Toàn bộ "bộ não": luật, hàng đợi, điều phối, episode, mood, cá nhân hoá, nội dung thẻ, keyframes hoạt ảnh, ngày mẫu | Không phụ thuộc Windows, UI hay mạng → **test được trên mọi OS** (155 test), và 3 môi trường dùng chung đúng một bộ não |
+| **Minditful.Core** | Toàn bộ "bộ não": luật, hàng đợi, điều phối, episode, mood, cá nhân hoá, nội dung thẻ, keyframes hoạt ảnh, ngày mẫu | Không phụ thuộc Windows, UI hay mạng → **test được trên mọi OS** (160 test), và 3 môi trường dùng chung đúng một bộ não |
 | **Minditful.Integrations** | Nói chuyện với thế giới ngoài: Entra/MSAL, Graph, Azure DevOps, Claude, SQLite, cấu hình, `.env` | Tách I/O khỏi logic; đổi nhà cung cấp mà không đụng bộ não |
 | **Minditful.App** | WPF: cửa sổ, overlay, vẽ Milo, khay hệ thống, tín hiệu Windows, vòng lặp thời gian của từng môi trường | Phần duy nhất cần Windows |
 
@@ -904,7 +904,7 @@ Lỗi AADSTS được dịch sang tiếng Việt (admin consent, sai tenant, red
 
 ## 13. Kiểm thử
 
-`dotnet test` chạy 155 test trên Core + Integrations (không cần Windows, không gọi mạng):
+`dotnet test` chạy 160 test trên Core + Integrations (không cần Windows, không gọi mạng):
 
 | File | Kiểm tra |
 | --- | --- |
@@ -920,6 +920,7 @@ Lỗi AADSTS được dịch sang tiếng Việt (admin consent, sai tenant, red
 | `MoodEvidenceTests` | Chứng minh công thức mood đúng chiều nghiên cứu với mọi dữ liệu: 20.000 bộ số ngẫu nhiên (JD-R: thêm áp lực không tăng điểm, thêm hồi phục không giảm điểm; nghỉ có lợi hơn khi việc nặng; > 48 giờ/tuần; nhảy việc) + lịch ngẫu nhiên chạy qua engine (họp cách 10' ≥ họp liền; thêm nghỉ không giảm điểm) |
 | `ValidationTests` | WHO-5 (tổng × 4), tương quan Pearson, cặp số kiểm chứng giữ 12 tuần qua đợt tự xoá hằng tuần |
 | `MoodEvaluationTests` | 3 bộ kiểm chứng (luật / AI / so sánh) chạy với AI giả: AI giống luật đạt hết; AI chấm lung tung, chấm ngược, hay lỗi đều bị bắt |
+| `OpenAiCompatibleTests` | AI tương thích OpenAI với máy chủ giả: đúng định dạng Chat Completions, đọc JSON có ```json / số dạng chuỗi, gửi key dạng Bearer, báo lỗi 429, sai dạng thì về luật |
 | `SilentAndDotTests` | Đang im lặng thì chóp đuôi mờ (trình chiếu thì ẩn hẳn); thẻ mở từ chấm chờ không kéo Milo ra đè lên thẻ |
 | `DemoTourTests` | Kịch bản trình diễn phủ đủ mọi `CaseId`; chạy từng bước thì Milo giao đúng case; trình chiếu ẩn Milo; mood realtime giữ Milo đứng ngoài và đổi dáng ngay |
 | `SandboxModeTests` | Chế độ test ↔ như Production: ngưỡng rút gọn / chuẩn đổi lúc đang chạy, không bật lại tính năng đã tắt |
