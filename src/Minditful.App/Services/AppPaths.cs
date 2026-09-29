@@ -103,6 +103,14 @@ internal static class UiSettings
     public static void SaveOutfitSets(AppEnvironment env, IReadOnlyList<(string Name, string Outfit)> sets) =>
         System.IO.File.WriteAllLines(OutfitSetsFile(env), sets.Select(s => $"{s.Name}\t{s.Outfit}"));
 
+    private static string ShowOnShareFile(AppEnvironment env) => Path.Combine(AppPaths.For(env), "show-on-share.txt");
+
+    /// <summary>Sandbox: hiện Milo khi chia sẻ màn hình / trình chiếu (để demo qua Teams). Mặc định false = ẩn như Production.</summary>
+    public static bool LoadShowOnShare(AppEnvironment env) =>
+        System.IO.File.Exists(ShowOnShareFile(env)) && bool.TryParse(System.IO.File.ReadAllText(ShowOnShareFile(env)).Trim(), out var on) && on;
+
+    public static void SaveShowOnShare(AppEnvironment env, bool on) => System.IO.File.WriteAllText(ShowOnShareFile(env), on.ToString());
+
     private static string TestModeFile(AppEnvironment env) => Path.Combine(AppPaths.For(env), "test-mode.txt");
 
     /// <summary>Sandbox: người dùng đã chọn chế độ test hay chạy như Production (null = chưa chọn, theo appsettings).</summary>

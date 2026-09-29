@@ -5,6 +5,12 @@ public sealed class EngineConfig
     /// <summary>Tính cách Milo (dễ thương / hài hước / pha trộn). Engine mặc định Dễ thương; app đặt Pha trộn. Đổi được lúc đang chạy.</summary>
     public Personality Personality { get; set; } = Personality.Cute;
 
+    /// <summary>Báo khi có email mới gửi thẳng cho bạn, lời mời họp mới, task mới được giao.</summary>
+    public bool IncomingAlerts { get; set; } = true;
+
+    /// <summary>Báo cả thứ chính bạn tạo (Sandbox 1 tài khoản tự gửi mail / tự tạo họp để thử).</summary>
+    public bool AlertOwnItems { get; set; }
+
     public double Start { get; set; } = Tm.T("09:00");
     /// <summary>Giờ kết thúc khung làm việc — Sandbox cho đổi lúc đang chạy để test Tan tầm ngay.</summary>
     public double End { get; set; } = Tm.T("18:00");
@@ -84,6 +90,8 @@ public abstract record MiloAction
     public sealed record StartFocus(string TaskId, string Title, double Start, double End, bool CalendarHeld = false) : MiloAction;
     public sealed record EndFocus : MiloAction;
     public sealed record OpenMail(MailItem Mail) : MiloAction;
+    /// <summary>Mở 1 đường link (email mới, cuộc họp mới, task mới) trong trình duyệt / Outlook.</summary>
+    public sealed record OpenLink(string Url) : MiloAction;
     /// <summary>Tan tầm: lưu quả nho của ngày.</summary>
     public sealed record DayClosed(DayRecord Record) : MiloAction;
 }

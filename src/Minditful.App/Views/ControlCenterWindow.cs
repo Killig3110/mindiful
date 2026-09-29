@@ -86,7 +86,12 @@ internal sealed class ControlCenterWindow : ControlShell
             Col("Chế độ test", "#2E7D6B", "Có trang Thử tình huống: ép Milo làm bất kỳ tình huống nào ngay", "Giả vờ đang gõ, rời máy, trình chiếu…", "Ngưỡng rút ngắn: ngồi liền 20' đã nhắc, 3' giữa 2 lời nhắc", "Bảng điều khiển tự mở khi chạy app"),
             Col("Như Production", "#0F6CBD", "Milo tự chạy theo lịch, email, task thật", "Ngưỡng chuẩn: ngồi liền 2 tiếng mới nhắc, 15' giữa 2 lời nhắc", "Bỏ mọi tín hiệu giả lập", "Dùng để xem bản Production trông thế nào trước khi lên tenant Bosch"));
         compare.Margin = new Thickness(0, 4, 0, 0);
-        return Card(new StackPanel { Children = { seg, compare } }, "Chế độ Sandbox",
+        var share = Switch("Hiện Milo khi chia sẻ màn hình",
+            "Để demo qua Teams: người xem thấy Milo, và trình chiếu không làm Milo trốn. Tắt = ẩn như Production.",
+            () => _session.ShowOnShare, () => _session.SetShowOnShare(!_session.ShowOnShare));
+        share.Margin = new Thickness(0, 12, 0, 0);
+        share.Width = double.NaN;
+        return Card(new StackPanel { Children = { seg, compare, share } }, "Chế độ Sandbox",
             "Sandbox là giao thoa giữa Demo và Production. Đổi lúc nào cũng được, không cần mở lại app; menu khay cũng có công tắc này.");
     }
 

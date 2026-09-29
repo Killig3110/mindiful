@@ -25,6 +25,15 @@ public static class BehaviorProfile
         cfg.FocusPlanMinMinutes = o?.FocusPlanMinMinutes ?? standard.FocusPlanMinMinutes;
     }
 
+    /// <summary>Chu kỳ đọc email / lịch / Boards: Sandbox đọc nhanh để demo "gửi mail là Milo báo"; Production giữ chu kỳ chuẩn.</summary>
+    public static void ApplyPolling(PollingOptions target, PollingOptions standard, BehaviorOverrides? ov, bool fast)
+    {
+        var o = fast ? ov : null;
+        target.MailSeconds = o?.MailPollSeconds ?? standard.MailSeconds;
+        target.CalendarSeconds = o?.CalendarPollSeconds ?? standard.CalendarSeconds;
+        target.BoardsSeconds = o?.BoardsPollSeconds ?? standard.BoardsSeconds;
+    }
+
     /// <summary>Số ngày email phải chờ trước khi Milo nhắc.</summary>
     public static int MailMinWaitDays(int configured, BehaviorOverrides? ov, bool test) =>
         test && ov?.EmailMinBusinessDaysWaiting is { } d ? d : configured;

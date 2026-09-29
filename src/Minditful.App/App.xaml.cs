@@ -162,6 +162,14 @@ public partial class App : Application
                 };
                 menu.Opening += (_, _) => test.Checked = live.TestMode;
                 menu.Items.Add(test);
+                var share = new WinForms.ToolStripMenuItem("Hiện Milo khi chia sẻ màn hình") { CheckOnClick = true, Checked = live.ShowOnShare };
+                share.CheckedChanged += (_, _) =>
+                {
+                    if (share.Checked == live.ShowOnShare) return;
+                    live.SetShowOnShare(share.Checked);
+                };
+                menu.Opening += (_, _) => share.Checked = live.ShowOnShare;
+                menu.Items.Add(share);
             }
             if (AutoStart.Supported(env))
             {

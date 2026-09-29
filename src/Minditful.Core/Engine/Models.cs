@@ -16,7 +16,14 @@ public sealed class CalendarEvent
     public bool IsOnline { get; init; } = true;
     public string? JoinUrl { get; init; }
     public string? WebLink { get; init; }
+    /// <summary>Người tổ chức (hiện trên thẻ "Có mới").</summary>
+    public string? Organizer { get; init; }
+    /// <summary>Chính bạn tạo cuộc họp này (không báo "lời mời mới").</summary>
+    public bool ByMe { get; init; }
 }
+
+/// <summary>1 thứ vừa tới: email mới, lời mời họp mới, task mới được giao. <paramref name="Kind"/>: mail / meeting / task.</summary>
+public sealed record IncomingItem(string Kind, string Id, string Title, string From, string? Link, string? When = null);
 
 public sealed class MailItem
 {
@@ -24,6 +31,8 @@ public sealed class MailItem
     public required string From { get; init; }
     public string Color { get; init; } = "#5471B0";
     public required string Subject { get; init; }
+    /// <summary>Tên đầy đủ người gửi (thẻ "Có mới"); <see cref="From"/> là chữ viết tắt.</summary>
+    public string? FromName { get; init; }
     public int Days { get; init; }
     public string? WebLink { get; init; }
     public bool Handled { get; set; }
@@ -67,6 +76,8 @@ public sealed class WorkSnapshot
     public IReadOnlyList<CalendarEvent> TomorrowCalendar { get; init; } = [];
     public WardrobeInfo? Wardrobe { get; init; }
     public IReadOnlyList<MailItem> Emails { get; init; } = [];
+    /// <summary>Email gửi thẳng cho bạn trong 24 giờ qua (để báo "email mới", không phải email chờ trả lời).</summary>
+    public IReadOnlyList<MailItem> RecentMail { get; init; } = [];
     public int Unread { get; init; }
     public IReadOnlyList<WorkTask> Tasks { get; init; } = [];
     public double AvgInProgress { get; init; } = 2.8;
@@ -87,6 +98,8 @@ public sealed class WorkSnapshot
 
 public sealed class CaseData
 {
+    /// <summary>Thẻ "Có mới": các thứ vừa tới, mới nhất ở cuối.</summary>
+    public List<IncomingItem>? Incoming { get; set; }
     public CalendarEvent? Ev { get; set; }
     public List<CalendarEvent>? Chain { get; set; }
     public WorkTask? Task { get; set; }

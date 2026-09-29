@@ -101,6 +101,10 @@ public sealed class LiveActionSink(
                     if (m.WebLink is { } link) open(link);
                     break;
 
+                case MiloAction.OpenLink { Url: var link2 }:
+                    open(link2);
+                    break;
+
                 case MiloAction.DayClosed { Record: var r }:
                     history.SaveDay(r);
                     log($"Đã lưu quả nho {r.Date:dd/MM}: {r.Score} điểm", LogKind.Action);

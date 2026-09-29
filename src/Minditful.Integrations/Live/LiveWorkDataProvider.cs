@@ -28,6 +28,7 @@ public sealed class LiveWorkDataProvider(
     public bool WardrobeEnabled { get; set; } = true;
     private string? _calNote, _mailNote, _boardsNote;
     private List<MailItem> _mails = [];
+    private List<MailItem> _recent = [];
     private int _unread;
     private bool _mailOk;
     private List<WorkTask> _tasks = [];
@@ -65,6 +66,7 @@ public sealed class LiveWorkDataProvider(
                             tomorrowCal.Add(new CalendarEvent
                             {
                                 Id = e.Id, Subject = e.Subject, Start = Math.Max(0, (e.Start - t0).TotalSeconds), End = Math.Min(86400, (e.End - t0).TotalSeconds),
+                                WebLink = e.WebLink, Organizer = e.OrganizerName, ByMe = e.IsOrganizer,
                             });
                         }
                     }
@@ -86,7 +88,7 @@ public sealed class LiveWorkDataProvider(
                 _mailAt = now;
                 try
                 {
-                    (_mails, _unread) = await LoadMailAsync(now, ct);
+                    (_mails, _unread, _recent) = await LoadMailAsync(now, ct);
                     (_mailOk, _mailNote) = (true, null);
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
@@ -97,7 +99,7 @@ public sealed class LiveWorkDataProvider(
         }
         else
         {
-            (_calendar, _tomorrow, _tomorrowCal, _mails, _mailOk) = ([], null, [], [], false);
+            (_calendar, _tomorrow, _tomorrowCal, _mails, _mailOk, _recent) = ([], null, [], [], false, []);
             _calNote = "Chưa đăng nhập Microsoft → chưa có lịch và email";
             _mailNote = null;
         }
@@ -147,6 +149,7 @@ public sealed class LiveWorkDataProvider(
             TomorrowCalendar = _tomorrowCal,
             Wardrobe = WardrobeEnabled ? history.Wardrobe(today) : null,
             Emails = _mails,
+            RecentMail = _recent,
             Unread = _unread,
             Tasks = _tasks,
             CompletedToday = _completed,
@@ -192,10 +195,11 @@ public sealed class LiveWorkDataProvider(
         {
             Id = e.Id, Subject = e.Subject, Start = start, End = end, Role = role, Attachment = attach, People = people,
             IsOnline = e.IsOnlineMeeting || !conn.RequireOnlineMeeting, JoinUrl = e.JoinUrl, WebLink = e.WebLink,
+            Organizer = e.OrganizerName, ByMe = e.IsOrganizer,
         };
     }
 
-    private async Task<(List<MailItem>, int)> LoadMailAsync(DateTime now, CancellationToken ct)
+    private async Task<(List<MailItem>, int, List<MailItem>)> LoadMailAsync(DateTime now, CancellationToken ct)
     {
         var since = now.ToUniversalTime().AddDays(-10);
         var unread = await graph!.UnreadCountAsync(ct);
@@ -215,7 +219,15 @@ public sealed class LiveWorkDataProvider(
             })
             .Where(m => m.Days >= Math.Max(1, conn.MailMinWaitDays))
             .ToList();
-        return (list, unread);
+        // Thẻ "Có mới": mọi email gửi thẳng cho bạn trong 24 giờ qua (engine tự so với lần đọc trước)
+        var dayAgo = now.ToUniversalTime().AddHours(-24);
+        var recent = inbox
+            .Where(m => m.Received.ToUniversalTime() >= dayAgo)
+            .Where(m => m.To.Any(t => string.Equals(t, _me, StringComparison.OrdinalIgnoreCase)))
+            .Where(m => conn.IncludeSelfSentMail || !string.Equals(m.FromAddress, _me, StringComparison.OrdinalIgnoreCase))
+            .Select(m => new MailItem { Id = m.Id, From = Initials(m.FromName), FromName = m.FromName, Subject = m.Subject, WebLink = m.WebLink })
+            .ToList();
+        return (list, unread, recent);
     }
 
     public static string Initials(string name)

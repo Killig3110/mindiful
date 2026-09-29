@@ -81,6 +81,7 @@ public sealed partial class MiloEngine
         var done = S.Tasks.Where(x => x.Done).Select(x => x.Id).ToHashSet();
         S.Tasks = snap.Tasks.Select(CloneTask).ToList();
         foreach (var x in S.Tasks) x.Done = done.Contains(x.Id);
+        DetectIncoming(snap);
 
         // Lần đầu chỉ ghi nhận, không ăn mừng những task đã Done trước khi mở app.
         if (!S.DoneSeeded)

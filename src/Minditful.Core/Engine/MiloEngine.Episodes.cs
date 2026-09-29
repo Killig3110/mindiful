@@ -373,6 +373,11 @@ public sealed partial class MiloEngine
                     ExitEp(Clip.ClimbOutShort, "Sắp họp: 60 giây không bấm → tự thu, không nhắc lại cuộc này");
                 }
                 else if (ep.C == CaseId.Talk) ExitEp(Clip.ClimbOut, "Trò chuyện: 2 phút không gõ gì → Milo chào rồi leo xuống");
+                else if (ep.C == CaseId.Incoming)
+                {
+                    Record(ep.C, Outcome.Ignored);
+                    ExitEp(Clip.ClimbOutShort, "Có mới: 20 giây không bấm → Milo thu lại (đã báo rồi, không nhắc lại)");
+                }
                 else if (ep.C == CaseId.CheckIn)
                 {
                     Mem(ep.C).Keys.Add(ep.Item.Key);
@@ -491,6 +496,14 @@ public sealed partial class MiloEngine
                 else if (act == "wardrobe") { ep.Wardrobe = !ep.Wardrobe; ep.Detail = false; ep.CardVer++; Log(ep.Wardrobe ? "Mở tủ đồ → phối đồ cho Milo" : "Đóng tủ đồ → về 4 quả", LogKind.User); }
                 else if (act == "talk") OpenTalk();
                 else if (act == "close") ExitEp(Clip.ClimbOut, "Đóng dashboard → leo xuống");
+                return;
+            case CaseId.Incoming:
+                if (act == "open" && ep.Data.Incoming?.LastOrDefault(i => i.Link is not null) is { Link: { } url } item)
+                {
+                    Log($"Mở {KindName(item.Kind)} \"{item.Title}\"", LogKind.User);
+                    Raise(new MiloAction.OpenLink(url));
+                }
+                ExitEp(Clip.ClimbOutShort, act == "open" ? null : "Đã xem thẻ Có mới");
                 return;
             case CaseId.Talk:
                 if (act == "breathe")

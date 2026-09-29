@@ -50,6 +50,7 @@ internal abstract partial class ControlShell
             (CaseId.MicroBreak, "Ló lên 5 giây nhắc nghỉ ngắn: uống nước, vươn vai"),
             (CaseId.Dashboard, "Mở 4 quả quanh Milo (nho, cam, anh đào, táo)"),
             (CaseId.Talk, "Mở khung trò chuyện tự do với Milo (AI hoặc theo từ khoá)"),
+            (CaseId.Incoming, "Có mới: bấm lần lượt giả lập email mới → lời mời họp mới → task mới được giao"),
         ]),
     ];
 

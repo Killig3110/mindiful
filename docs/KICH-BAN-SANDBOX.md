@@ -4,7 +4,7 @@ Dành cho người present phần "Milo chạy thật". Sandbox dùng **tài kho
 
 Thông điệp: **"Bạn đổi gì trên Teams / Outlook / Azure Boards, Milo thấy và phản ứng."**
 
-- Thời lượng: khoảng **10 phút** (phần C thêm 3 phút nếu muốn ép tình huống).
+- Thời lượng: khoảng **11 phút** (phần C thêm 3 phút nếu muốn ép tình huống).
 - Nên present sau phần Demo ([KICH-BAN-DEMO.md](KICH-BAN-DEMO.md)): Demo cho thấy Milo làm được gì, Sandbox chứng minh nó chạy với dữ liệu thật.
 - Setup tenant: [KET-NOI-SANDBOX.md](KET-NOI-SANDBOX.md).
 
@@ -15,9 +15,9 @@ Thông điệp: **"Bạn đổi gì trên Teams / Outlook / Azure Boards, Milo t
 | Nguồn | Tự đọc lại mỗi | Milo phản ứng với |
 | --- | --- | --- |
 | Trạng thái Teams | 30 giây | Vào cuộc gọi, trình chiếu, Do not disturb |
-| Lịch Outlook / Teams | 2 phút | Cuộc họp mới, họp sắp bắt đầu, chuỗi họp liền |
-| Email Outlook | 5 phút | Email hỏi thẳng bạn chưa trả lời, đã trả lời |
-| Azure Boards | 3 phút | Task sang Done, task mới, tiến độ sprint |
+| Lịch Outlook / Teams | 30 giây ở Sandbox (Production 2 phút) | Lời mời họp mới, họp sắp bắt đầu, chuỗi họp liền |
+| Email Outlook | 20 giây ở Sandbox (Production 5 phút) | **Email mới** gửi thẳng cho bạn, email hỏi thẳng bạn chưa trả lời, đã trả lời |
+| Azure Boards | 30 giây ở Sandbox (Production 3 phút) | Task mới được giao, task sang Done, tiến độ sprint |
 
 Không muốn chờ: bảng điều khiển → *Tổng quan* → **Làm mới ngay**. Mở khoá máy cũng làm Milo đọc lại tất cả.
 
@@ -27,6 +27,8 @@ Không muốn chờ: bảng điều khiển → *Tổng quan* → **Làm mới n
 - Làm liền 2 tiếng.
 
 Kịch bản dưới đây chỉ dùng những phản ứng **không phụ thuộc ngưỡng**.
+
+**Present qua Teams (chia sẻ màn hình cho ban giám khảo):** mặc định Milo bị ẩn khỏi màn hình chia sẻ và trốn khi trình chiếu, nên người xem sẽ không thấy gì. Trước khi chia sẻ, bật **Hiện Milo khi chia sẻ màn hình**: bảng điều khiển → *Tổng quan* → thẻ *Chế độ Sandbox*, hoặc menu khay. Tới bước 4 của phần B (chứng minh Milo ẩn khỏi màn hình chia sẻ) thì tắt công tắc này đi.
 
 ## 2. Chuẩn bị
 
@@ -62,10 +64,11 @@ Kịch bản dưới đây chỉ dùng những phản ứng **không phụ thu�
 
 | # | Bạn làm (trên dịch vụ thật) | Chờ | Milo phản ứng | Bạn nói |
 | --- | --- | --- | --- | --- |
+| 0 | Từ **tài khoản test thứ 2** (hoặc điện thoại), gửi 1 email tới tài khoản đang chạy Milo. Tiếp theo: gửi 1 lời mời họp Teams, rồi trên Azure Boards giao 1 task mới cho tài khoản này | ≤ 20 giây (email), ≤ 30 giây (họp, task) | Milo ló lên thẻ **Có mới**: "… vừa gửi mail cho bạn" + tiêu đề, nút *Mở email*. Tới liền nhau thì gộp "3 thứ mới vừa tới" | "Có email mới, lời mời họp hay task mới là Milo báo ngay, không cần mở Outlook. Đang họp thì Milo giữ lại, hết họp mới báo." |
 | 1 | Azure Boards: kéo 1 task **Active → Closed** | ≤ 3 phút (hoặc *Làm mới ngay*) | Milo ló lên nhảy tưng "Xong #id rồi!", điểm mood cộng thêm | "Không cần báo cho Milo, xong việc trên Boards là Milo biết." |
 | 2 | (Cuộc họp tạo sẵn còn khoảng 5 phút) | Tới lúc còn 5 phút | Thẻ **Sắp họp** với tên cuộc họp, người tham gia, nút Tham gia | "Họp Teams sắp bắt đầu, Milo nhắc đúng 5 phút trước." |
 | 3 | Bấm **Tham gia** trên thẻ | ≤ 30 giây | Teams mở cuộc họp. Milo và chóp đuôi **ẩn hẳn** | "Đang trong cuộc gọi thì Milo im lặng tuyệt đối. Nó đọc trạng thái Teams, không đoán." |
-| 4 | Trong cuộc họp bấm **Share / Present** màn hình | ≤ 30 giây | Người xem màn hình chia sẻ **không thấy Milo** | "Milo không bao giờ lộ lên màn hình đang chia sẻ." |
+| 4 | Trong cuộc họp bấm **Share / Present** màn hình. Nếu đang bật *Hiện Milo khi chia sẻ màn hình* thì tắt ở bước này | Ngay (tắt công tắc) · ≤ 30 giây (trình chiếu) | Người xem màn hình chia sẻ **không thấy Milo** | "Milo không bao giờ lộ lên màn hình đang chia sẻ. Công tắc này chỉ có ở Sandbox để demo; Production luôn ẩn." |
 | 5 | Rời cuộc họp | ≤ 30 giây, sau đó chờ 2 phút | Chóp đuôi hiện lại. Lời nhắc dồn trong lúc họp (nếu có) được giao sau 2 phút ổn định | "Hết họp Milo không nhảy ra ngay mà để bạn thở 2 phút." |
 | 6 | Teams: đặt trạng thái **Do not disturb** | ≤ 30 giây | Dải trên cùng bảng điều khiển: "Milo đang im lặng · vì không làm phiền" | "Tôn trọng trạng thái bạn tự đặt." Rồi trả Teams về *Available* |
 | 7 | Outlook Mail: mở email đồng nghiệp gửi hôm qua → dashboard có 1 quả anh đào. **Trả lời** email đó | ≤ 5 phút (hoặc *Làm mới ngay*) | Quả anh đào biến mất | "Milo biết email nào đã trả lời. Nó chỉ đọc có trả lời hay chưa, không lưu nội dung." |

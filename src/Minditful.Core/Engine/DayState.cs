@@ -72,6 +72,10 @@ public sealed class DayState
     public double? AwaySince;
     /// <summary>Vừa quay lại sau ≥ 30 phút vắng: lần ghé tới Milo phủ mạng nhện.</summary>
     public bool CobwebPending;
+    /// <summary>Thẻ "Có mới": id đã thấy (m:/e:/t:). Lần đọc đầu chỉ ghi nhận, không báo những thứ có sẵn.</summary>
+    public readonly HashSet<string> SeenIncoming = [];
+    public bool IncomingSeeded;
+    public int DemoIncoming;
     public readonly List<string> ChatHistory = [];
     /// <summary>Teams presence "Presenting": Milo trốn hẳn, kể cả chóp đuôi.</summary>
     public bool Presenting;

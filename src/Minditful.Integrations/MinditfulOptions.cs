@@ -61,6 +61,8 @@ public sealed class WellbeingOptions
     /// Người dùng đổi ở chuột phải Milo / bảng điều khiển thì lựa chọn đó được nhớ, đè lên giá trị này.
     /// </summary>
     public string Personality { get; set; } = "Mixed";
+    /// <summary>Thẻ "Có mới": báo email mới gửi thẳng cho bạn, lời mời họp mới, task mới được giao.</summary>
+    public bool Incoming { get; set; } = true;
 }
 
 public sealed class WorkDayOptions
@@ -145,6 +147,10 @@ public sealed class BehaviorOverrides
     public int? MicroBreakEveryMin { get; set; }
     /// <summary>Khoảng trống tối thiểu để đề nghị giữ giờ tập trung (chuẩn: Wellbeing.FocusPlanMinMinutes).</summary>
     public int? FocusPlanMinMinutes { get; set; }
+    /// <summary>Chu kỳ đọc email / lịch / Azure Boards (giây) ở Sandbox (cả 2 chế độ), để demo "gửi mail là Milo báo" gần như ngay.</summary>
+    public int? MailPollSeconds { get; set; }
+    public int? CalendarPollSeconds { get; set; }
+    public int? BoardsPollSeconds { get; set; }
 
     public string Describe() => string.Join(" · ", new[]
     {

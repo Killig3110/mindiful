@@ -187,7 +187,7 @@ Cửa sổ riêng, tông kem như thẻ của Milo. **Đóng cửa sổ này th�
 
 | Trang | Để làm gì |
 | --- | --- |
-| **Kịch bản trình diễn** | 25 bước đi qua đủ 20 tình huống + trình chiếu, mood realtime, Milo hài hước, đồng phục Bosch. Mỗi bước ghi *người xem thấy gì* và *bạn nói gì*. Bấm từng bước hoặc bật *Tự chạy qua các bước*. Kịch bản lời nói: [KICH-BAN-DEMO.md](KICH-BAN-DEMO.md) |
+| **Kịch bản trình diễn** | 26 bước đi qua đủ 21 tình huống + trình chiếu, mood realtime, Milo hài hước, đồng phục Bosch. Mỗi bước ghi *người xem thấy gì* và *bạn nói gì*. Bấm từng bước hoặc bật *Tự chạy qua các bước*. Kịch bản lời nói: [KICH-BAN-DEMO.md](KICH-BAN-DEMO.md) |
 | **Bắt đầu** | Thẻ **Mood realtime**: kéo mức căng thẳng, bấm nghỉ / xong task, gọi Milo đứng ở góc để thấy dáng và màu đổi ngay. Phát / tạm dừng ngày mẫu, *Làm lại từ 08:50*, tốc độ *Chậm 60× · Vừa 120× · Nhanh 300×*. Công tắc **Người dùng mẫu tự bấm nút**: bật thì kịch bản tự trả lời, tắt thì bạn tự bấm trên thẻ. Số liệu hôm nay và mẹo tương tác |
 | **Ngày mẫu** | 17 mốc của ngày Thứ Năm 24/9. Bấm 1 mốc để tua tới ngay trước lúc đó. Mốc đang diễn ra tô cam |
 | **Thử tình huống** | *Cho Milo làm ngay*: 19 thẻ tình huống chia 4 nhóm, bấm là Milo làm luôn. *Giả vờ bạn đang…*: công tắc gõ phím, rời máy, khoá máy, toàn màn hình, Không làm phiền, trình chiếu, ngày căng thẳng; và nút 1 lần (rời cuộc họp, nhảy việc, xong 1 task, mở dashboard) |
@@ -220,6 +220,10 @@ Production mặc định không tự mở bảng điều khiển (Milo chỉ ở
   - Nhãn thanh bên: *SANDBOX · CHẾ ĐỘ TEST*.
 - **Chạy như Production**
   - Ẩn trang *Thử tình huống*, bỏ mọi tín hiệu giả lập.
+- **Hiện Milo khi chia sẻ màn hình** (công tắc cùng thẻ, hoặc menu khay; chỉ có ở Sandbox):
+  - Tắt (mặc định): như Production. Milo không lọt vào màn hình chia sẻ, và trốn hẳn khi Teams báo đang trình chiếu.
+  - Bật: người xem Teams thấy Milo, trình chiếu cũng không làm Milo trốn. Dùng khi demo Milo qua Teams.
+  - Đổi có hiệu lực ngay, không cần mở lại app. Lựa chọn được nhớ cho lần sau.
   - Về ngưỡng chuẩn: ngồi liền 2 tiếng mới nhắc, 15 phút giữa 2 lời nhắc.
   - Bảng điều khiển không tự mở.
   - Milo cư xử y như bản Production, dùng để xem trước bản thật.
@@ -279,6 +283,7 @@ Vòng thở: vòng tròn phồng 4 giây (hít vào), giữ 4 giây, xẹp 4 gi�
 | **Nghỉ giữa chuỗi họp ngày mai** | Trên thẻ tan tầm, khi mai có ≥ 3 cuộc họp liền | "Mai 13:30–16:15 có 3 cuộc họp liền" | *Giữ 10' nghỉ lúc …* |
 | **Trốn khi trình chiếu** | Teams báo bạn đang trình chiếu | Trốn hẳn, kể cả chóp đuôi | — |
 | **Trò chuyện** | Bất cứ lúc nào bạn muốn | Khung chat tự do, trả lời bằng AI hoặc theo từ khoá (mục 3.4) | Gõ tự do · *Thở 1 phút* · *Xong* |
+| **Có mới** | Có email mới gửi thẳng cho bạn, lời mời họp mới, task mới được giao | Ló lên với thẻ nhỏ: ai gửi, tiêu đề. Nhiều thứ tới liền nhau gộp 1 thẻ. Đang họp / tập trung thì chờ ở chấm chờ. Production đọc email 5 phút/lần, Sandbox khoảng 20 giây | *Mở email* / *Xem cuộc họp* / *Mở task* · *Đã xem* (20 giây không bấm thì thu lại) |
 | **Tủ đồ · phối đồ** | Mở khoá bằng thói quen tốt và theo mùa (mục 3.5) | 14 món chia 5 ô, phối nhiều món cùng lúc; sáng hôm sau Milo khoe món mới | Chuột phải Milo → *Thay đồ*, hoặc *Tủ đồ* trên dashboard, menu khay, chat "đổi đồ" |
 
 Muốn tắt tính năng nào (vd. thấy nhắc uống nước phiền): xem README mục **Tham chiếu biến `.env`**, nhóm `Wellbeing`.

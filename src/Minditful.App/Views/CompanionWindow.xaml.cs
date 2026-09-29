@@ -108,7 +108,17 @@ public partial class CompanionWindow : Window
         ex = (ex | Native.WS_EX_TOOLWINDOW) & ~Native.WS_EX_APPWINDOW;
         Native.SetWindowLongPtr(hwnd, Native.GWL_EXSTYLE, (IntPtr)ex);
         // Share màn hình không thấy Milo hay chấm chờ (mục 3)
-        if (_session.ContentProtection) Native.SetWindowDisplayAffinity(hwnd, Native.WDA_EXCLUDEFROMCAPTURE);
+        ApplyCapture();
+        if (_session is LiveSession live) live.CaptureChanged += () => Dispatcher.BeginInvoke(ApplyCapture);
+    }
+
+    /// <summary>Ẩn / hiện Milo trong ảnh chia sẻ màn hình (Sandbox đổi được lúc đang chạy).</summary>
+    private void ApplyCapture()
+    {
+        var hwnd = new WindowInteropHelper(this).Handle;
+        if (hwnd == IntPtr.Zero) return;
+        Native.SetWindowDisplayAffinity(hwnd, _session.ContentProtection ? Native.WDA_EXCLUDEFROMCAPTURE : Native.WDA_NONE);
+        Layer.Render();
     }
 
     /// <summary>Chỉ vẽ 60fps khi Milo đang hiện; lúc ẩn chỉ cập nhật 4 lần/giây cho nhẹ máy.</summary>

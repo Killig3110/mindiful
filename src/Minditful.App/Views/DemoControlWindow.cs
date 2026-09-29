@@ -319,7 +319,7 @@ internal sealed class DemoControlWindow : ControlShell
         });
 
         return Page("Kịch bản trình diễn",
-            "25 bước đi qua đủ 20 tình huống của Milo cùng các tính năng mới, khoảng 15 phút. 12 bước đầu theo ngày mẫu Thứ Năm 24/9, các bước sau cho Milo làm từng tình huống còn lại. Kịch bản lời nói đầy đủ: docs/KICH-BAN-DEMO.md.",
+            "26 bước đi qua đủ 21 tình huống của Milo cùng các tính năng mới, khoảng 15 phút. 12 bước đầu theo ngày mẫu Thứ Năm 24/9, các bước sau cho Milo làm từng tình huống còn lại. Kịch bản lời nói đầy đủ: docs/KICH-BAN-DEMO.md.",
             current, MoodCard(), Card(list, "Tất cả bước", "Bấm 1 bước để chạy ngay bước đó."));
     }
 

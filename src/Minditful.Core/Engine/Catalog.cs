@@ -6,7 +6,7 @@ public enum CaseId
     Dashboard, MorningHello, MeetingSoon, EodWrapup, MeetingOverload, LowRest, Overtime, NoBreak,
     LunchMissed, HighFragmentation, EodNudge, CalendarPacked, StuckTask, EmailWaiting, TaskDone, FocusDone, CheckIn,
     // Tính năng mở rộng (sau prototype): thêm ở cuối để không đổi thứ tự phá hoà của 17 case gốc
-    FocusPlan, WeekReport, MicroBreak, Talk,
+    FocusPlan, WeekReport, MicroBreak, Talk, Incoming,
 }
 
 public enum CaseKind { User, Social, Assist, Care }
@@ -64,6 +64,7 @@ public static class Catalog
         new CaseDef(CaseId.WeekReport, 4, CaseKind.Social, "Báo cáo tuần", "#7261B0", "Mở rộng · sáng thứ Hai", Timeout: 45, Stay: Clip.Greet, Need: 5),
         new CaseDef(CaseId.MicroBreak, 5, CaseKind.Assist, "Nghỉ ngắn", "#3E8E9E", "Mở rộng · nghỉ ngắn (micro-break)", Exempt: true),
         new CaseDef(CaseId.Talk, 0, CaseKind.User, "Trò chuyện", "#B85A34", "Mở rộng · trò chuyện tự do", Timeout: 120, Stay: Clip.Greet, Exempt: true),
+        new CaseDef(CaseId.Incoming, 3, CaseKind.Assist, "Có mới", "#0F6CBD", "Mở rộng · email / lời mời họp / task mới tới", Timeout: 20, Stay: Clip.Point, Exempt: true, Sev: 1),
     }.ToDictionary(c => c.Id);
 
     public static CaseDef Def(CaseId c) => Cases[c];

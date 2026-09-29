@@ -163,7 +163,7 @@ Cả 3 môi trường đều là **cùng một app**:
 
 Dùng để present và để kiểm tra đủ 16 case của prototype. Giờ, lịch, email, task và thao tác của người dùng đều theo **ngày mẫu Thứ Năm 24/9**.
 
-**Cách nhanh nhất để xem đủ mọi case:** trang **Kịch bản trình diễn** → bật *Tự chạy qua các bước*. 25 bước (12 bước theo ngày mẫu, rồi 9 case còn lại gồm trò chuyện, trình chiếu, mood realtime, Milo hài hước, đồng phục Bosch), có gợi ý câu nói từng bước. Chi tiết: [docs/KICH-BAN-DEMO.md](docs/KICH-BAN-DEMO.md).
+**Cách nhanh nhất để xem đủ mọi case:** trang **Kịch bản trình diễn** → bật *Tự chạy qua các bước*. 26 bước (12 bước theo ngày mẫu, rồi 10 case còn lại gồm trò chuyện, có mới (realtime), trình chiếu, mood realtime, Milo hài hước, đồng phục Bosch), có gợi ý câu nói từng bước. Chi tiết: [docs/KICH-BAN-DEMO.md](docs/KICH-BAN-DEMO.md).
 
 **Mood realtime:** trang *Bắt đầu* (và *Kịch bản trình diễn*) có thẻ **Mood realtime**:
 - Kéo *Căng thẳng giả lập* 0–60, hoặc bấm *Nghỉ cùng Milo (+3)* / *Xong 1 task (+2)*: điểm tính lại ngay.
@@ -357,6 +357,7 @@ Trong các bảng, `…` là viết tắt của `MINDITFUL__Minditful__`.
 | `…Wellbeing__EveningCheck` | `true` · `false` | `true` | Thẻ tan tầm hỏi "Hôm nay thấy sao?" và gợi ý nghỉ giữa chuỗi họp ngày mai |
 | `…Wellbeing__HideWhenPresenting` | `true` · `false` | `true` | Milo trốn hẳn khi Teams báo đang trình chiếu |
 | `…Wellbeing__Wardrobe` | `true` · `false` | `true` | Tủ đồ phối đồ (mở khoá khi về đúng giờ, nghỉ, tập trung, và theo mùa) |
+| `…Wellbeing__Incoming` | `true` · `false` | `true` | Thẻ *Có mới*: email mới, lời mời họp mới, task mới được giao |
 | `…Wellbeing__Personality` | `Mixed` · `Cute` · `Funny` | `Mixed` | Tính cách Milo: Pha trộn (phần lớn dễ thương, lâu lâu hài), Dễ thương (không meme), Hài hước (gặp dịp là diễn meme). Người dùng đổi bằng chuột phải Milo thì được nhớ, đè lên giá trị này |
 
 **Claude (`Llm`, tuỳ chọn)**
@@ -447,7 +448,9 @@ TenantId, ClientId, org `mindiful-sandbox`, project `Milo-Sandbox` và team `Mil
 
 Dùng *Chạy như Production* để xem Milo trên Production trông và cư xử thế nào ngay trên tenant thử. Production thật không có chế độ test.
 
-Mỗi nguồn được đọc lại theo chu kỳ riêng: presence 30 giây, lịch 2 phút, mail 5 phút, Boards 3 phút. Khi mở khoá máy, đăng nhập hoặc bấm *Làm mới*, app đọc lại tất cả ngay.
+**Hiện Milo khi chia sẻ màn hình** (chỉ Sandbox; thẻ *Chế độ Sandbox* hoặc menu khay; mặc định tắt): bật để demo qua Teams. Khi bật, cửa sổ Milo không bị loại khỏi ảnh chia sẻ (`SetWindowDisplayAffinity` về `WDA_NONE`), và trạng thái *Presenting* của Teams không làm Milo trốn. Lựa chọn lưu ở `%LOCALAPPDATA%\Minditful\Sandbox\show-on-share.txt`. Production luôn ẩn.
+
+Mỗi nguồn được đọc lại theo chu kỳ riêng: presence 30 giây, lịch 2 phút, mail 5 phút, Boards 3 phút. **Sandbox đọc nhanh hơn** (cả 2 chế độ: mail 20 giây, lịch và Boards 30 giây; `BehaviorOverrides.MailPollSeconds` / `CalendarPollSeconds` / `BoardsPollSeconds`) để demo thẻ *Có mới*: gửi 1 email thật là khoảng 20 giây sau Milo báo. Khi mở khoá máy, đăng nhập hoặc bấm *Làm mới*, app đọc lại tất cả ngay.
 
 Tên môi trường nhận cả `Scenario`/`Demo`, `Sandbox`, `Prod`/`Production`. Thứ tự chọn: `--env` > biến `MINDITFUL_ENV` > `Minditful:Environment`. Visual Studio có sẵn 3 launch profile.
 
@@ -634,7 +637,7 @@ Milo chớp mắt 4.5 giây/lần, khi mệt thì nhắm lâu hơn (§9.4). Chuy
 
 ## Tính năng chăm sóc mở rộng (mục `Wellbeing`)
 
-8 tính năng thêm ngoài prototype. Sandbox/Production bật theo `Wellbeing` trong `appsettings.json` hoặc `.env`. Demo tắt sẵn để ngày mẫu giữ đúng các mốc của tài liệu; bật thử từng cái ở trang **Thử tình huống** → nhóm *Mới thêm* của bảng điều khiển Demo.
+9 tính năng thêm ngoài prototype. Sandbox/Production bật theo `Wellbeing` trong `appsettings.json` hoặc `.env`. Demo tắt sẵn để ngày mẫu giữ đúng các mốc của tài liệu; bật thử từng cái ở trang **Thử tình huống** → nhóm *Mới thêm* của bảng điều khiển Demo.
 
 | Tính năng | Khi nào | Milo làm gì | Cấu hình |
 | --- | --- | --- | --- |
@@ -643,6 +646,7 @@ Milo chớp mắt 4.5 giây/lần, khi mệt thì nhắm lâu hơn (§9.4). Chuy
 | Hôm nay thấy sao? | Thẻ Tan tầm (và Nhắc lại tan tầm nếu chưa trả lời) | 3 nút Vui / Bình thường / Mệt. Chỉ lưu trên máy; "Mệt" trừ 6 điểm, "Vui" cộng 3; gửi cho Claude khi bật Mood Hybrid/Llm; thống kê tuần có "Bạn tự thấy" | `EveningCheck` |
 | Nghỉ giữa chuỗi họp ngày mai | Thẻ Tan tầm, khi mai có ≥ 3 cuộc họp liền | *Giữ 10' nghỉ lúc HH:mm* tạo sự kiện tentative trong lịch ngày mai | `EveningCheck` |
 | Nghỉ ngắn (uống nước, vươn vai) | Mỗi 50 phút ngồi máy liên tục (không tính giờ họp), tối đa 6 lần/ngày | Ló lên 5 giây với 1 bóng thoại, không nút, không tính ngân sách lời nhắc. Rời máy ≥ 5 phút thì đếm lại | `MicroBreakEveryMinutes` (0 = tắt), `MicroBreakMaxPerDay` |
+| Có mới (realtime) | Email mới gửi thẳng cho bạn (24 giờ qua), lời mời họp mới (hôm nay, ngày mai; không tính họp bạn tự tạo), task mới được giao trên Azure Boards | Ló lên với thẻ nhỏ: người gửi + tiêu đề, nút *Mở email* / *Xem cuộc họp* / *Mở task*, *Đã xem*. Nhiều thứ tới liền nhau gộp 1 thẻ. Đang họp / tập trung thì chờ ở chấm chờ. 20 giây không bấm thì thu lại, không nhắc lại. Lần đọc đầu tiên sau khi mở app chỉ ghi nhận, không báo thứ có sẵn | `Incoming` |
 | Milo ngủ khi bạn tập trung | Đang trong khối tập trung (cổng *Giờ tập trung*) và Milo không có việc gì | Thay vì chỉ còn chóp đuôi mờ, 1 Milo nhỏ ngủ trên chóp đuôi (mắt nhắm, thở chậm, chữ "z"), vẫn mặc bộ đồ đang chọn. Rê chuột: "Bạn đang tập trung tới HH:MM". Họp, trình chiếu, toàn màn hình vẫn chỉ chóp đuôi mờ | Luôn bật |
 | Trốn khi trình chiếu | Teams presence = Presenting | Trốn hẳn, kể cả chóp đuôi và chấm chờ; thẻ đang mở thu lại | `HideWhenPresenting` |
 | Tủ đồ · phối đồ | Về đúng giờ (quá giờ < 15 phút) nhiều ngày liền, nghỉ cùng Milo, tập trung sâu, và theo mùa (Tết, Trung thu, Halloween, Noel) | 14 món chia 5 ô (mũ, kẹp tóc, kính, cổ, tay cầm), phối nhiều món, lưu 4 bộ, ngẫu nhiên. **Đồng phục Bosch** vẫn là phần thưởng cao nhất (15 ngày). Mở ngay trên Milo: chuột phải → *Thay đồ*, link *Tủ đồ* trên dashboard, menu khay, hoặc chat. Chi tiết: [HUONG-DAN-SU-DUNG.md mục 3.5](docs/HUONG-DAN-SU-DUNG.md) | `Wardrobe` |

@@ -606,6 +606,9 @@ public sealed partial class MiloEngine
             case CaseId.Talk:
                 OpenTalk();
                 return;
+            case CaseId.Incoming:
+                SimulateIncoming();
+                return;
         }
         var m = Mem(c);
         m.SnoozedUntil = m.DismissedUntil = 0;

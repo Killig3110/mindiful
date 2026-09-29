@@ -246,6 +246,38 @@ public static class Present
                 }
                 break;
             }
+            case CaseId.Incoming:
+            {
+                var items = d.Incoming ?? [];
+                var kinds = items.Select(i => i.Kind).Distinct().ToList();
+                var (src, bg, fg) = kinds.Count > 1 ? ("Outlook · Teams · Azure Boards", "#E8EEF8", "#0F3B6E")
+                    : kinds.FirstOrDefault() switch
+                    {
+                        "mail" => ("Outlook · email mới", "#DCEBFA", "#0B4F8A"),
+                        "meeting" => ("Teams · lời mời họp mới", "#E6E7FA", "#3F43A8"),
+                        _ => ("Azure Boards · task mới giao cho bạn", "#DDEFF8", "#0B5A7A"),
+                    };
+                b.Add(new TopBlock(src, bg, fg, PillIcon.Bell, items.Count > 1 ? $"{items.Count} thứ mới" : "vừa tới"));
+                b.Add(new TitleBlock(items.Count == 1 ? items[0].Kind switch
+                {
+                    "mail" => $"{items[0].From} vừa gửi mail cho bạn",
+                    "meeting" => $"Có lời mời họp mới{(items[0].When is { } w ? " lúc " + w : "")}",
+                    _ => "Bạn vừa được giao 1 task mới",
+                } : $"{items.Count} thứ mới vừa tới", 15.5));
+                foreach (var i in items.TakeLast(3).Reverse())
+                    b.Add(i.Kind switch
+                    {
+                        "mail" => new LineBlock(LeadKind.Avatar, Initials(i.From), "#5471B0", i.Title, Source: i.From),
+                        "meeting" => new LineBlock(LeadKind.Square, "", "#5B5FC7", i.Title, Source: (i.When ?? "") + (i.From.Length > 0 ? " · " + i.From : "")),
+                        _ => new LineBlock(LeadKind.IdTag, i.From, "#0078D4", i.Title),
+                    });
+                if (items.Count > 3) b.Add(new ParagraphBlock($"… và {items.Count - 3} thứ khác.", Small: true, Color: "#7A6455"));
+                var open = items.LastOrDefault(i => i.Link is not null);
+                b.Add(new ButtonsBlock(open is null
+                    ? [new("gotIt", "Đã xem", ButtonStyle.Dark)]
+                    : [new("open", open.Kind switch { "mail" => "Mở email", "meeting" => "Xem cuộc họp", _ => "Mở task" }, ButtonStyle.Dark), new("gotIt", "Đã xem", ButtonStyle.Ghost)]));
+                return new(CardVariant.Card, b, 300, Low: low);
+            }
             case CaseId.Talk:
             {
                 b.Add(new EyebrowBlock("Trò chuyện với Milo"));
@@ -314,6 +346,17 @@ public static class Present
         }
         if (def.Kind == CaseKind.Care) b.AddRange(CareBlocks(e, ep));
         return new(CardVariant.Card, b, Low: low);
+    }
+
+    private static string Initials(string name)
+    {
+        var parts = name.Split([' ', '.', '_', '-', '@', '(', ')'], StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length switch
+        {
+            0 => "?",
+            1 => parts[0][..Math.Min(2, parts[0].Length)].ToUpperInvariant(),
+            _ => char.ToUpperInvariant(parts[0][0]).ToString() + char.ToUpperInvariant(parts[1][0]),
+        };
     }
 
     /// <summary>Khung chat; câu trả lời mới nhất có tính năng đề nghị thì hiện thành nút ngay dưới (chỉ câu mới nhất, tránh nút cũ).</summary>

@@ -25,6 +25,7 @@ internal sealed class LiveSession : IMiloSession
 
     private readonly WorkDayOptions _day;
     private readonly WellbeingOptions _well;
+    private PollingOptions _standardPolling = new();
     private readonly DispatcherTimer _tick = new() { Interval = TimeSpan.FromMilliseconds(250) };
     private readonly DispatcherTimer _refresh = new();
     private readonly DispatcherTimer _presence = new();
@@ -72,6 +73,7 @@ internal sealed class LiveSession : IMiloSession
         _mailWaitConfigured = Conn.MailMinWaitDays;
         // Sandbox: chế độ test (như Demo) hay chạy như Production — lựa chọn trên máy thắng giá trị trong appsettings
         TestMode = CanTest && (UiSettings.LoadTestMode(env) ?? Conn.TestMode);
+        ShowOnShare = CanTest && UiSettings.LoadShowOnShare(env);
         _secrets = new SecretStore(env);
         _claudeKey = new SecretStore(env, "claude-api-key");
         Llm = opt.Llm;
@@ -108,12 +110,20 @@ internal sealed class LiveSession : IMiloSession
             // Tính năng mở rộng (mục "Wellbeing" trong appsettings.json / .env)
             FocusPlan = _well.FocusPlan, FocusPlanMinMinutes = _well.FocusPlanMinMinutes, WeekReport = _well.WeekReport,
             MicroBreakEveryMin = _well.MicroBreakEveryMinutes, MicroBreakMaxPerDay = _well.MicroBreakMaxPerDay, EveningCheck = _well.EveningCheck,
+            IncomingAlerts = _well.Incoming, AlertOwnItems = Conn.IncludeSelfSentMail,
         };
         // _standard = ngưỡng chuẩn của tài liệu (Production, Sandbox "như Production");
         // chế độ test của Sandbox đè ngưỡng rút gọn (docs/KET-NOI-SANDBOX.md mục 3.2) lên cfg đang chạy
         _standard = Build();
         var cfg = Build();
         BehaviorProfile.Apply(cfg, _standard, ov, TestMode);
+        _standardPolling = new PollingOptions
+        {
+            PresenceSeconds = Conn.Polling.PresenceSeconds, CalendarSeconds = Conn.Polling.CalendarSeconds,
+            MailSeconds = Conn.Polling.MailSeconds, BoardsSeconds = Conn.Polling.BoardsSeconds,
+        };
+        // Sandbox (cả 2 chế độ) đọc nhanh để demo "gửi mail là Milo báo"; chu kỳ đọc không phải ngưỡng hành vi nên không đổi theo chế độ
+        BehaviorProfile.ApplyPolling(Conn.Polling, _standardPolling, ov, CanTest);
         Conn.MailMinWaitDays = BehaviorProfile.MailMinWaitDays(_mailWaitConfigured, ov, TestMode);
         Engine = new MiloEngine(cfg, new WorkSnapshot(), null, DateOnly.FromDateTime(now), now.TimeOfDay.TotalSeconds);
         Engine.SetAuto(false);
@@ -138,8 +148,9 @@ internal sealed class LiveSession : IMiloSession
         Monitor.AppSwitched += () => Engine.RecordSwitch();
 
         _tick.Tick += (_, _) => Tick();
-        // Mỗi 30 giây hỏi provider; provider tự quyết nguồn nào đã tới hạn đọc lại (lịch 2', mail 5', Boards 3')
-        _refresh.Interval = TimeSpan.FromSeconds(30);
+        // Mỗi 10 giây hỏi provider; provider tự quyết nguồn nào đã tới hạn đọc lại
+        // (chuẩn: lịch 2', mail 5', Boards 3'; Sandbox: mail 20", lịch và Boards 30" để thẻ "Có mới" hiện gần như ngay)
+        _refresh.Interval = TimeSpan.FromSeconds(10);
         _refresh.Tick += (_, _) => _ = RefreshAsync(force: false);
         _presence.Interval = TimeSpan.FromSeconds(Math.Max(10, Conn.Polling.PresenceSeconds));
         _presence.Tick += (_, _) => _ = PollPresenceAsync();
@@ -335,7 +346,7 @@ internal sealed class LiveSession : IMiloSession
         {
             var p = await _presenceWatcher.PollAsync();
             Engine.SetInCallOverride(p.InCall);
-            if (_well.HideWhenPresenting && !_pinned.Contains("presenting")) Engine.SetPresenting(p.Presenting);
+            if (_well.HideWhenPresenting && !_pinned.Contains("presenting")) Engine.SetPresenting(p.Presenting && !ShowOnShare);
             if (p.InCall is null) NoteOffline(p.Activity);
             else
             {
@@ -466,7 +477,28 @@ internal sealed class LiveSession : IMiloSession
 
     public bool HasPat => _secrets.Read() is not null || Environment.GetEnvironmentVariable(Conn.AzureDevOps.PatEnvVar) is not null;
 
-    public bool ContentProtection => Conn.ContentProtection;
+    public bool ContentProtection => Conn.ContentProtection && !ShowOnShare;
+
+    /// <summary>
+    /// Chỉ Sandbox: hiện Milo cho người xem khi bạn chia sẻ màn hình hoặc trình chiếu (để demo qua Teams).
+    /// Tắt (mặc định) = ẩn như Production: không lọt vào ảnh chia sẻ, trốn hẳn khi trình chiếu.
+    /// </summary>
+    public bool ShowOnShare { get; private set; }
+
+    /// <summary>Cửa sổ Milo áp lại chế độ chụp màn hình ngay khi công tắc đổi.</summary>
+    public event Action? CaptureChanged;
+
+    public void SetShowOnShare(bool on)
+    {
+        if (!CanTest || on == ShowOnShare) return;
+        ShowOnShare = on;
+        UiSettings.SaveShowOnShare(Env, on);
+        if (on && Engine.S.Presenting && !_pinned.Contains("presenting")) Engine.SetPresenting(false);
+        Engine.LogExternal(on
+            ? "Hiện Milo khi chia sẻ màn hình: người xem Teams thấy Milo, trình chiếu không trốn"
+            : "Ẩn Milo khỏi màn hình chia sẻ và khi trình chiếu (như Production)", LogKind.User);
+        CaptureChanged?.Invoke();
+    }
 
     public void Pump(double realDt) => Engine.AdvanceTo(DateTime.Now.TimeOfDay.TotalSeconds);
 
