@@ -57,7 +57,7 @@ public static class Catalog
         new CaseDef(CaseId.CheckIn, 5, CaseKind.Social, "Chào hỏi", "#E8A33D", "Mục 9.5 · §4.2", Timeout: 15, Stay: Clip.Greet, Need: 5),
         new CaseDef(CaseId.FocusPlan, 4, CaseKind.Assist, "Giữ giờ tập trung", "#2E7D6B", "Mở rộng · khoảng trống dài nhất", Sev: 1, Timeout: 45, Need: 5),
         new CaseDef(CaseId.WeekReport, 4, CaseKind.Social, "Báo cáo tuần", "#7261B0", "Mở rộng · sáng thứ Hai", Timeout: 45, Stay: Clip.Greet, Need: 5),
-        new CaseDef(CaseId.MicroBreak, 5, CaseKind.Assist, "Uống nước · nhìn xa", "#3E8E9E", "Mở rộng · 20-20-20", Exempt: true),
+        new CaseDef(CaseId.MicroBreak, 5, CaseKind.Assist, "Nghỉ ngắn", "#3E8E9E", "Mở rộng · nghỉ ngắn (micro-break)", Exempt: true),
     }.ToDictionary(c => c.Id);
 
     public static CaseDef Def(CaseId c) => Cases[c];

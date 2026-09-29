@@ -46,7 +46,7 @@ internal abstract partial class ControlShell
         [
             (CaseId.FocusPlan, "Đề nghị giữ khoảng trống dài nhất trong ngày để tập trung"),
             (CaseId.WeekReport, "Sáng thứ Hai: tóm tắt tuần trước + 1 mẹo"),
-            (CaseId.MicroBreak, "Ló lên 5 giây nhắc uống nước / nhìn xa"),
+            (CaseId.MicroBreak, "Ló lên 5 giây nhắc nghỉ ngắn: uống nước, vươn vai"),
             (CaseId.Dashboard, "Mở 4 quả quanh Milo (nho, cam, anh đào, táo)"),
         ]),
     ];

@@ -117,7 +117,7 @@ public sealed partial class MiloEngine
             if (Cfg.WeekReport && Day.DayOfWeek == DayOfWeek.Monday && Snap.LastWeek is { Days: > 0 } && Mem(CaseId.WeekReport).Shown == 0
                 && S.Ep?.C != CaseId.MorningHello && S.Queue.All(q => q.C != CaseId.MorningHello))
                 Enqueue(CaseId.WeekReport, "wr", new CaseData());
-            // Uống nước / 20-20-20: sau mỗi N phút ngồi máy liên tục (không tính giờ họp)
+            // Nghỉ ngắn (micro-break): sau mỗi N phút ngồi máy liên tục (không tính giờ họp)
             if (Cfg.MicroBreakEveryMin > 0 && S.MicroCount < Cfg.MicroBreakMaxPerDay && t < Cfg.End && S.NmRun >= Cfg.MicroBreakEveryMin
                 && t - S.LastMicro >= Cfg.MicroBreakEveryMin * 60 && !FocusActive())
                 Enqueue(CaseId.MicroBreak, "mb-" + S.MicroCount, new CaseData { Count = S.MicroCount });

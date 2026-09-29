@@ -6,6 +6,7 @@ using Minditful.App.Views.Panel;
 using Minditful.Core.Engine;
 using Minditful.Integrations;
 using Minditful.Integrations.Live;
+using Minditful.Integrations.Storage;
 using static Minditful.App.Rendering.Ui;
 
 namespace Minditful.App.Views;
@@ -36,6 +37,7 @@ internal sealed class ControlCenterWindow : ControlShell
         AddPage("connect", IcLink, "Kết nối", Connect, "Microsoft 365, Azure Boards, Claude");
         if (_sandbox) AddPage("try", IcTry, "Thử tình huống", Try, "ép Milo làm như Demo");
         AddPage("milo", IcMilo, "Milo của bạn", Milo, "tủ đồ, chăm sóc, dữ liệu");
+        AddPage("check", IcCheck, "Kiểm chứng điểm", Check, "WHO-5 hằng tuần");
         AddPage("brain", IcBrain, "Bộ não Milo", BrainPage, "nâng cao");
         _session.Changed += OnChanged;
         Closed += (_, _) => _session.Changed -= OnChanged;
@@ -355,7 +357,7 @@ internal sealed class ControlCenterWindow : ControlShell
             {
                 Feature("Giữ giờ tập trung", wb.FocusPlan, $"Đề nghị giữ khoảng trống dài nhất (≥ {wb.FocusPlanMinMinutes} phút) trong lịch, tới giờ tự bật Không làm phiền."),
                 Feature("Báo cáo tuần", wb.WeekReport, "Sáng thứ Hai tóm tắt tuần trước và gợi ý 1 điều cho tuần mới."),
-                Feature("Uống nước · nhìn xa", wb.MicroBreakEveryMinutes > 0,
+                Feature("Nghỉ ngắn · uống nước", wb.MicroBreakEveryMinutes > 0,
                     wb.MicroBreakEveryMinutes > 0 ? $"Mỗi {wb.MicroBreakEveryMinutes} phút ngồi máy liên tục, tối đa {wb.MicroBreakMaxPerDay} lần/ngày." : "Đang tắt."),
                 Feature("Hôm nay thấy sao? · nghỉ ngày mai", wb.EveningCheck, "Thẻ tan tầm hỏi cảm nhận và gợi ý giữ chỗ nghỉ giữa chuỗi họp ngày mai."),
                 Feature("Trốn khi trình chiếu", wb.HideWhenPresenting, "Teams báo đang trình chiếu thì Milo ẩn hẳn."),
@@ -388,6 +390,97 @@ internal sealed class ControlCenterWindow : ControlShell
                 ? WardrobeCard(_session.Env, () => e.Snap.Wardrobe?.Best ?? 0, () => _session.WardrobeText)
                 : Card(Text("Tủ đồ đang tắt (Wellbeing.Wardrobe = false).", 12, P.Ink2), "Tủ đồ của Milo"),
             CornerCard(_session.Env), care, data);
+    }
+
+    // ================= Kiểm chứng điểm (WHO-5) =================
+    /// <summary>
+    /// Mỗi tuần người dùng tự trả lời 5 câu WHO-5, Milo so với điểm trung bình tuần của mình (tương quan Pearson).
+    /// Đây là cách chứng minh thực tế công thức có đúng với người thật (docs/CO-SO-KHOA-HOC.md mục 5).
+    /// </summary>
+    private FrameworkElement Check()
+    {
+        var store = _session.History;
+        var answers = new int?[5];
+        var week = LocalStore.Who5Week(Engine.Day);
+        var form = new StackPanel();
+        for (var i = 0; i < Who5.Items.Length; i++)
+        {
+            var idx = i;
+            var q = Text($"{i + 1}. {Who5.Items[i]}", 13, P.Ink, FontWeights.SemiBold);
+            q.Margin = new Thickness(0, 6, 0, 4);
+            form.Children.Add(q);
+            form.Children.Add(Segmented(
+                Enumerable.Range(0, 6).Select(v => ($"{v} · {Who5.Scale[v]}", v.ToString())).ToArray(),
+                () => answers[idx]?.ToString() ?? "", v => answers[idx] = int.Parse(v)));
+        }
+        var saved = Text("", 12.5, P.Good, FontWeights.SemiBold);
+        form.Children.Add(Row(Btn("Lưu câu trả lời", () =>
+        {
+            if (answers.Any(a => a is null))
+            {
+                saved.Text = "Trả lời đủ 5 câu giúp Milo nhé.";
+                saved.Foreground = Br(P.Bad);
+                return;
+            }
+            var pct = Who5.Percent(answers.Select(a => a!.Value).ToList());
+            store.SaveWho5(week, pct);
+            saved.Text = $"Đã lưu: WHO-5 tuần {week:dd/MM} = {pct}/100.";
+            saved.Foreground = Br(P.Good);
+            Refresh();
+        }, BtnKind.Primary)));
+        form.Children.Add(saved);
+
+        var table = new StackPanel();
+        var verdict = Text("", 13, P.Ink, FontWeights.SemiBold);
+        var rText = Text("", 22, P.Accent, FontWeights.Bold, false);
+        var lastCount = -1;
+        Tick(() =>
+        {
+            var rows = store.ValidationRows();
+            if (rows.Count == lastCount) return; // đọc SQLite chỉ khi có thay đổi
+            lastCount = rows.Count;
+            table.Children.Clear();
+            table.Children.Add(Columns((Label("Tuần"), Px(120)), (Label("Điểm Milo TB"), Px(140)), (Label("WHO-5"), Star)));
+            foreach (var (w, milo, who5) in rows)
+                table.Children.Add(Columns((Text($"{w:dd/MM/yyyy}", 12.5, P.Ink, null, false), Px(120)),
+                    (Text(milo is { } m ? $"{m:0}" : "—", 12.5, P.Ink, null, false), Px(140)), (Text($"{who5}", 12.5, P.Ink, null, false), Star)));
+            if (rows.Count == 0) table.Children.Add(Text("Chưa có tuần nào. Trả lời 5 câu ở trên vào cuối mỗi tuần.", 12, P.Muted));
+            var pairs = rows.Where(x => x.MiloAvg is not null).ToList();
+            var r = Core.Engine.Validation.Pearson(pairs.Select(x => x.MiloAvg!.Value).ToList(), pairs.Select(x => (double)x.Who5).ToList());
+            rText.Text = r is { } v ? $"r = {v:0.00}" : "r = —";
+            verdict.Text = Core.Engine.Validation.Interpret(r, pairs.Count);
+        });
+        var export = Text("", 11.5, P.Ink2);
+        var result = Card(new StackPanel
+        {
+            Children =
+            {
+                Row(rText), verdict, Spacer(10), table, Spacer(10),
+                Row(Btn("Xuất CSV ẩn danh (gộp cả nhóm)", () => export.Text = "Đã lưu " + ExportCsv(store.ValidationRows()), BtnKind.Ghost)),
+                export,
+                Text("CSV chỉ có mã người dùng ngẫu nhiên, ngày đầu tuần, điểm Milo TB và điểm WHO-5. Gộp CSV của cả nhóm rồi tính tương quan (Excel: =CORREL(cột diem_milo; cột who5)).", 11.5, P.Muted),
+            },
+        }, "Điểm Milo có khớp cảm nhận thật không?", "Tương quan Pearson giữa điểm Milo trung bình tuần và điểm WHO-5 của chính bạn. Có ý nghĩa sau khoảng 4 tuần.");
+
+        var thisWeek = week == LocalStore.WeekStart(Engine.Day);
+        return Page("Kiểm chứng điểm",
+            "Nghiên cứu cho biết chiều tác động (họp nhiều thì mệt, nghỉ ngắn thì đỡ), còn con số cụ thể phải kiểm chứng với người thật. Mỗi cuối tuần bạn tự trả lời 5 câu WHO-5 (thang đo sức khoẻ tinh thần của Tổ chức Y tế Thế giới), Milo so với điểm của mình. Đây không phải công cụ chẩn đoán.",
+            Card(form, thisWeek ? $"WHO-5 · tuần này (từ {week:dd/MM})" : $"WHO-5 · tuần trước (từ {week:dd/MM})",
+                "Trong tuần qua, bạn thấy những điều sau đúng với mình tới mức nào? 0 = không lúc nào, 5 = mọi lúc."),
+            result);
+    }
+
+    private string ExportCsv(IReadOnlyList<(DateOnly Week, double? MiloAvg, int Who5)> rows)
+    {
+        var idFile = System.IO.Path.Combine(AppPaths.For(_session.Env), "pilot-id.txt");
+        if (!System.IO.File.Exists(idFile)) System.IO.File.WriteAllText(idFile, Guid.NewGuid().ToString("N")[..8]);
+        var id = System.IO.File.ReadAllText(idFile).Trim();
+        var sb = new System.Text.StringBuilder("nguoi,tuan,diem_milo,who5\n");
+        foreach (var (w, m, s) in rows)
+            sb.Append(CultureInfo.InvariantCulture, $"{id},{w:yyyy-MM-dd},{(m is { } v ? v.ToString("0.0", CultureInfo.InvariantCulture) : "")},{s}\n");
+        var path = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), $"milo-kiem-chung-{id}.csv");
+        System.IO.File.WriteAllText(path, sb.ToString());
+        return path;
     }
 
     private static Border Spacer(double h) => new() { Height = h };

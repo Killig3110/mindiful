@@ -340,13 +340,13 @@ public static class Present
         else yield return new StatusDotBlock($"Đã giữ 10' nghỉ mai lúc {Hm(at)}");
     }
 
-    /// <summary>Nhắc nhẹ: số chẵn là uống nước, số lẻ là quy tắc 20-20-20.</summary>
+    /// <summary>Nghỉ ngắn (micro-break): uống nước / đứng dậy vươn vai. Cơ sở: Albulescu et al. (2022, 2025). Không dùng 20-20-20 vì nghiên cứu 2023 không thấy tác dụng rõ.</summary>
     public static string MicroText(int n) => (n % 4) switch
     {
         0 => "Uống ngụm nước nha! Ngồi máy cả tiếng rồi đó.",
-        1 => "20-20-20: nhìn xa 6 mét trong 20 giây cho mắt nghỉ nhé.",
+        1 => "Đứng dậy vươn vai 1 phút rồi làm tiếp nhé.",
         2 => "Nhấp ngụm nước rồi làm tiếp nè.",
-        _ => "Rời mắt khỏi màn hình, nhìn ra cửa sổ 20 giây nha.",
+        _ => "Rời màn hình, đi vài bước cho người nhẹ lại nha.",
     };
 
     /// <summary>1 mẹo cho tuần mới, chọn theo điểm yếu nhất của tuần trước.</summary>
@@ -559,6 +559,6 @@ public static class Present
     {
         ["meet"] = "Họp", ["chain"] = "Chuỗi họp", ["streak"] = "Làm liền", ["ot"] = "Quá giờ", ["rest"] = "Thiếu nghỉ",
         ["frag"] = "Phân mảnh", ["work"] = "Workload", ["stuck"] = "Task kẹt", ["email"] = "Email chờ", ["stress"] = "Giả lập", ["llm"] = "Claude",
-        ["self"] = "Bạn tự thấy",
+        ["self"] = "Bạn tự thấy", ["week"] = "Tuần > 48h",
     };
 }

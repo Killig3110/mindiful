@@ -91,7 +91,7 @@ public static class DemoTour
         new("Báo cáo tuần", "Thẻ \"Tuần trước của bạn\": điểm TB, giờ họp, ngày mệt nhất + 1 mẹo",
             "Sáng thứ Hai Milo tóm tắt tuần trước. Dữ liệu cá nhân tự xoá theo tuần.",
             TourKind.Case, Case: CaseId.WeekReport, Expect: [CaseId.WeekReport]),
-        new("Uống nước · nhìn xa", "Milo ló lên 5 giây \"Uống ngụm nước nha!\", không nút bấm",
+        new("Nghỉ ngắn", "Milo ló lên 5 giây \"Uống ngụm nước nha!\" / \"Đứng dậy vươn vai\", không nút bấm",
             "Nhắc nhẹ sau mỗi 50 phút ngồi máy, không cần trả lời.", TourKind.Case, Case: CaseId.MicroBreak, Expect: [CaseId.MicroBreak]),
         new("Trốn khi trình chiếu", "Milo và chóp đuôi biến mất hẳn",
             "Đang trình chiếu thì Milo trốn hẳn, không lộ lên màn hình mọi người đang xem.", TourKind.Presenting),

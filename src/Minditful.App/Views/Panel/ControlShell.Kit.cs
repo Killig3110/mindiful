@@ -25,7 +25,7 @@ internal abstract partial class ControlShell
 
     // Ký tự icon (Segoe Fluent Icons / MDL2)
     protected const string IcHome = "", IcTimeline = "", IcTry = "", IcMilo = "", IcBrain = "",
-        IcLink = "", IcPlay = "", IcPause = "", IcRestart = "", IcHelp = "";
+        IcLink = "", IcCheck = "\uE73E", IcPlay = "", IcPause = "", IcRestart = "", IcHelp = "";
 
     // ================= khối dựng trang =================
     protected static Border Card(UIElement body, string? title = null, string? subtitle = null, Thickness? padding = null)

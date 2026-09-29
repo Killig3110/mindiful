@@ -128,8 +128,8 @@ public sealed class BrainPanel : Border
         };
         _pen.Children.Clear();
         foreach (var (k, v) in s.Pen)
-            if (v >= .5) _pen.Children.Add(PenChip($"{Present.PenaltyLabels[k]} −{Tm.JsRound(v)}", false));
-        if (s.Bonus > 0) _pen.Children.Add(PenChip($"Thưởng +{s.Bonus}", true));
+            if (v >= .5) _pen.Children.Add(PenChip($"{Present.PenaltyLabels[k]} −{Tm.JsRound(v)}", false, MoodModel.Evidence.GetValueOrDefault(k)));
+        if (s.Bonus > 0) _pen.Children.Add(PenChip($"Thưởng +{s.Bonus}", true, MoodModel.Evidence["bonus"]));
         if (_pen.Children.Count == 0) _pen.Children.Add(PenChip("Chưa có điểm phạt", false));
 
         var n = e.NextMeeting();
@@ -190,8 +190,10 @@ public sealed class BrainPanel : Border
         }
     }
 
-    private static Border PenChip(string text, bool plus) => new()
+    /// <summary>Khoản cộng/trừ điểm; rê chuột để xem nguồn nghiên cứu (docs/CO-SO-KHOA-HOC.md).</summary>
+    private static Border PenChip(string text, bool plus, string? source = null) => new()
     {
+        ToolTip = source is null ? null : "Cơ sở: " + source,
         Background = plus ? Br("#E3EFD6") : Br("#F6EBDC"), CornerRadius = new CornerRadius(6), Padding = new Thickness(7, 2, 7, 2), Margin = new Thickness(0, 0, 5, 5),
         Child = new System.Windows.Controls.TextBlock { Text = text, FontSize = 11, Foreground = plus ? Br("#3E5A22") : Br("#6B5646") },
     };

@@ -47,7 +47,7 @@ public sealed class WellbeingOptions
     public int FocusPlanMinMinutes { get; set; } = 60;
     /// <summary>Sáng thứ Hai tóm tắt tuần trước + 1 mẹo.</summary>
     public bool WeekReport { get; set; } = true;
-    /// <summary>Nhắc uống nước / 20-20-20 sau mỗi N phút ngồi máy liên tục. 0 = tắt.</summary>
+    /// <summary>Nhắc nghỉ ngắn (uống nước, vươn vai) sau mỗi N phút ngồi máy liên tục. 0 = tắt.</summary>
     public int MicroBreakEveryMinutes { get; set; } = 50;
     public int MicroBreakMaxPerDay { get; set; } = 6;
     /// <summary>Thẻ tan tầm hỏi "Hôm nay thấy sao?" và gợi ý nghỉ giữa chuỗi họp ngày mai.</summary>
@@ -136,7 +136,7 @@ public sealed class BehaviorOverrides
     public int[]? VisitEveryMin { get; set; }
     /// <summary>Chấm "1" trên đuôi giữ bao lâu (chuẩn 30 phút).</summary>
     public int? ParkedReminderTtlMin { get; set; }
-    /// <summary>Nhắc uống nước / 20-20-20 sau N phút (chuẩn: Wellbeing.MicroBreakEveryMinutes). Không bật lại nếu Wellbeing đã tắt.</summary>
+    /// <summary>Nhắc nghỉ ngắn (uống nước, vươn vai) sau N phút (chuẩn: Wellbeing.MicroBreakEveryMinutes). Không bật lại nếu Wellbeing đã tắt.</summary>
     public int? MicroBreakEveryMin { get; set; }
     /// <summary>Khoảng trống tối thiểu để đề nghị giữ giờ tập trung (chuẩn: Wellbeing.FocusPlanMinMinutes).</summary>
     public int? FocusPlanMinMinutes { get; set; }

@@ -14,6 +14,8 @@ Cả **3 môi trường đều là cùng một app**: Milo sống trên desktop 
 | **Sandbox** | Tenant thử `mindiful.onmicrosoft.com` (Teams, Outlook) + Azure DevOps `mindiful-sandbox` — API thật | Desktop thật (overlay trong suốt) + khay hệ thống + Bảng điều khiển có công cụ test | Thử tích hợp thật mà không đụng tenant Bosch; ngưỡng hành vi rút gọn để test trong 1 buổi |
 | **Production** | Tenant Bosch: Teams presence, Outlook, Azure Boards | Desktop thật, ẩn khỏi share màn hình | Dùng hằng ngày |
 
+**Điểm mood lấy từ đâu?** Mô hình Job Demands–Resources, mỗi khoản dựa trên nghiên cứu công bố từ 2021 tới nay, có bộ test chứng minh công thức đúng chiều nghiên cứu với 20.000 bộ số liệu ngẫu nhiên, và trang *Kiểm chứng điểm* (WHO-5) để đo với người thật: **[docs/CO-SO-KHOA-HOC.md](docs/CO-SO-KHOA-HOC.md)**.
+
 **Đi present?** Kịch bản từng bước: **[Demo](docs/KICH-BAN-DEMO.md)** (đủ 19 tình huống, ~15 phút) · **[Sandbox chạy như Production](docs/KICH-BAN-SANDBOX.md)** (đổi dữ liệu thật trên Teams/Outlook/Azure Boards, Milo phản ứng).
 
 **Mới dùng app?** Đọc **[Hướng dẫn sử dụng](docs/HUONG-DAN-SU-DUNG.md)**: Milo trên màn hình, bảng điều khiển từng trang, từng tính năng, cách dùng ở 3 môi trường, vì sao Milo không hiện. README này dành cho cài đặt, cấu hình và test.
@@ -147,7 +149,7 @@ dotnet test
 
 ### 0. Chuẩn bị
 
-Làm xong mục **[Cài đặt từ đầu](#cài-đặt-từ-đầu)** ở trên: `dotnet test` ra `Passed! … 131`, và `.env` đã điền cho môi trường cần test.
+Làm xong mục **[Cài đặt từ đầu](#cài-đặt-từ-đầu)** ở trên: `dotnet test` ra `Passed! … 146`, và `.env` đã điền cho môi trường cần test.
 
 Mở thẳng một môi trường: `--env Scenario` (= Demo), `--env Sandbox`, `--env Prod`. Nếu đã tick "Nhớ lựa chọn", **giữ Shift** khi mở app để hiện lại màn hình chọn.
 
@@ -198,7 +200,7 @@ Dùng để present và để kiểm tra đủ 16 case của prototype. Giờ, l
 | Hỗ trợ | Sắp họp · Lịch kín · Email chờ · Task kẹt · Task xong · Hết giờ tập trung | Thẻ Teams · lịch mini · 3 email · thanh sprint · bóng thoại 3s · bóng thoại 3s |
 | Chăm sóc | Họp liên tục · Quá giờ · Chưa nghỉ trưa · Làm liền · Nghỉ quá ít · Phân mảnh | Nhãn màu riêng từng case, nút Đồng ý / Để sau (Np) / Không cần, ô chat |
 | Người dùng | Dashboard | 4 quả quanh Milo: nho (mood) · cam (cuộc họp, múi đã ăn = đã họp) · anh đào (email chờ) · táo cắn dở (sprint); rê chuột lên từng quả xem chi tiết. Bấm **Chi tiết** trên thanh tiêu đề: bảng nhỏ cỡ 1 thẻ ngay trên đầu Milo (dòng thời gian, Office Vibe, cuộc họp sắp tới; trang Tuần có 7 quả nho, thống kê, bạn trả lời Milo thế nào) |
-| Mở rộng | Giữ giờ tập trung · Báo cáo tuần · Uống nước · nhìn xa | Thẻ "khoảng trống dài nhất 16:15–17:45" → *Giữ 1h30* · thẻ "Tuần trước của bạn" + 1 mẹo → *Xem chùm nho* mở dashboard tuần · bóng thoại 5 giây, không nút |
+| Mở rộng | Giữ giờ tập trung · Báo cáo tuần · Nghỉ ngắn | Thẻ "khoảng trống dài nhất 16:15–17:45" → *Giữ 1h30* · thẻ "Tuần trước của bạn" + 1 mẹo → *Xem chùm nho* mở dashboard tuần · bóng thoại 5 giây, không nút |
 
 **1d. Bẻ kịch bản** (trang **Thử tình huống** → *Giả vờ bạn đang…*, bật/tắt công tắc):
 - *Đang gõ phím*: lời nhắc bị hoãn; gõ liên tục 5' thì chỉ hiện nhãn gọn "Milo có lời nhắn".
@@ -349,7 +351,7 @@ Trong các bảng, `…` là viết tắt của `MINDITFUL__Minditful__`.
 | `…Wellbeing__FocusPlan` | `true` · `false` | `true` | Tắt nếu không muốn Milo đề nghị giữ giờ tập trung |
 | `…Wellbeing__FocusPlanMinMinutes` | phút | `60` | Khoảng trống ngắn nhất để đề nghị. Hạ xuống `30` khi test cho nhanh |
 | `…Wellbeing__WeekReport` | `true` · `false` | `true` | Báo cáo tuần sáng thứ Hai |
-| `…Wellbeing__MicroBreakEveryMinutes` | phút · `0` = tắt | `50` | Nhắc uống nước / 20-20-20. Để `5` khi test Sandbox, `0` nếu thấy phiền |
+| `…Wellbeing__MicroBreakEveryMinutes` | phút · `0` = tắt | `50` | Nhắc nghỉ ngắn (uống nước, vươn vai). Để `0` nếu thấy phiền |
 | `…Wellbeing__MicroBreakMaxPerDay` | số lần | `6` | Trần số lần nhắc uống nước mỗi ngày |
 | `…Wellbeing__EveningCheck` | `true` · `false` | `true` | Thẻ tan tầm hỏi "Hôm nay thấy sao?" và gợi ý nghỉ giữa chuỗi họp ngày mai |
 | `…Wellbeing__HideWhenPresenting` | `true` · `false` | `true` | Milo trốn hẳn khi Teams báo đang trình chiếu |
@@ -578,11 +580,11 @@ Milo chớp mắt 4.5 giây/lần, khi mệt thì nhắm lâu hơn (§9.4). Chuy
 | Báo cáo tuần | Sáng thứ Hai, ngay sau Chào sáng | Điểm TB, giờ họp, số lần nghỉ, ngày tốt/mệt nhất của tuần trước + 1 mẹo chọn theo điểm yếu nhất. *Xem chùm nho* mở dashboard tuần | `WeekReport` |
 | Hôm nay thấy sao? | Thẻ Tan tầm (và Nhắc lại tan tầm nếu chưa trả lời) | 3 nút Vui / Bình thường / Mệt. Chỉ lưu trên máy; "Mệt" trừ 6 điểm, "Vui" cộng 3; gửi cho Claude khi bật Mood Hybrid/Llm; thống kê tuần có "Bạn tự thấy" | `EveningCheck` |
 | Nghỉ giữa chuỗi họp ngày mai | Thẻ Tan tầm, khi mai có ≥ 3 cuộc họp liền | *Giữ 10' nghỉ lúc HH:mm* tạo sự kiện tentative trong lịch ngày mai | `EveningCheck` |
-| Uống nước · 20-20-20 | Mỗi 50 phút ngồi máy liên tục (không tính giờ họp), tối đa 6 lần/ngày | Ló lên 5 giây với 1 bóng thoại, không nút, không tính ngân sách lời nhắc. Rời máy ≥ 5 phút thì đếm lại | `MicroBreakEveryMinutes` (0 = tắt), `MicroBreakMaxPerDay` |
+| Nghỉ ngắn (uống nước, vươn vai) | Mỗi 50 phút ngồi máy liên tục (không tính giờ họp), tối đa 6 lần/ngày | Ló lên 5 giây với 1 bóng thoại, không nút, không tính ngân sách lời nhắc. Rời máy ≥ 5 phút thì đếm lại | `MicroBreakEveryMinutes` (0 = tắt), `MicroBreakMaxPerDay` |
 | Trốn khi trình chiếu | Teams presence = Presenting | Trốn hẳn, kể cả chóp đuôi và chấm chờ; thẻ đang mở thu lại | `HideWhenPresenting` |
 | Tủ đồ của Milo | Về đúng giờ (quá giờ < 15 phút) 3 / 5 / 10 / 15 ngày liền | Mở khoá khăn quàng / kẹp hoa / mũ nồi / **đồng phục Bosch** (phần thưởng cao nhất), sáng hôm sau thẻ Chào sáng báo. Chọn món ở bảng điều khiển → *Milo của bạn* (mặc định: món mới nhất) | `Wardrobe` |
 
-Test nhanh trên Sandbox: trang **Thử tình huống** → nhóm *Mới thêm* (Giữ giờ tập trung, Báo cáo tuần, Uống nước · nhìn xa); công tắc *Đang trình chiếu*; *Giờ về = bây giờ + 2 phút* để thấy thẻ Tan tầm có 3 nút cảm xúc. Báo cáo tuần cần dữ liệu tuần trước trên máy (chạy app ít nhất 1 ngày tuần trước).
+Test nhanh trên Sandbox: trang **Thử tình huống** → nhóm *Mới thêm* (Giữ giờ tập trung, Báo cáo tuần, Nghỉ ngắn); công tắc *Đang trình chiếu*; *Giờ về = bây giờ + 2 phút* để thấy thẻ Tan tầm có 3 nút cảm xúc. Báo cáo tuần cần dữ liệu tuần trước trên máy (chạy app ít nhất 1 ngày tuần trước).
 
 ## Logo và đồng phục Bosch
 
@@ -610,6 +612,7 @@ Kéo chóp đuôi rồi thả ở đâu thì Milo neo vào **góc gần nhất**
 Mỗi môi trường có 1 file `%LOCALAPPDATA%\Minditful\<môi trường>\minditful.db`, gồm các bảng:
 - `day_record`: điểm, phút họp, nghỉ, tập trung, câu trả lời "Hôm nay thấy sao?"… mỗi ngày.
 - `day_start`: giờ mở máy đầu ngày (giờ làm linh hoạt).
+- `validation_week`: kiểm chứng điểm, mỗi tuần 2 con số (điểm Milo trung bình tuần, điểm WHO-5). Giữ 12 tuần (`Storage.ValidationWeeks`) vì cần vài tuần mới tính được tương quan.
 - `streak`: 1 dòng duy nhất cho tủ đồ (chuỗi về đúng giờ hiện tại, dài nhất, món vừa mở). Không tự xoá theo tuần vì chỉ là bộ đếm; nút xoá toàn bộ vẫn xoá.
 - `mood_sample`: điểm mood mỗi 15 phút.
 - `outcome_event`: log phản hồi từng lời nhắc.

@@ -526,7 +526,7 @@ Chạy app với `--env Sandbox`, đăng nhập thulu@, dán PAT (bảng điều
 |---|---|---|
 | 15 | Mở máy, chờ 20 phút, lịch còn khoảng trống ≥ 30 phút (hoặc *Thử tình huống* → *Giữ giờ tập trung*) | Thẻ **Giữ giờ tập trung** → Giữ → Outlook có "Tập trung · Milo giữ chỗ" (busy). Tới giờ: Teams chuyển **Do not disturb**, Milo im lặng tới hết khối |
 | 16 | *Thử tình huống* → *Báo cáo tuần* (cần app đã chạy ít nhất 1 ngày tuần trước) | Thẻ "Tuần trước của bạn" + 1 mẹo → *Xem chùm nho* mở dashboard trang Tuần |
-| 17 | Ngồi máy liên tục 5 phút (ngưỡng test) | Milo ló lên 5 giây "Uống ngụm nước nha!", lần sau là câu 20-20-20 |
+| 17 | Ngồi máy liên tục 5 phút (ngưỡng test) | Milo ló lên 5 giây "Uống ngụm nước nha!", lần sau là "Đứng dậy vươn vai 1 phút…" |
 | 18 | Trong cuộc họp Teams, bấm **Share / Present** (hoặc công tắc *Đang trình chiếu* ở *Giả vờ bạn đang…*) | Milo trốn hẳn, **cả chóp đuôi**; thôi trình chiếu thì chóp đuôi hiện lại |
 | 19 | Tạo 3 cuộc họp liền nhau cho **ngày mai**, rồi bấm *Giờ về = bây giờ + 2'* | Thẻ Tan tầm có dòng "Mai … có 3 cuộc họp liền" → *Giữ 10' nghỉ* → Outlook ngày mai có "Nghỉ cùng Milo" (tentative) |
 | 20 | Trên thẻ Tan tầm bấm *Mệt* | Nút Mệt tô đậm, điểm giảm 6; tuần sau dashboard chi tiết có dòng "Bạn tự thấy" |

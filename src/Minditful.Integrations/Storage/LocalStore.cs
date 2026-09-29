@@ -24,6 +24,11 @@ public sealed class StorageOptions
     public bool KeepPreviousPeriod { get; set; } = true;
     /// <summary>Mẫu mood mỗi bao nhiêu phút.</summary>
     public int MoodSampleMinutes { get; set; } = 15;
+    /// <summary>
+    /// Kiểm chứng điểm: giữ bao nhiêu tuần cặp số (điểm Milo trung bình tuần, điểm WHO-5). Chỉ 2 con số mỗi tuần,
+    /// không có chi tiết ngày nào; cần vài tuần mới tính được tương quan nên giữ lâu hơn dữ liệu ngày.
+    /// </summary>
+    public int ValidationWeeks { get; set; } = 12;
 
     public RetentionPeriod Period => Enum.TryParse<RetentionPeriod>(RetentionPeriod, true, out var p) ? p : Storage.RetentionPeriod.Week;
 
@@ -44,7 +49,7 @@ public sealed record CleanupResult(DateOnly Cutoff, int Days, int Outcomes, int 
 /// </summary>
 public sealed class LocalStore
 {
-    private const int SchemaVersion = 3;
+    private const int SchemaVersion = 4;
     private readonly string _cs;
     private readonly StorageOptions _opt;
     private readonly object _gate = new();
@@ -124,6 +129,8 @@ public sealed class LocalStore
                 CREATE TABLE IF NOT EXISTS streak (
                     id INTEGER PRIMARY KEY CHECK (id = 1), count INTEGER NOT NULL, best INTEGER NOT NULL, base INTEGER NOT NULL,
                     last_day TEXT, unlocked_item TEXT, unlocked_day TEXT);
+                CREATE TABLE IF NOT EXISTS validation_week (
+                    week TEXT PRIMARY KEY, milo_avg REAL, who5 INTEGER NOT NULL, saved_at TEXT);
                 """;
             cmd.ExecuteNonQuery();
             // v3: người dùng tự đánh giá ngày (0 = chưa trả lời)
@@ -233,6 +240,24 @@ public sealed class LocalStore
             days.Count(d => d.Feeling == Feeling.Good), days.Count(d => d.Feeling == Feeling.Ok), days.Count(d => d.Feeling == Feeling.Bad));
     }
 
+    // ================= kiểm chứng điểm bằng WHO-5 =================
+    /// <summary>Tuần mà câu trả lời WHO-5 nói tới: thứ Hai trả lời cho tuần trước, các ngày khác cho tuần này.</summary>
+    public static DateOnly Who5Week(DateOnly today) => WeekStart(today.DayOfWeek == DayOfWeek.Monday ? today.AddDays(-7) : today);
+
+    /// <summary>Lưu điểm WHO-5 (0–100) của 1 tuần kèm điểm Milo trung bình tuần đó (nếu máy còn dữ liệu).</summary>
+    public void SaveWho5(DateOnly week, int who5) => Exec("""
+        INSERT INTO validation_week (week, milo_avg, who5, saved_at) VALUES ($w, $m, $s, $at)
+        ON CONFLICT(week) DO UPDATE SET who5 = $s, milo_avg = COALESCE($m, milo_avg), saved_at = $at;
+        """, ("$w", D(WeekStart(week))), ("$m", WeekStats(week)?.AvgScore), ("$s", who5), ("$at", DateTime.Now.ToString("s", CultureInfo.InvariantCulture)));
+
+    /// <summary>Các tuần đã trả lời WHO-5, cũ trước. Điểm Milo được cập nhật lại nếu máy còn dữ liệu ngày của tuần đó.</summary>
+    public IReadOnlyList<(DateOnly Week, double? MiloAvg, int Who5)> ValidationRows()
+    {
+        var rows = Query("SELECT week, milo_avg, who5 FROM validation_week ORDER BY week",
+            r => (Week: D(r.GetString(0)), Milo: r.IsDBNull(1) ? (double?)null : r.GetDouble(1), Who5: r.GetInt32(2)));
+        return rows.Select(x => (x.Week, WeekStats(x.Week)?.AvgScore ?? x.Milo, x.Who5)).ToList();
+    }
+
     // ================= tủ đồ: chuỗi ngày về đúng giờ =================
     /// <summary>
     /// Ghi kết quả 1 ngày làm việc vào chuỗi về đúng giờ. Gọi lại trong cùng ngày thì tính lại từ đầu ngày đó
@@ -300,6 +325,13 @@ public sealed class LocalStore
                 return cmd.ExecuteNonQuery();
             }
             Del("day_start");
+            // Cặp số kiểm chứng giữ theo ValidationWeeks, không theo kỳ tuần/tháng
+            using (var v = c.CreateCommand())
+            {
+                v.CommandText = "DELETE FROM validation_week WHERE week < $w";
+                v.Parameters.AddWithValue("$w", D(WeekStart(today).AddDays(-7 * Math.Max(1, _opt.ValidationWeeks))));
+                v.ExecuteNonQuery();
+            }
             var result = new CleanupResult(cutoff, Del("day_record"), Del("outcome_event"), Del("mood_sample"), Del("meeting_assessment"));
             if (result.Total > 0)
             {
@@ -316,7 +348,7 @@ public sealed class LocalStore
     /// <summary>Xoá toàn bộ dữ liệu thống kê của môi trường này (nút trong Bảng điều khiển).</summary>
     public void WipeAll()
     {
-        Exec("DELETE FROM day_record; DELETE FROM outcome_event; DELETE FROM mood_sample; DELETE FROM meeting_assessment; DELETE FROM day_start; DELETE FROM streak;");
+        Exec("DELETE FROM day_record; DELETE FROM outcome_event; DELETE FROM mood_sample; DELETE FROM meeting_assessment; DELETE FROM day_start; DELETE FROM streak; DELETE FROM validation_week;");
         Exec("VACUUM;");
     }
 

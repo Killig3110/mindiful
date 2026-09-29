@@ -8,7 +8,7 @@ using static Minditful.Core.Engine.Tm;
 namespace Minditful.Core.Tests;
 
 /// <summary>
-/// Tính năng mở rộng: giữ giờ tập trung, báo cáo tuần sáng thứ Hai, uống nước / 20-20-20, trốn khi trình chiếu,
+/// Tính năng mở rộng: giữ giờ tập trung, báo cáo tuần sáng thứ Hai, nghỉ ngắn (uống nước, vươn vai), trốn khi trình chiếu,
 /// "Hôm nay thấy sao?", nghỉ giữa chuỗi họp ngày mai, tủ đồ, bảng chi tiết dashboard.
 /// </summary>
 public sealed class ExtendedFeaturesTests : IDisposable
@@ -131,7 +131,7 @@ public sealed class ExtendedFeaturesTests : IDisposable
         Assert.Contains("Giữ phong độ", Present.WeekTip(w with { Worst = new DayScore("T3", 60), OvertimeMin = 0, AcceptedBreaks = 9, FocusMin = 900 }));
     }
 
-    // ================= uống nước / 20-20-20 =================
+    // ================= nghỉ ngắn (uống nước, vươn vai) =================
     [Fact]
     public void MicroBreak_bubble_after_each_block_of_screen_time()
     {
@@ -141,7 +141,7 @@ public sealed class ExtendedFeaturesTests : IDisposable
         Assert.Equal(Present.MicroText(0), Present.Card(e).SayText);
         Until(e, () => e.S.Ep is null);
         Until(e, () => e.S.Ep is { C: CaseId.MicroBreak, Phase: Phase.Bubble }, 3600);
-        Assert.Contains("20-20-20", Present.Card(e).SayText);
+        Assert.Contains("vươn vai", Present.Card(e).SayText);
     }
 
     [Fact]
@@ -153,7 +153,7 @@ public sealed class ExtendedFeaturesTests : IDisposable
         RunTo(e, "09:50");
         e.SetAway(false);
         RunTo(e, "10:20");
-        Assert.DoesNotContain(e.S.Log, l => l.Text.StartsWith("Uống nước · nhìn xa đủ điều kiện"));
+        Assert.DoesNotContain(e.S.Log, l => l.Text.StartsWith("Nghỉ ngắn đủ điều kiện"));
     }
 
     // ================= trình chiếu =================

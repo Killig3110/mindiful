@@ -60,7 +60,7 @@ public sealed class EngineConfig
     public double FocusPlanMinMinutes { get; set; } = 60;
     /// <summary>Sáng thứ Hai: tóm tắt tuần trước kèm 1 mẹo (cần dữ liệu tuần trước trên máy).</summary>
     public bool WeekReport { get; init; }
-    /// <summary>Nhắc uống nước / quy tắc 20-20-20 sau mỗi N phút làm liên tục (0 = tắt).</summary>
+    /// <summary>Nhắc nghỉ ngắn (uống nước, vươn vai) sau mỗi N phút làm liên tục (0 = tắt).</summary>
     public double MicroBreakEveryMin { get; set; }
     public int MicroBreakMaxPerDay { get; init; } = 6;
     /// <summary>Hỏi "Hôm nay thấy sao?" trên thẻ tan tầm và gợi ý nghỉ giữa chuỗi họp ngày mai.</summary>

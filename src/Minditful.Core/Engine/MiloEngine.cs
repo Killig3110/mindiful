@@ -218,27 +218,12 @@ public sealed partial class MiloEngine
     // ================= mood (mục 11) =================
     public void ComputeMood()
     {
-        var p = new Dictionary<string, double>
-        {
-            ["meet"] = Math.Min(20, Math.Max(0, MeetingMin() - 180) * 0.1),
-            ["chain"] = Math.Min(12, Math.Max(0, LongestChainSoFar() - 2) * 4),
-            ["streak"] = Math.Min(15, Math.Max(0, Streak() - 90) * 0.2),
-            ["ot"] = Math.Min(25, S.OtMin * 0.33) + (S.FirstAct is { } fa && fa < Cfg.Start - 1800 ? 5 : 0),
-        };
-        var w = Worked();
-        p["rest"] = w >= 120 ? Math.Min(15, Math.Max(0, 45 * w / 480 - S.Rest) * 0.5) : 0;
-        p["frag"] = Math.Min(12, Math.Max(0, SwitchesHour() - Cfg.FragThreshold) * 2);
-        var ratio = InProgress() / Math.Max(0.1, Snap.AvgInProgress);
-        p["work"] = ratio > 2 ? 10 : ratio > 1.5 ? 6 : 0;
-        p["stuck"] = Math.Min(6, StuckTasks().Count * 2);
-        p["email"] = Math.Min(4, Math.Max(0, WaitingEmails().Count - 2));
-        p["stress"] = S.Stress;
-        // Người dùng tự nói cuối ngày: "Mệt" trừ 6, "Vui" cộng 3 — lời tự đánh giá nặng hơn mọi phỏng đoán
-        p["self"] = S.Feeling == Feeling.Bad ? 6 : 0;
-        var bonus = Math.Min(12, S.AcceptedBreaks * 3) + Math.Min(6, S.TasksDone * 2) + Math.Min(8, S.FocusDone * 4) + Math.Min(3, S.ExtraBonus)
-                    + (S.Feeling == Feeling.Good ? 3 : 0);
+        // Công thức nằm ở MoodModel (có nguồn nghiên cứu từng khoản, kiểm chứng bằng MoodEvidenceTests)
+        var inputs = MoodInputsNow();
+        var p = MoodModel.Penalties(inputs);
+        var bonus = MoodModel.Bonus(inputs);
         var sum = p.Values.Sum();
-        S.RuleScore = (int)Tm.Clamp(Tm.JsRound(92 - sum + bonus), 0, 100);
+        S.RuleScore = MoodModel.Score(sum, bonus);
         var insight = Cfg.MoodMode == MoodMode.Rules ? null : FreshInsight();
         if (insight is not null && Cfg.MoodMode == MoodMode.Hybrid && insight.Adjust != 0)
         {
@@ -249,7 +234,7 @@ public sealed partial class MiloEngine
         S.Bonus = bonus;
         S.Score = insight is { Score: { } llmScore } && Cfg.MoodMode == MoodMode.Llm
             ? Math.Clamp(llmScore, 0, 100)
-            : (int)Tm.Clamp(Tm.JsRound(92 - sum + bonus), 0, 100);
+            : MoodModel.Score(sum, bonus);
 
         int[] min = [80, 60, 40, 0];
         int i = S.BandIdx, before = i;
@@ -272,6 +257,15 @@ public sealed partial class MiloEngine
         if (insight is not null)
             S.Vibe = (Math.Clamp(insight.Focus ?? S.Vibe.F, 0, 5), Math.Clamp(insight.Energy ?? S.Vibe.E, 0, 5), Math.Clamp(insight.Stress ?? S.Vibe.S, 0, 5));
     }
+
+    /// <summary>Số liệu hiện tại đưa vào công thức mood.</summary>
+    public MoodInputs MoodInputsNow() => new(
+        MeetingMin(), LongestChainSoFar(), Streak(), S.OtMin, S.FirstAct is { } fa && fa < Cfg.Start - 1800,
+        Worked(), S.Rest, SwitchesHour(), Cfg.FragThreshold, InProgress() / Math.Max(0.1, Snap.AvgInProgress),
+        StuckTasks().Count, WaitingEmails().Count, S.Stress, S.Feeling,
+        S.AcceptedBreaks, S.TasksDone, S.FocusDone, S.ExtraBonus,
+        // Thống kê tuần trên máy có thể đã gồm phần hôm nay lưu định kỳ → lấy max để không cộng trùng
+        Math.Max(Snap.ThisWeek?.OvertimeMin ?? 0, S.OtMin));
 
     public DayRecord BuildDayRecord() => new(Day, S.Score, MeetingMin(), S.AcceptedBreaks, S.FocusMinDone, S.TasksDone, S.OtMin,
         S.Vibe.F, S.Vibe.E, S.Vibe.S, InProgress(), S.Feeling);

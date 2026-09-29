@@ -65,7 +65,7 @@ Milo làm từng tình huống ngay, không chờ tới giờ.
 | 17 | Chào hỏi | Thẻ nhỏ khen → Cảm ơn Milo | "Lúc bạn làm tốt Milo cũng ghé hỏi thăm, không đòi gì." |
 | 18 | Giữ giờ tập trung | Thẻ "từ 16:15 tới 17:45 bạn trống 1h30" → Giữ | "Milo tìm khoảng trống dài nhất trong ngày và giữ để tập trung." |
 | 19 | Báo cáo tuần | Thẻ "Tuần trước của bạn" + 1 mẹo | "Sáng thứ Hai Milo tóm tắt tuần trước." |
-| 20 | Uống nước · nhìn xa | Milo ló lên 5 giây, 1 bóng thoại, không nút | "Nhắc nhẹ, không cần trả lời." |
+| 20 | Nghỉ ngắn | Milo ló lên 5 giây, 1 bóng thoại, không nút | "Nhắc nghỉ ngắn: uống nước, vươn vai. Nghiên cứu 2022 và 2025 cho thấy nghỉ ngắn giảm mệt, nhất là ngày nặng." |
 
 Ở các bước này có thể bỏ tự chạy và **tự bấm** 1–2 thẻ để người xem thấy thẻ phản hồi thế nào:
 - *Để sau* 2 lần thì mất nút Để sau.
@@ -124,6 +124,7 @@ Chữ nhỏ ở góc mỗi quả là nguồn dữ liệu: T = Teams, O = Outlook
 
 | Hỏi | Trả lời |
 | --- | --- |
+| Điểm mood lấy từ đâu, sao tin được? | Mô hình Job Demands–Resources (Bakker et al., 2023): áp lực trừ điểm, hồi phục cộng điểm. Mỗi khoản dựa trên nghiên cứu từ 2021 tới nay (họp trực tuyến gây mệt, nghỉ ngắn giảm mệt, đa nhiệm gây stress, > 48 giờ/tuần có rủi ro). Bộ test chứng minh với 20.000 bộ số liệu ngẫu nhiên rằng công thức luôn đúng chiều các nghiên cứu. Con số tuyệt đối được hiệu chỉnh bằng khảo sát WHO-5 của WHO khi chạy thử với nhóm thật. Chi tiết: [CO-SO-KHOA-HOC.md](CO-SO-KHOA-HOC.md) |
 | Có làm phiền không? | Tối đa 1 lời nhắc chủ động mỗi 15 phút, 3 lần/giờ, 10 lần/ngày. Im lặng khi họp, trình chiếu, toàn màn hình, tập trung. Bạn hay bấm "Không cần" case nào thì Milo tự thưa case đó (cá nhân hoá 7 ngày) |
 | Dữ liệu đi đâu? | Chỉ lưu số liệu trên máy (SQLite), tự xoá theo tuần. Không có server riêng. AI (Claude) chỉ nhận con số, không nhận tiêu đề hay nội dung |
 | Không có AI thì sao? | Chạy đủ bằng luật và câu mẫu. Có API key thì Claude viết lời tự nhiên hơn và chấm mood tinh hơn (±10 điểm) |

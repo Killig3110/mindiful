@@ -123,6 +123,7 @@ Lúc Milo ẩn, đồng hồ kịch bản tua nhanh. Lúc Milo xuất hiện, th
 | **Tổng quan** | 3 thẻ kết nối: *Microsoft 365*, *Azure Boards*, *Claude*. **Chấm xanh** là ổn, **vàng** là cần làm thêm 1 bước, **đỏ** là lỗi (dòng chữ cạnh chấm ghi lý do bằng tiếng Việt). Phần *Milo đang thấy*: số cuộc họp, email chờ, task, sprint, điểm mood, cuộc họp kế tiếp, giờ làm hôm nay |
 | **Kết nối** | *Đăng nhập / Đăng xuất Microsoft*, *Làm mới dữ liệu*. Ô dán **PAT** Azure DevOps (*Lưu PAT / Xoá PAT*). Ô dán **API key Claude** (*Lưu key*). Tất cả lưu mã hoá trên máy |
 | **Thử tình huống** (chỉ Sandbox ở chế độ test) | *Chuẩn bị*: Reset ngày (chào sáng lại), đặt giờ về (*Giờ về = bây giờ + 2 phút*), *Tạo dữ liệu mẫu* trong tenant. *Cho Milo làm ngay* và *Giả vờ bạn đang…* như Demo |
+| **Kiểm chứng điểm** | 5 câu WHO-5 mỗi tuần, bảng so sánh điểm Milo với WHO-5, hệ số tương quan *r*, nút *Xuất CSV ẩn danh* (mục 5.5) |
 | **Milo của bạn** | Tủ đồ, góc màn hình, *Milo chăm sóc bạn thế nào* (tính năng nào đang Bật/Tắt), *Riêng tư & dữ liệu* (Milo tự điều chỉnh theo 7 ngày ra sao, dữ liệu giữ trên máy, nút **Xoá toàn bộ dữ liệu thống kê ngay**) |
 | **Bộ não Milo** | Như Demo |
 
@@ -191,7 +192,7 @@ Vòng thở: vòng tròn phồng 4 giây (hít vào), giữ 4 giây, xẹp 4 gi�
 | --- | --- | --- | --- |
 | **Giữ giờ tập trung** | 1 lần/ngày, buổi sáng, khi lịch còn khoảng trống ≥ 60 phút | Đề nghị giữ khoảng trống dài nhất để tập trung | *Giữ*: tạo "Tập trung · Milo giữ chỗ" trong lịch; tới giờ Milo tự bật Không làm phiền · *Thôi* |
 | **Báo cáo tuần** | Sáng thứ Hai | Tóm tắt tuần trước + 1 mẹo cho tuần mới | *Đã rõ* · *Xem chùm nho* |
-| **Uống nước · nhìn xa** | Mỗi 50 phút ngồi máy liên tục (tối đa 6 lần/ngày) | Ló lên 5 giây: "Uống ngụm nước nha!" hoặc "20-20-20: nhìn xa 6 mét trong 20 giây" | Không cần trả lời |
+| **Nghỉ ngắn** | Mỗi 50 phút ngồi máy liên tục (tối đa 6 lần/ngày) | Ló lên 5 giây: "Uống ngụm nước nha!" hoặc "Đứng dậy vươn vai 1 phút rồi làm tiếp nhé." | Không cần trả lời |
 | **Hôm nay thấy sao?** | Trên thẻ tan tầm | 3 nút Vui / Bình thường / Mệt | Câu trả lời chỉ lưu trên máy, tính vào điểm mood |
 | **Nghỉ giữa chuỗi họp ngày mai** | Trên thẻ tan tầm, khi mai có ≥ 3 cuộc họp liền | "Mai 13:30–16:15 có 3 cuộc họp liền" | *Giữ 10' nghỉ lúc …* |
 | **Trốn khi trình chiếu** | Teams báo bạn đang trình chiếu | Trốn hẳn, kể cả chóp đuôi | — |
@@ -205,7 +206,19 @@ Mỗi ngày bắt đầu từ 92 điểm:
 - **Bị trừ khi:** họp quá nhiều, họp liền, ngồi liền, quá giờ, nghỉ ít, nhảy việc, nhiều task dở, task kẹt, email chờ, hoặc bạn tự nói "Mệt" (−6).
 - **Được cộng khi:** nghỉ cùng Milo, xong task, xong khối tập trung, bạn nói "Vui" (+3).
 
-Có Claude và bật chế độ Hybrid thì Claude được chỉnh thêm tối đa ±10 điểm. Trang **Bộ não Milo** ghi rõ từng khoản.
+Có Claude và bật chế độ Hybrid thì Claude được chỉnh thêm tối đa ±10 điểm. Trang **Bộ não Milo** ghi rõ từng khoản; rê chuột lên từng khoản để xem nghiên cứu làm căn cứ.
+
+**Điểm lấy từ đâu:**
+- Công thức theo mô hình Job Demands–Resources.
+- Mỗi khoản dựa trên nghiên cứu công bố từ 2021 tới nay.
+- Có bộ test chứng minh công thức luôn đúng chiều với các nghiên cứu đó.
+- Chi tiết: [CO-SO-KHOA-HOC.md](CO-SO-KHOA-HOC.md).
+
+**Kiểm chứng với chính bạn** (Sandbox / Production): bảng điều khiển → **Kiểm chứng điểm**.
+- Mỗi cuối tuần trả lời 5 câu **WHO-5** (thang đo sức khoẻ tinh thần của Tổ chức Y tế Thế giới). Thứ Hai trả lời thì tính cho tuần trước.
+- App so với điểm Milo trung bình tuần và hiện hệ số tương quan *r* sau ≥ 3 tuần. *r* ≥ 0,3 nghĩa là điểm Milo phản ánh khá đúng cảm nhận của bạn.
+- Nút *Xuất CSV ẩn danh* để gộp dữ liệu cả nhóm khi chạy thử.
+- Đây không phải công cụ chẩn đoán.
 
 ## 6. Dùng theo từng môi trường
 

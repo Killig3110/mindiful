@@ -533,7 +533,7 @@ Các hành vi dưới đây không có trong bản chốt ban đầu, được t
 | **Báo cáo tuần** | Xã giao · P4 | Sáng thứ Hai, ngay sau Chào sáng, khi máy còn dữ liệu tuần trước | Điểm TB, giờ họp, số lần nghỉ, ngày tốt/mệt nhất + 1 mẹo theo điểm yếu nhất | *Đã rõ* · *Xem chùm nho* (mở dashboard tuần) |
 | **Hôm nay thấy sao?** | Trong thẻ Tan tầm (6.2, 6.3) | Cùng lúc Tan tầm | 3 nút Vui / Bình thường / Mệt | Chỉ lưu trên máy. Mood Engine: Mệt −6, Vui +3. Gõ chat "mệt" ở thẻ tan tầm cũng tính là Mệt |
 | **Nghỉ giữa chuỗi họp ngày mai** | Trong thẻ Tan tầm | Mai có ≥ 3 cuộc họp liền | "Mai 13:30–16:15 có 3 cuộc họp liền" | *Giữ 10' nghỉ lúc 15:30* → sự kiện tentative ngày mai (cách giữ chỗ như 7.2) |
-| **Uống nước · 20-20-20** | Hỗ trợ · P5 · miễn ngân sách | Mỗi 50 phút ngồi máy liên tục (không tính giờ họp), tối đa 6 lần/ngày | Ló lên 5 giây, 1 bóng thoại, không thẻ, không nút (như 7.5) | Không cần trả lời. Rời máy ≥ 5 phút thì đếm lại |
+| **Nghỉ ngắn** (uống nước, vươn vai) | Hỗ trợ · P5 · miễn ngân sách | Mỗi 50 phút ngồi máy liên tục (không tính giờ họp), tối đa 6 lần/ngày | Ló lên 5 giây, 1 bóng thoại, không thẻ, không nút (như 7.5) | Không cần trả lời. Rời máy ≥ 5 phút thì đếm lại |
 | **Trốn khi trình chiếu** | Cổng im lặng mới | Teams presence = Presenting | Trốn hẳn, **kể cả chóp đuôi và chấm chờ**; thẻ đang mở thu lại | — |
 | **Tủ đồ** | Không lời | Về đúng giờ (quá giờ < 15 phút) 3 / 5 / 10 / 15 ngày liền | Milo có khăn quàng / kẹp hoa / mũ nồi / đồng phục Bosch; sáng hôm sau bản tin Chào sáng báo món mới | Chọn món hoặc tắt ở Bảng điều khiển |
 
@@ -541,6 +541,6 @@ Dashboard (9.6) có thêm nút **Chi tiết**: một bảng nhỏ cỡ 1 thẻ n
 
 Câu hỏi mở thêm:
 
-- [ ] **Nhịp uống nước:** 50 phút có hợp với nhóm không, hay nên nhắc theo 20-20-20 thật (20 phút) nhưng chỉ bằng chóp đuôi nhấp nháy?
+- [ ] **Nhịp nghỉ ngắn:** 50 phút có hợp với nhóm không? (Đã bỏ quy tắc 20-20-20 vì nghiên cứu 2023 không thấy tác dụng rõ — xem CO-SO-KHOA-HOC.md.)
 - [ ] **Tủ đồ:** mốc 3/5/10/15 ngày và 4 món có đủ tạo động lực không? Designer có muốn vẽ thêm món theo mùa?
 
