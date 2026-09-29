@@ -156,6 +156,7 @@ public partial class CompanionWindow : Window
     {
         Layer.AccessoryChoice = choice;
         UiSettings.SaveAccessory(_session.Env, choice);
+        Layer.RefreshWardrobe(); // tủ đồ đang mở trên đầu Milo tô lại món đang mặc
         Layer.Render();
     }
 

@@ -496,10 +496,11 @@ public sealed partial class MiloEngine
     /// Cho Milo diễn 1 clip hài ngay (bảng điều khiển Demo, hoặc phản ứng như bấm liên tục). Milo đang ẩn thì ló lên trước.
     /// Không chạy khi đang họp, trình chiếu, toàn màn hình, khoá máy.
     /// </summary>
-    public void PlayMeme(Clip c)
+    /// <param name="seconds">Độ dài diễn (giây thật); mặc định theo clip.</param>
+    public void PlayMeme(Clip c, double? seconds = null)
     {
         if (HardGate() is not null) return;
-        var len = Dt(Catalog.ClipLength(c) > 0 ? Catalog.ClipLength(c) : 6);
+        var len = Dt(seconds ?? (Catalog.ClipLength(c) > 0 ? Catalog.ClipLength(c) : 6));
         var start = S.T;
         if (S.Ep is null && S.Visit is null)
         {
@@ -508,8 +509,30 @@ public sealed partial class MiloEngine
             start = S.Visit.End;
         }
         S.Reaction = (c, start, start + len);
-        if (S.Visit is { Phase: VisitPhase.Look } v && v.End < start + len) v.End = start + len; // đang đứng ngoài: ở lại diễn cho xong
+        // Đang leo xuống thì quay lại đứng; đang đứng ngoài thì ở lại diễn cho xong (+ 1 nhịp để động tác kế tiếp nối vào)
+        if (S.Visit is { Phase: VisitPhase.Out } vo)
+        {
+            vo.Phase = VisitPhase.Look;
+            vo.Clip = Clip.LookAround;
+        }
+        if (S.Visit is { Phase: VisitPhase.Look } v && v.End < start + len + Dt(1)) v.End = start + len + Dt(1);
         Log($"Milo diễn: {Catalog.ClipName(c)}", LogKind.Sig);
+    }
+
+    /// <summary>Demo: bắt đầu 1 khối tập trung ngay (bật Không làm phiền, Milo ngủ trên chóp đuôi).</summary>
+    public void StartFocusNow(int minutes)
+    {
+        S.FocusUntil = S.T + minutes * 60;
+        S.FocusStart = S.T;
+        S.FocusTask = new WorkTask { Id = "tập trung", Title = "Tập trung" };
+        Log($"Bắt đầu tập trung {minutes} phút → Milo ngủ trên chóp đuôi", LogKind.User);
+        Raise(new MiloAction.StartFocus("tập trung", "Tập trung", S.T, S.FocusUntil.Value));
+    }
+
+    /// <summary>Kết thúc khối tập trung ngay (Milo tỉnh dậy, bóng thoại "… phút sâu xong rồi!").</summary>
+    public void StopFocusNow()
+    {
+        if (S.FocusUntil is { } f && S.T < f) S.FocusUntil = S.T;
     }
 
     public void MiloClick()

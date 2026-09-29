@@ -68,4 +68,52 @@ public class DemoTourTests
         e.Advance(20, false);
         Assert.NotEqual(PresenceState.Visit, e.Presence());
     }
+
+    [Fact]
+    public void Meme_reel_plays_all_nine_back_to_back()
+    {
+        var e = DemoScenario.CreateEngine();
+        DemoTour.Apply(e, DemoTour.Steps.First(s => s.Kind == TourKind.Meme));
+        var seen = new HashSet<Clip>();
+        var t = 0.0;
+        for (var k = 1; k <= DemoTour.MemeReel.Length; k++)
+        {
+            // host gọi động tác kế tiếp đúng lúc động tác trước xong + 0,4 giây
+            var until = t + DemoTour.MemeReel[k - 1].Seconds + (k == 1 ? Catalog.ClipLength(Clip.PeekIn) : 0) + .4;
+            while (t < until)
+            {
+                e.Advance(.2, false);
+                t += .2;
+                seen.Add(Presentation.Present.VisualClip(e));
+            }
+            if (k < DemoTour.MemeReel.Length) e.PlayMeme(DemoTour.MemeReel[k].Clip, DemoTour.MemeReel[k].Seconds);
+        }
+        Assert.All(DemoTour.MemeReel, m => Assert.Contains(m.Clip, seen));
+    }
+
+    [Fact]
+    public void Demo_has_the_whole_wardrobe_unlocked()
+    {
+        var snap = DemoScenario.Snapshot();
+        Assert.Equal(Wardrobe.Items.Length, Wardrobe.Owned(snap.Wardrobe, DemoScenario.Day).Count);
+        Assert.All(DemoTour.OutfitReel, o => Assert.Equal(o.Split(','), Wardrobe.Resolve(o, Wardrobe.Owned(snap.Wardrobe, DemoScenario.Day))));
+    }
+
+    [Fact]
+    public void Dashboard_focus_and_wardrobe_steps_show_what_they_promise()
+    {
+        var e = DemoScenario.CreateEngine();
+        DemoTour.Apply(e, DemoTour.Steps.First(s => s.Kind == TourKind.Focus));
+        e.Advance(2, false);
+        Assert.True(Presentation.Present.Sleeping(e));
+        DemoTour.Apply(e, DemoTour.Steps.First(s => s.Kind == TourKind.Dashboard));
+        Assert.False(e.FocusActive()); // bước sau tự kết thúc tập trung
+        for (var i = 0; i < 20 && e.S.Ep?.Phase != Phase.Show; i++) e.Advance(1, false);
+        Assert.Equal(CaseId.Dashboard, e.S.Ep!.C);
+        e.UserReply("detail");
+        Assert.NotNull(Presentation.Present.Detail(e));
+        DemoTour.Apply(e, DemoTour.Steps.First(s => s.Kind == TourKind.Wardrobe));
+        for (var i = 0; i < 30 && !Presentation.Present.WardrobeOpen(e); i++) e.Advance(1, false);
+        Assert.True(Presentation.Present.WardrobeOpen(e));
+    }
 }

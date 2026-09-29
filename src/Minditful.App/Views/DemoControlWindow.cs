@@ -181,30 +181,81 @@ internal sealed class DemoControlWindow : ControlShell
         var step = DemoTour.Steps[i];
         if (_tourAuto && !Engine.S.Auto) Engine.SetAuto(true); // tự chạy thì người dùng mẫu tự bấm nút trên thẻ
         _session.RunTourStep(step);
-        if (step.Kind == TourKind.Wardrobe) ((App)Application.Current).Companion?.SetAccessory("bosch");
-        if (step.Kind == TourKind.Meme)
-        {
-            // Slay (3,2 giây) → vibe TGIF → "ơ kìa!" ngất; chỉ chạy tiếp nếu vẫn đang ở bước này
-            var at = i;
-            void After(double sec, Minditful.Core.Engine.Clip clip)
-            {
-                var t = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(sec) };
-                t.Tick += (_, _) =>
-                {
-                    t.Stop();
-                    if (_tourIndex == at) ((App)Application.Current).Companion?.PlayMeme(clip);
-                };
-                t.Start();
-            }
-            After(3.6, Minditful.Core.Engine.Clip.Vibe);
-            After(11.8, Minditful.Core.Engine.Clip.Faint);
-        }
+        ScheduleStep(i, step);
         _stepStarted = DateTime.Now;
         _sawBusy = false;
         _quietSince = null;
         RefreshMilo();
         Refresh();
     }
+
+    /// <summary>Việc host làm tiếp trong 1 bước (gõ chat, thêm "Có mới", bấm dashboard, diễn 9 động tác, phối đồ). Rời bước thì thôi.</summary>
+    private void ScheduleStep(int index, TourStep step)
+    {
+        var companion = ((App)Application.Current).Companion;
+        void At(double sec, Action act)
+        {
+            var t = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(sec) };
+            t.Tick += (_, _) =>
+            {
+                t.Stop();
+                if (_tourIndex != index) return;
+                act();
+                companion?.Refresh();
+                RefreshMilo();
+            };
+            t.Start();
+        }
+        bool Showing(CaseId c) => Engine.S.Ep is { } ep && ep.C == c && ep.Phase == Phase.Show;
+        switch (step.Kind)
+        {
+            case TourKind.Case when step.Case == CaseId.Talk:
+                At(3.5, () => { if (Showing(CaseId.Talk)) Engine.UserReply("chat", "tui cũng khá mệt mà còn nhiều task quá"); });
+                At(14, () => { if (Showing(CaseId.Talk)) Engine.UserReply("close"); });
+                break;
+            case TourKind.Case when step.Case == CaseId.Incoming:
+                At(1.2, () => Engine.SimulateIncoming("meeting"));
+                At(2.4, () => Engine.SimulateIncoming("task"));
+                break;
+            case TourKind.Dashboard:
+                At(3, () => { if (Showing(CaseId.Dashboard)) Engine.UserReply("detail"); });
+                At(7.5, () => { if (Showing(CaseId.Dashboard)) Engine.UserReply("week"); });
+                At(12, () => { if (Showing(CaseId.Dashboard)) Engine.UserReply("close"); });
+                break;
+            case TourKind.Focus:
+                At(9, Engine.StopFocusNow);
+                break;
+            case TourKind.Meme:
+            {
+                var t = 0.0;
+                foreach (var (clip, sec) in DemoTour.MemeReel.Skip(1))
+                {
+                    t += DemoTour.MemeReel.TakeWhile(m => m.Clip != clip).Last().Seconds + .4;
+                    var (c, s) = (clip, sec);
+                    At(t, () => Engine.PlayMeme(c, s));
+                }
+                break;
+            }
+            case TourKind.Wardrobe:
+                for (var k = 0; k < DemoTour.OutfitReel.Length; k++)
+                {
+                    var outfit = DemoTour.OutfitReel[k];
+                    At(1.5 + k * 2.6, () => companion?.SetAccessory(outfit));
+                }
+                At(1.5 + DemoTour.OutfitReel.Length * 2.6 + 1, () => { if (Showing(CaseId.Dashboard)) Engine.UserReply("close"); });
+                break;
+        }
+    }
+
+    /// <summary>Bước không chờ Milo xong việc: tự chạy chờ bao lâu rồi sang bước kế (giây).</summary>
+    private static double StepSeconds(TourStep s) => s.Kind switch
+    {
+        TourKind.Meme => DemoTour.MemeReel.Sum(m => m.Seconds + .4) + 3,
+        TourKind.Wardrobe => DemoTour.OutfitReel.Length * 2.6 + 5,
+        TourKind.Dashboard => 15,
+        TourKind.Focus => 14,
+        _ => 12,
+    };
 
     /// <summary>Tự chạy: bước có Milo thì chờ Milo xong việc rồi 2,5 giây sau sang bước kế; bước không có Milo thì 12 giây.</summary>
     protected override void OnRefresh()
@@ -220,7 +271,7 @@ internal sealed class DemoControlWindow : ControlShell
             if (Math.Abs(Engine.S.Stress - target) > .5) Engine.SetStressLevel(target);
         }
         bool done;
-        if (!step.ExpectMilo) done = elapsed > (step.Kind == TourKind.Meme ? 17 : 12);
+        if (!step.ExpectMilo) done = elapsed > StepSeconds(step);
         else if (Engine.Busy)
         {
             _sawBusy = true;
@@ -286,6 +337,8 @@ internal sealed class DemoControlWindow : ControlShell
                 TourKind.Presenting => "giả vờ trình chiếu",
                 TourKind.Mood => "mood realtime",
                 TourKind.Meme => "Milo hài hước",
+                TourKind.Dashboard => "dashboard",
+                TourKind.Focus => "tập trung",
                 _ => "tủ đồ",
             };
             var num = Text($"{i + 1}", 13, P.Accent, FontWeights.Bold, false);
@@ -319,7 +372,7 @@ internal sealed class DemoControlWindow : ControlShell
         });
 
         return Page("Kịch bản trình diễn",
-            "26 bước đi qua đủ 21 tình huống của Milo cùng các tính năng mới, khoảng 15 phút. 12 bước đầu theo ngày mẫu Thứ Năm 24/9, các bước sau cho Milo làm từng tình huống còn lại. Kịch bản lời nói đầy đủ: docs/KICH-BAN-DEMO.md.",
+            "28 bước đi qua đủ 21 tình huống của Milo cùng các tính năng mới, khoảng 15 phút. 12 bước đầu theo ngày mẫu Thứ Năm 24/9, các bước sau cho Milo làm từng tình huống còn lại. Kịch bản lời nói đầy đủ: docs/KICH-BAN-DEMO.md.",
             current, MoodCard(), Card(list, "Tất cả bước", "Bấm 1 bước để chạy ngay bước đó."));
     }
 
@@ -415,7 +468,7 @@ internal sealed class DemoControlWindow : ControlShell
 
     // ================= Milo của bạn =================
     private FrameworkElement Milo() => Page("Milo của bạn",
-        "Phối đồ và chỗ đứng của Milo. Ngày mẫu (24/9, sát Trung thu) có sẵn 15 ngày về đúng giờ, 24 lần nghỉ, 5h20 tập trung nên mở gần hết tủ đồ, kể cả đồng phục Bosch và lồng đèn Trung thu. Chỉ đồ Tết, Halloween, Noel còn khoá vì chưa tới mùa.",
+        "Phối đồ và chỗ đứng của Milo. Ngày mẫu mở full tủ đồ (14/14 món): 15 ngày về đúng giờ, 24 lần nghỉ, 5h20 tập trung, và đã giữ đồ của mọi mùa (Tết, Trung thu, Halloween, Noel).",
         WardrobeCard(AppEnvironment.Demo, () => Engine.Snap.Wardrobe, () => Engine.Day),
         PersonalityCard(AppEnvironment.Demo, Engine, preview: true),
         CornerCard(AppEnvironment.Demo));

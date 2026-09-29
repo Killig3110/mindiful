@@ -163,7 +163,7 @@ Cả 3 môi trường đều là **cùng một app**:
 
 Dùng để present và để kiểm tra đủ 16 case của prototype. Giờ, lịch, email, task và thao tác của người dùng đều theo **ngày mẫu Thứ Năm 24/9**.
 
-**Cách nhanh nhất để xem đủ mọi case:** trang **Kịch bản trình diễn** → bật *Tự chạy qua các bước*. 26 bước (12 bước theo ngày mẫu, rồi 10 case còn lại gồm trò chuyện, có mới (realtime), trình chiếu, mood realtime, Milo hài hước, đồng phục Bosch), có gợi ý câu nói từng bước. Chi tiết: [docs/KICH-BAN-DEMO.md](docs/KICH-BAN-DEMO.md).
+**Cách nhanh nhất để xem đủ mọi case:** trang **Kịch bản trình diễn** → bật *Tự chạy qua các bước*. 28 bước (12 bước theo ngày mẫu, rồi các case còn lại, trò chuyện + nút tính năng, có mới (realtime), dashboard chi tiết, Milo ngủ khi tập trung, trình chiếu, mood realtime, 9 động tác hài, tủ đồ 6 bộ + đồng phục Bosch), có gợi ý câu nói từng bước. Chi tiết: [docs/KICH-BAN-DEMO.md](docs/KICH-BAN-DEMO.md).
 
 **Mood realtime:** trang *Bắt đầu* (và *Kịch bản trình diễn*) có thẻ **Mood realtime**:
 - Kéo *Căng thẳng giả lập* 0–60, hoặc bấm *Nghỉ cùng Milo (+3)* / *Xong 1 task (+2)*: điểm tính lại ngay.
@@ -208,7 +208,7 @@ Dùng để present và để kiểm tra đủ 16 case của prototype. Giờ, l
 - *Nhảy việc 12 lần/giờ*: case Phân mảnh.
 - *Giả lập ngày căng*: Milo đổi dáng mệt, có chữ z bay.
 - *Teams: đang trình chiếu*: Milo trốn hẳn, kể cả chóp đuôi và chấm chờ; bấm lại thì hiện lại.
-- **Tủ đồ phối theo ô:** chuột phải Milo → *Thay đồ cho Milo* (hoặc trang **Milo của bạn**). Ngày mẫu có sẵn 15 ngày về đúng giờ, 24 lần nghỉ, 5h20 tập trung và đang mùa Trung thu, nên mở gần hết tủ đồ.
+- **Tủ đồ phối theo ô:** chuột phải Milo → *Thay đồ cho Milo* (hoặc trang **Milo của bạn**). Ngày mẫu mở full tủ đồ (14/14 món) để trình diễn.
 - Ở thẻ **Tan tầm** (18:00): bấm *Vui / Bình thường / Mệt* để thấy điểm đổi (+3 / 0 / −6), bấm *Giữ 10' nghỉ lúc 15:30* cho chuỗi họp ngày mai.
 
 **1e. Tương tác chung** (cả 3 môi trường):

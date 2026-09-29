@@ -70,6 +70,12 @@ public sealed class MiloLayer : Grid
 
     internal AppEnvironment Env { get; set; }
 
+    /// <summary>Đổi đồ từ nơi khác (bảng điều khiển, kịch bản Demo): tủ đồ đang mở tô lại.</summary>
+    internal void RefreshWardrobe()
+    {
+        if (_detailHost.Content is WardrobeView w) w.Refresh();
+    }
+
     private string? Accessory(MiloEngine e, MClip clip)
     {
         var outfit = e.Snap.Wardrobe is null ? [] : Wardrobe.Resolve(AccessoryChoice, Wardrobe.Owned(e.Snap.Wardrobe, e.Day));

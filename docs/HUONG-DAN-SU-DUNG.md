@@ -187,7 +187,7 @@ Cửa sổ riêng, tông kem như thẻ của Milo. **Đóng cửa sổ này th�
 
 | Trang | Để làm gì |
 | --- | --- |
-| **Kịch bản trình diễn** | 26 bước đi qua đủ 21 tình huống + trình chiếu, mood realtime, Milo hài hước, đồng phục Bosch. Mỗi bước ghi *người xem thấy gì* và *bạn nói gì*. Bấm từng bước hoặc bật *Tự chạy qua các bước*. Kịch bản lời nói: [KICH-BAN-DEMO.md](KICH-BAN-DEMO.md) |
+| **Kịch bản trình diễn** | 28 bước đi qua đủ 21 tình huống + dashboard chi tiết, Milo ngủ khi tập trung, trình chiếu, mood realtime, 9 động tác hài, tủ đồ. Mỗi bước ghi *người xem thấy gì* và *bạn nói gì*. Bấm từng bước hoặc bật *Tự chạy qua các bước*. Kịch bản lời nói: [KICH-BAN-DEMO.md](KICH-BAN-DEMO.md) |
 | **Bắt đầu** | Thẻ **Mood realtime**: kéo mức căng thẳng, bấm nghỉ / xong task, gọi Milo đứng ở góc để thấy dáng và màu đổi ngay. Phát / tạm dừng ngày mẫu, *Làm lại từ 08:50*, tốc độ *Chậm 60× · Vừa 120× · Nhanh 300×*. Công tắc **Người dùng mẫu tự bấm nút**: bật thì kịch bản tự trả lời, tắt thì bạn tự bấm trên thẻ. Số liệu hôm nay và mẹo tương tác |
 | **Ngày mẫu** | 17 mốc của ngày Thứ Năm 24/9. Bấm 1 mốc để tua tới ngay trước lúc đó. Mốc đang diễn ra tô cam |
 | **Thử tình huống** | *Cho Milo làm ngay*: 19 thẻ tình huống chia 4 nhóm, bấm là Milo làm luôn. *Giả vờ bạn đang…*: công tắc gõ phím, rời máy, khoá máy, toàn màn hình, Không làm phiền, trình chiếu, ngày căng thẳng; và nút 1 lần (rời cuộc họp, nhảy việc, xong 1 task, mở dashboard) |

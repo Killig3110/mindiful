@@ -13,10 +13,14 @@ public enum TourKind
     Presenting,
     /// <summary>Mood realtime: gọi Milo đứng ngoài, người trình bày kéo mức căng thẳng.</summary>
     Mood,
-    /// <summary>Tủ đồ: mặc đồng phục Bosch (host đổi phụ kiện).</summary>
+    /// <summary>Tủ đồ: mở tủ đồ trên đầu Milo, phối lần lượt nhiều bộ, kết thúc bằng đồng phục Bosch (host đổi đồ).</summary>
     Wardrobe,
-    /// <summary>Milo hài hước: diễn liền 3 động tác (slay → vibe → ơ kìa ngất).</summary>
+    /// <summary>Milo hài hước: diễn lần lượt cả 9 động tác (host xếp lịch).</summary>
     Meme,
+    /// <summary>Dashboard: 4 quả → bảng chi tiết → trang tuần (host bấm lần lượt).</summary>
+    Dashboard,
+    /// <summary>Bắt đầu khối tập trung: Milo ngủ trên chóp đuôi, rồi tỉnh khi hết giờ.</summary>
+    Focus,
 }
 
 /// <param name="Title">Tên bước trên bảng điều khiển.</param>
@@ -95,23 +99,40 @@ public static class DemoTour
             TourKind.Case, Case: CaseId.WeekReport, Expect: [CaseId.WeekReport]),
         new("Nghỉ ngắn", "Milo ló lên 5 giây \"Uống ngụm nước nha!\" / \"Đứng dậy vươn vai\", không nút bấm",
             "Nhắc nhẹ sau mỗi 50 phút ngồi máy, không cần trả lời.", TourKind.Case, Case: CaseId.MicroBreak, Expect: [CaseId.MicroBreak]),
-        new("Trò chuyện với Milo", "Milo leo lên với khung chat; bấm \"Mình thấy mệt\" hoặc gõ tự do",
-            "Ngoài lời nhắc, bạn có thể tự mở trò chuyện với Milo (bấm Milo, dashboard hoặc menu khay). AI chỉ nhận con số trong ngày, không nhận nội dung công việc.",
+        new("Trò chuyện với Milo", "Khung chat mở ra; tự gõ \"tui cũng khá mệt mà còn nhiều task quá\" → Milo trả lời và hiện nút tính năng (Tìm giờ tập trung, Thở 1 phút…)",
+            "Ngoài lời nhắc, bạn có thể tự mở trò chuyện (bấm Milo, dashboard, menu khay). Milo hiểu bạn đang mệt và nhiều việc, rồi đề nghị đúng tính năng; bấm mới chạy. AI chỉ nhận con số trong ngày, không nhận nội dung công việc.",
             TourKind.Case, Case: CaseId.Talk, Expect: [CaseId.Talk]),
-        new("Có mới (realtime)", "Milo ló lên: \"Chị Linh vừa gửi mail cho bạn\" kèm tiêu đề và nút Mở email",
+        new("Có mới (realtime)", "Milo ló lên: \"Chị Linh vừa gửi mail cho bạn\"; ngay sau đó thêm lời mời họp và task mới → gộp thành \"3 thứ mới vừa tới\"",
             "Email mới gửi thẳng cho bạn, lời mời họp mới, task mới được giao: Milo báo ngay khi app đọc thấy. Ở Sandbox, gửi 1 email thật từ tài khoản khác là khoảng 20 giây sau Milo báo. Đang họp hay tập trung thì thẻ chờ ở chấm chờ.",
             TourKind.Case, Case: CaseId.Incoming, Expect: [CaseId.Incoming]),
+        new("Dashboard chi tiết", "Mở 4 quả quanh Milo → bảng chi tiết hôm nay (dòng thời gian, Office Vibe) → trang tuần (chùm nho 7 ngày) → đóng",
+            "Bấm chóp đuôi là có dashboard. Chi tiết nằm gọn trên đầu Milo, cỡ 1 thẻ: hôm nay họp, tập trung, nghỉ lúc nào; cả tuần mood ra sao.",
+            TourKind.Dashboard),
+        new("Milo ngủ khi tập trung", "Bắt đầu khối tập trung 30 phút: Milo nằm ngủ trên chóp đuôi, chữ z bay; hết giờ Milo tỉnh dậy \"phút sâu xong rồi!\"",
+            "Lúc bạn tập trung, Milo không biến mất mà ngủ trên chóp đuôi: vẫn ở đó, nhưng không làm phiền. Hết giờ thì tỉnh dậy báo xong.",
+            TourKind.Focus),
         new("Trốn khi trình chiếu", "Milo và chóp đuôi biến mất hẳn",
             "Đang trình chiếu thì Milo trốn hẳn, không lộ lên màn hình mọi người đang xem.", TourKind.Presenting),
         new("Mood realtime", "Milo đứng ở góc; kéo thanh căng thẳng thì Milo nhạt màu, dáng mệt, có chữ z; bấm Nghỉ / Xong task thì hồi lại",
             "Điểm mood tính lại ngay khi có gì thay đổi. Không popup, Milo chỉ đổi dáng để bạn tự nhận ra.", TourKind.Mood),
-        new("Milo hài hước", "Milo diễn slay, nhảy vibe \"TGIF\", rồi \"ơ kìa!\" giả vờ ngất",
-            "Milo phần lớn dễ thương, lâu lâu hài một chút, lấy cảm hứng từ meme và vẽ lại theo Milo. Không bao giờ diễn lúc họp hay trình chiếu.",
+        new("Milo hài hước", "Milo diễn lần lượt 9 động tác: slay → liếc xéo → toán bay → ơ kìa ngất → vibe TGIF → đang tải tuần mới → mạng nhện → mọi thứ vẫn ổn → NPC mode",
+            "Milo phần lớn dễ thương, lâu lâu hài một chút (tính cách Pha trộn), lấy cảm hứng từ meme và vẽ lại theo Milo. Mỗi động tác gắn với 1 dịp: xong task, email chờ, task kẹt, chiều thứ Sáu, sáng thứ Hai, quá giờ, họp liền… Không bao giờ diễn lúc họp hay trình chiếu.",
             TourKind.Meme),
-        new("Đồng phục Bosch", "Milo mặc mũ lưỡi trai đỏ và thẻ nhân viên Bosch",
-            "Về đúng giờ 15 ngày liền, Milo được tặng đồng phục Bosch. Phần thưởng cho thói quen tốt, không phải cho làm thêm.",
+        new("Tủ đồ & đồng phục Bosch", "Tủ đồ mở trên đầu Milo, Milo phối lần lượt: kính + nơ + cà phê → kính râm + tai nghe + trà sữa → kẹp hoa + khăn + lồng đèn → mũ Noel + lì xì → mũ phù thuỷ → đồng phục Bosch",
+            "14 món chia 5 ô, mở khoá bằng thói quen tốt: về đúng giờ, nghỉ cùng Milo, tập trung sâu, và đồ theo mùa. Về đúng giờ 15 ngày liền thì được đồng phục Bosch. Thay đồ ngay trên Milo: chuột phải → Thay đồ.",
             TourKind.Wardrobe),
     ];
+
+    /// <summary>Bước "Milo hài hước": 9 động tác nối nhau (giây thật mỗi động tác).</summary>
+    public static readonly (Clip Clip, double Seconds)[] MemeReel =
+    [
+        (Clip.Slay, 3.2), (Clip.SideEye, 4.5), (Clip.Confused, 4.5), (Clip.Faint, 3.6), (Clip.Vibe, 5),
+        (Clip.Loading, 6), (Clip.Cobweb, 6), (Clip.ThisIsFine, 4.5), (Clip.Zombie, 4.5),
+    ];
+
+    /// <summary>Bước "Tủ đồ": các bộ Milo phối lần lượt (id món ngăn bởi dấu phẩy), bộ cuối là đồng phục Bosch.</summary>
+    public static readonly string[] OutfitReel =
+        ["glasses,bowtie,coffee", "sunglasses,headphones,bubbletea", "flower,scarf,lantern", "santa,lixi,glasses", "witch,lantern", "bosch"];
 
     /// <summary>Cho Milo làm ngay 1 case. Máy đang khoá / đang họp / đã hết ngày thì tua tới khoảng trống 13:02 trước.</summary>
     public static void RunCase(MiloEngine e, CaseId c)
@@ -126,6 +147,9 @@ public static class DemoTour
         e.CallMilo(false);
         e.SetPresenting(false);
         e.SetStressLevel(0);
+        e.StopFocusNow();
+        // Bước trước còn mở dashboard / tủ đồ / trò chuyện thì đóng lại trước
+        if (e.S.Ep is { C: CaseId.Dashboard or CaseId.Talk, Phase: Phase.Show }) e.UserReply("close");
         switch (s.Kind)
         {
             case TourKind.Milestone:
@@ -141,10 +165,21 @@ public static class DemoTour
                 break;
             case TourKind.Meme:
                 if (e.HardGate() is not null || e.S.Ended) e.RunTo(FreeMoment);
-                e.PlayMeme(Clip.Slay);
+                e.PlayMeme(MemeReel[0].Clip, MemeReel[0].Seconds);
+                break;
+            case TourKind.Dashboard:
+                if (e.HardGate() is not null || e.S.Ended || e.S.Ep is not null) e.RunTo(FreeMoment);
+                e.TailClick();
+                break;
+            case TourKind.Focus:
+                if (e.HardGate() is not null || e.S.Ended || e.S.Ep is not null) e.RunTo(FreeMoment);
+                e.StartFocusNow(30);
+                break;
+            case TourKind.Wardrobe:
+                if (e.HardGate() is not null || e.S.Ended || e.S.Ep is not null) e.RunTo(FreeMoment);
+                e.OpenWardrobe();
                 break;
             case TourKind.Mood:
-            case TourKind.Wardrobe:
                 if (e.HardGate() is not null || e.S.Ended) e.RunTo(FreeMoment);
                 e.CallMilo(true);
                 break;

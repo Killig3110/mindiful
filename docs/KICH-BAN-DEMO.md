@@ -3,7 +3,7 @@
 Dành cho người đứng present Milo, ví dụ ở vòng chấm cuộc thi. Demo **không cần tài khoản, không cần mạng**: Milo sống qua 1 ngày làm việc mẫu (Thứ Năm 24/9) và làm đủ **19 tình huống** trên desktop thật.
 
 - Thời lượng: bản đầy đủ khoảng **15 phút**, bản rút gọn **7 phút** (mục 4).
-- Công cụ chính: bảng điều khiển → trang **Kịch bản trình diễn** (26 bước, có gợi ý câu nói cho từng bước).
+- Công cụ chính: bảng điều khiển → trang **Kịch bản trình diễn** (28 bước, có gợi ý câu nói cho từng bước).
 - Cách dùng app nói chung: [HUONG-DAN-SU-DUNG.md](HUONG-DAN-SU-DUNG.md). Muốn demo với dữ liệu thật: [KICH-BAN-SANDBOX.md](KICH-BAN-SANDBOX.md).
 
 ---
@@ -29,7 +29,7 @@ Dành cho người đứng present Milo, ví dụ ở vòng chấm cuộc thi. D
 
 Mỗi bước, trang hiện sẵn: **Người xem thấy gì** và **Bạn nói gì**.
 
-## 3. Kịch bản đầy đủ · 26 bước, khoảng 18 phút
+## 3. Kịch bản đầy đủ · 28 bước, khoảng 21 phút
 
 ### Mở đầu (30 giây, trước bước 1)
 
@@ -52,7 +52,7 @@ Mỗi bước, trang hiện sẵn: **Người xem thấy gì** và **Bạn nói 
 | 11 | Tan tầm | Thẻ tổng kết ngày + "Hôm nay thấy sao?" + gợi ý nghỉ giữa 3 cuộc họp ngày mai → Thêm 30 phút | "Hết giờ, Milo tổng kết và hỏi cảm nhận. Câu trả lời chỉ lưu trên máy." |
 | 12 | Nhắc lại tan tầm → chạy ra xe | Hết 30 phút → Về thôi → Milo **chạy ra xe** | "Chỉ cho làm thêm 1 lần. Gõ chat 'về thôi' cũng được." |
 
-### Phần B · Các tình huống còn lại (bước 13–22, khoảng 6 phút)
+### Phần B · Các tình huống còn lại (bước 13–24, khoảng 7 phút)
 
 Milo làm từng tình huống ngay, không chờ tới giờ.
 
@@ -66,23 +66,25 @@ Milo làm từng tình huống ngay, không chờ tới giờ.
 | 18 | Giữ giờ tập trung | Thẻ "từ 16:15 tới 17:45 bạn trống 1h30" → Giữ | "Milo tìm khoảng trống dài nhất trong ngày và giữ để tập trung." |
 | 19 | Báo cáo tuần | Thẻ "Tuần trước của bạn" + 1 mẹo | "Sáng thứ Hai Milo tóm tắt tuần trước." |
 | 20 | Nghỉ ngắn | Milo ló lên 5 giây, 1 bóng thoại, không nút | "Nhắc nghỉ ngắn: uống nước, vươn vai. Nghiên cứu 2022 và 2025 cho thấy nghỉ ngắn giảm mệt, nhất là ngày nặng." |
-| 21 | **Trò chuyện với Milo** | Khung chat với câu mở đầu theo điểm hôm nay + 3 câu gợi ý. Bấm *Hôm nay mình sao rồi?*, rồi *Mình thấy mệt* | "Ngoài lời nhắc, bạn có thể tự mở trò chuyện: bấm Milo, bấm *Trò chuyện* trên dashboard, hoặc menu khay. AI chỉ nhận con số trong ngày, không nhận tiêu đề hay nội dung công việc. Chưa bật AI thì Milo trả lời theo từ khoá." |
-| 22 | **Có mới (realtime)** | Milo ló lên: "Chị Linh vừa gửi mail cho bạn" kèm tiêu đề và nút *Mở email* | "Email mới gửi thẳng cho bạn, lời mời họp mới, task mới được giao: Milo báo ngay khi đọc thấy. Ở Sandbox, gửi 1 email thật là khoảng 20 giây sau Milo báo. Đang họp thì thẻ chờ ở chấm chờ." Muốn thấy thêm: *Thử tình huống* → *Có mới* bấm lần 2, lần 3 để có lời mời họp và task mới |
+| 21 | **Trò chuyện với Milo** | Khung chat mở ra, app tự gõ "tui cũng khá mệt mà còn nhiều task quá" → Milo đồng cảm và hiện nút *Tìm giờ tập trung* / *Thở 1 phút* | "Ngoài lời nhắc, bạn có thể tự mở trò chuyện: bấm Milo, dashboard, hoặc menu khay. Milo hiểu bạn đang mệt và nhiều việc rồi đề nghị đúng tính năng; bấm mới chạy. AI chỉ nhận con số trong ngày." |
+| 22 | **Có mới (realtime)** | "Chị Linh vừa gửi mail cho bạn", ngay sau đó thêm lời mời họp và task mới → gộp "3 thứ mới vừa tới" | "Email mới, lời mời họp, task mới được giao: Milo báo ngay khi đọc thấy, gộp lại cho gọn. Ở Sandbox, gửi 1 email thật là khoảng 20 giây sau Milo báo. Đang họp thì thẻ chờ ở chấm chờ." |
+| 23 | **Dashboard chi tiết** | 4 quả quanh Milo → bảng chi tiết hôm nay (dòng thời gian, Office Vibe) → trang tuần (chùm nho 7 ngày) → đóng | "Bấm chóp đuôi là có dashboard. Chi tiết nằm gọn trên đầu Milo, cỡ 1 thẻ." |
+| 24 | **Milo ngủ khi tập trung** | Milo nằm ngủ trên chóp đuôi, chữ z bay; 9 giây sau hết giờ, Milo tỉnh dậy "… phút sâu xong rồi!" | "Lúc bạn tập trung, Milo không biến mất mà ngủ trên chóp đuôi: vẫn ở đó, nhưng không làm phiền." |
 
 Ở các bước này có thể bỏ tự chạy và **tự bấm** 1–2 thẻ để người xem thấy thẻ phản hồi thế nào:
 - *Để sau* 2 lần thì mất nút Để sau.
 - Gõ chat "mệt quá" thì Milo rủ thở.
 
-### Phần C · Điểm nhấn (bước 23–26, khoảng 3 phút)
+### Phần C · Điểm nhấn (bước 25–28, khoảng 4 phút)
 
 | # | Bước | Người xem thấy | Bạn nói |
 | --- | --- | --- | --- |
-| 23 | Trốn khi trình chiếu | Milo và chóp đuôi biến mất | "Đang trình chiếu thì Milo trốn hẳn. Và Milo không bao giờ lộ lên màn hình đang chia sẻ." |
-| 24 | **Mood realtime** | Milo đứng ở góc. Kéo thanh *Căng thẳng giả lập* sang phải: điểm tụt, Milo nhạt màu, dáng mệt, có chữ z. Bấm *Nghỉ cùng Milo* / *Xong 1 task*: điểm tăng, Milo tươi lại | "Điểm mood tính lại ngay khi có gì thay đổi. Milo không bật popup, chỉ đổi dáng để bạn tự nhận ra mình đang mệt." |
-| 25 | **Milo hài hước** | Milo diễn liền 3 động tác: slay (lấp lánh) → nhảy vibe "TGIF" → "ơ kìa!" rồi giả vờ ngất | "Milo phần lớn dễ thương, nhưng lâu lâu sẽ hài một chút, lấy cảm hứng từ meme và vẽ lại theo Milo. Ai thích Milo lúc nào cũng hiền thì chuột phải chọn tính cách Dễ thương. Milo không bao giờ diễn lúc bạn đang họp hay trình chiếu." |
-| 26 | Đồng phục Bosch | Milo mặc mũ lưỡi trai đỏ và thẻ nhân viên Bosch | "Về đúng giờ 15 ngày liền, Milo được tặng đồng phục Bosch. Phần thưởng dành cho thói quen tốt, không phải cho làm thêm giờ." |
+| 25 | Trốn khi trình chiếu | Milo và chóp đuôi biến mất | "Đang trình chiếu thì Milo trốn hẳn. Và Milo không bao giờ lộ lên màn hình đang chia sẻ." |
+| 26 | **Mood realtime** | Milo đứng ở góc. Kéo thanh *Căng thẳng giả lập* sang phải: điểm tụt, Milo nhạt màu, dáng mệt, có chữ z. Bấm *Nghỉ cùng Milo* / *Xong 1 task*: điểm tăng, Milo tươi lại | "Điểm mood tính lại ngay khi có gì thay đổi. Milo không bật popup, chỉ đổi dáng để bạn tự nhận ra mình đang mệt." |
+| 27 | **Milo hài hước** | 9 động tác nối nhau (~45 giây): slay → liếc xéo "hmm…" → toán bay → "ơ kìa!" ngất → vibe "TGIF" → đang tải tuần mới → mạng nhện → "mọi thứ vẫn ổn…" → "NPC mode" | "Milo phần lớn dễ thương, lâu lâu hài một chút, lấy cảm hứng từ meme và vẽ lại theo Milo. Mỗi động tác gắn với 1 dịp: xong task, email chờ, task kẹt, chiều thứ Sáu, sáng thứ Hai, quá giờ, họp liền. Ai thích Milo lúc nào cũng hiền thì chuột phải chọn tính cách Dễ thương." |
+| 28 | **Tủ đồ & đồng phục Bosch** | Tủ đồ mở trên đầu Milo, Milo phối lần lượt 6 bộ: kính + nơ + cà phê → kính râm + tai nghe + trà sữa → kẹp hoa + khăn + lồng đèn → mũ Noel + lì xì → mũ phù thuỷ → đồng phục Bosch | "14 món chia 5 ô, mở khoá bằng thói quen tốt: về đúng giờ, nghỉ cùng Milo, tập trung sâu, và đồ theo mùa. Về đúng giờ 15 ngày liền thì được đồng phục Bosch, phần thưởng cho thói quen tốt chứ không cho làm thêm giờ. Thay đồ ngay trên Milo: chuột phải → Thay đồ." |
 
-Ở bước 24 (Mood realtime):
+Ở bước 26 (Mood realtime):
 - Tự chạy: app tự kéo mức căng thẳng 0 → 30 → 60 → 0.
 - Tự làm: dùng thẻ **Mood realtime** ngay dưới bước hiện tại. Nhìn dải trên cùng bảng điều khiển để đọc điểm.
 
@@ -93,7 +95,7 @@ Trang **Mood Engine**:
 2. Bấm **1 · Chứng minh luật hợp lý**: 14/14 kiểm tra đạt ngay.
 3. Nếu có AI (Ollama chạy sẵn trên máy là chắc chắn nhất): bấm **2 + 3**. Kết quả: AI có ổn định không, có xếp đúng ngày nặng/nhẹ không, lệch luật bao nhiêu điểm.
 
-Ở bước 21 có thể gõ thêm 1 câu tự do (vd. "cuối tuần nên làm gì cho đỡ stress?") để người xem thấy AI trả lời tự nhiên. Gõ "viết code giúp mình" thì Milo từ chối nhẹ nhàng vì Milo chỉ là bạn đồng hành sức khoẻ.
+Bước 21 app tự gõ sẵn 1 câu. Có thể gõ thêm 1 câu tự do (vd. "cuối tuần nên làm gì cho đỡ stress?") để người xem thấy AI trả lời tự nhiên. Gõ "viết code giúp mình" thì Milo từ chối nhẹ nhàng vì Milo chỉ là bạn đồng hành sức khoẻ.
 
 Nói: *"Luật được chứng minh bằng test. AI được kiểm trước khi bật: hỏi lại nhiều lần vẫn ra gần như nhau, và phải đồng ý với nghiên cứu về ngày nào nặng hơn."*
 
@@ -106,7 +108,7 @@ Nói: *"Luật được chứng minh bằng test. AI được kiểm trước kh
 >
 > Chỉ gửi con số cho AI, không gửi tiêu đề email hay cuộc họp. Dữ liệu cá nhân tự xoá mỗi tuần."
 
-## 4. Bản rút gọn 7 phút
+## 4. Bản rút gọn 8 phút
 
 Tắt tự chạy, bấm thẳng các bước sau trong *Tất cả bước*:
 
@@ -117,9 +119,10 @@ Tắt tự chạy, bấm thẳng các bước sau trong *Tất cả bước*:
 | 4 Task kẹt → khoá giờ tập trung | 1' | Milo hành động thật: chặn lịch, bật DND |
 | 8 Dashboard 4 quả | 1' | Câu chuyện cáo và nho |
 | 9 Họp liên tục → thở 4-4-4 | 1' | Chăm sóc sức khoẻ |
-| 22 Mood realtime | 1' | Thấy Milo đổi trạng thái ngay |
+| 22 Có mới (realtime) | 30" | Email / họp / task mới tới là Milo báo |
+| 26 Mood realtime | 1' | Thấy Milo đổi trạng thái ngay |
 | 12 Chạy ra xe | 30" | Kết thúc ngày dễ thương |
-| 23 Đồng phục Bosch | 30" | Kết bằng yếu tố Bosch |
+| 28 Tủ đồ & đồng phục Bosch | 1' | Phối đồ, kết bằng yếu tố Bosch |
 
 ## 5. Vì sao là trái cây (nói ở bước 8)
 
