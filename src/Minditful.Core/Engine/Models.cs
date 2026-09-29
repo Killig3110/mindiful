@@ -20,6 +20,8 @@ public sealed class CalendarEvent
     public string? Organizer { get; init; }
     /// <summary>Chính bạn tạo cuộc họp này (không báo "lời mời mới").</summary>
     public bool ByMe { get; init; }
+    /// <summary>Loại cuộc họp đoán trên máy từ tiêu đề + agenda (<see cref="MeetingIntents"/>). Agenda không được lưu lại.</summary>
+    public MeetingIntent Intent { get; init; }
 }
 
 /// <summary>1 thứ vừa tới: email mới, lời mời họp mới, task mới được giao. <paramref name="Kind"/>: mail / meeting / task.</summary>

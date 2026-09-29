@@ -67,6 +67,7 @@ public sealed class LiveWorkDataProvider(
                             {
                                 Id = e.Id, Subject = e.Subject, Start = Math.Max(0, (e.Start - t0).TotalSeconds), End = Math.Min(86400, (e.End - t0).TotalSeconds),
                                 WebLink = e.WebLink, Organizer = e.OrganizerName, ByMe = e.IsOrganizer,
+                                Intent = MeetingIntents.Classify(e.Subject, e.BodyPreview),
                             });
                         }
                     }
@@ -196,6 +197,8 @@ public sealed class LiveWorkDataProvider(
             Id = e.Id, Subject = e.Subject, Start = start, End = end, Role = role, Attachment = attach, People = people,
             IsOnline = e.IsOnlineMeeting || !conn.RequireOnlineMeeting, JoinUrl = e.JoinUrl, WebLink = e.WebLink,
             Organizer = e.OrganizerName, ByMe = e.IsOrganizer,
+            // Agenda chỉ dùng để đoán loại ngay tại đây, không lưu lại và không gửi đi
+            Intent = MeetingIntents.Classify(e.Subject, e.BodyPreview),
         };
     }
 

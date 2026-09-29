@@ -16,10 +16,13 @@ public enum MoodMode
 /// <summary>Cách đánh giá cuộc họp.</summary>
 public enum MeetingMode { Rules, Llm }
 
-/// <summary>Số liệu 1 cuộc họp gửi đi đánh giá — không có tiêu đề, người tham dự hay nội dung (§14).</summary>
+/// <summary>
+/// Số liệu 1 cuộc họp gửi đi đánh giá — không có tiêu đề, người tham dự hay nội dung (§14).
+/// <paramref name="Intent"/>: nhãn loại cuộc họp Milo đoán trên máy từ tiêu đề + agenda (vd. "Ra quyết định"); rỗng = không đoán được.
+/// </summary>
 public sealed record MeetingRequest(
     string EventId, double DurationMin, int Attendees, string Role, bool Online, string Start,
-    int ChainIndex, int ChainLength, double GapAfterMin, bool AfterHours, bool OverLunch);
+    int ChainIndex, int ChainLength, double GapAfterMin, bool AfterHours, bool OverLunch, string Intent = "");
 
 /// <summary>Kết quả đánh giá cuộc họp: mức nặng 1–5, loại, số phút nên nghỉ sau đó.</summary>
 public sealed record MeetingAssessment(string EventId, int Load, string Kind, int RecoveryMin, string Note, string Source);
@@ -33,19 +36,36 @@ public sealed record MoodInsight(int? Score, int Adjust, int? Focus, int? Energy
 /// <summary>Đánh giá cuộc họp bằng luật — luôn có, kể cả khi không có LLM.</summary>
 public static class MeetingRules
 {
-    public static readonly string[] Kinds = ["Trình bày", "1:1", "Họp đông", "Trao đổi", "Ra quyết định", "Cập nhật"];
+    public static readonly string[] Kinds = ["Trình bày", "1:1", "Họp đông", "Trao đổi", "Ra quyết định", "Cập nhật", "Ngồi nghe", "Làm việc nhóm"];
+
+    /// <summary>Bạn có thật sự trình bày không: người tổ chức nhưng cuộc họp là ngồi nghe (daily, training…) hoặc 1:1 thì không.</summary>
+    public static bool YouPresent(string role, string intent) => role == "Trình bày" && intent is not ("Ngồi nghe" or "1:1");
 
     public static MeetingAssessment Assess(MeetingRequest r)
     {
+        var i = r.Intent;
+        var presenting = YouPresent(r.Role, i);
         var load = r.DurationMin <= 30 ? 1 : r.DurationMin <= 60 ? 2 : r.DurationMin <= 90 ? 3 : 4;
         if (r.Attendees >= 6) load++;
-        if (r.Role == "Trình bày") load++;
+        // Trình bày, ra quyết định, làm việc nhóm đều cần tập trung cao; vừa trình bày vừa chốt thì cũng chỉ +1
+        if (presenting || i is "Ra quyết định" or "Làm việc nhóm") load++;
+        if (i == "Ngồi nghe" || i == "Trình bày" && !presenting) load--; // chủ yếu nghe
         if (r.ChainIndex >= 2) load++;           // cuộc thứ 3 trở đi trong chuỗi liền nhau
         if (r.AfterHours || r.OverLunch) load++;
         load = Math.Clamp(load, 1, 5);
-        var kind = r.Role == "Trình bày" ? "Trình bày" : r.Attendees <= 2 ? "1:1" : r.Attendees >= 6 ? "Họp đông" : "Trao đổi";
+        var kind = i switch
+        {
+            "1:1" => "1:1",
+            "Ra quyết định" => "Ra quyết định",
+            "Làm việc nhóm" => "Làm việc nhóm",
+            "Ngồi nghe" => "Ngồi nghe",
+            "Trình bày" => presenting ? "Trình bày" : "Ngồi nghe",
+            _ => presenting ? "Trình bày" : r.Attendees <= 2 ? "1:1" : r.Attendees >= 6 ? "Họp đông" : "Trao đổi",
+        };
         var recovery = load >= 4 ? 10 : load == 3 ? 5 : 0;
+        if (i is "Ra quyết định" or "Làm việc nhóm") recovery = Math.Max(recovery, 5);
         var notes = new List<string>();
+        if (i.Length > 0) notes.Add($"đoán từ tiêu đề/agenda: {i.ToLowerInvariant()}");
         if (r.ChainLength >= 3) notes.Add($"cuộc {r.ChainIndex + 1}/{r.ChainLength} trong chuỗi liền");
         if (recovery > 0 && r.GapAfterMin < recovery) notes.Add("không có khoảng nghỉ sau cuộc này");
         if (r.OverLunch) notes.Add("đè giờ ăn trưa");
@@ -72,7 +92,7 @@ public sealed partial class MiloEngine
         var attendees = ev.People.Sum(p => p.Initials.StartsWith('+') && int.TryParse(p.Initials[1..], out var n) ? n : 1) + 1;
         return new MeetingRequest(ev.Id, (ev.End - ev.Start) / 60, attendees, ev.Role, ev.IsOnline, Hm(ev.Start),
             chain.IndexOf(ev), chain.Count, gapAfter / 60, ev.End > Cfg.End || ev.Start < Cfg.Start,
-            ev.Start < T("13:00") && ev.End > T("12:00"));
+            ev.Start < T("13:00") && ev.End > T("12:00"), MeetingIntents.Label(MeetingIntents.Of(ev)));
     }
 
     /// <summary>Đánh giá bằng luật mọi cuộc họp chưa có; ở chế độ Llm thì nhờ host hỏi thêm Claude.</summary>

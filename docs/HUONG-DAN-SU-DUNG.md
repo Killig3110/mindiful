@@ -250,7 +250,7 @@ Giờ về theo **giờ linh hoạt kiểu Bosch**: bắt đầu tính từ lúc
 
 | Tính năng | Khi nào | Milo làm | Bạn trả lời |
 | --- | --- | --- | --- |
-| **Sắp họp** | 5 phút trước cuộc họp Teams | Thẻ tên cuộc họp, người tham gia, vai trò; nếu bạn trình bày thì mời mở slide | *Tham gia* (mở Teams) · *Mở slide* |
+| **Sắp họp** | 5 phút trước cuộc họp Teams | Thẻ tên cuộc họp, người tham gia, vai trò; nếu bạn trình bày thì mời mở slide. Thêm 1 câu gợi ý theo loại cuộc họp Milo đoán từ tiêu đề và agenda: trình bày, ra quyết định, ngồi nghe, làm việc nhóm, 1:1 (đọc ngay trên máy, chữ gốc không gửi cho AI) | *Tham gia* (mở Teams) · *Mở slide* |
 | **Lịch kín** | Buổi sáng/chiều có ≥ 3 cuộc họp liền nhau | Lịch mini, đề nghị chèn 10 phút nghỉ | *Giữ chỗ trong lịch* (tạo "Nghỉ cùng Milo" trong Outlook) · *Thôi* |
 | **Email chờ** | Sau 10:00, có email hỏi thẳng bạn mà chưa trả lời | Liệt kê 3 email chờ lâu nhất | *Nhắc tôi lúc 16:00* · *Mở Outlook* |
 | **Task kẹt** | Task dở nhiều ngày và có khoảng trống ≥ 45 phút | Đề nghị khoá giờ tập trung | *Khoá 90 phút*: chặn lịch + Teams "Không làm phiền", Milo im lặng tới hết khối |

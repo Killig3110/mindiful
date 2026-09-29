@@ -110,9 +110,11 @@ public sealed class ClaudeLineWriter(LlmOptions opt, Func<string?> apiKey) : IMi
 
     internal const string MeetingRulesPrompt =
         " Nhiệm vụ: ước lượng một cuộc họp tiêu hao bao nhiêu năng lượng, chỉ dựa trên số liệu được cho (không có tiêu đề hay nội dung). " +
+        "Nếu có loại cuộc họp: Trình bày (người dùng là người trình bày) và Ra quyết định, Làm việc nhóm thì nặng hơn; Ngồi nghe thì nhẹ hơn; " +
+        "người tổ chức một cuộc Ngồi nghe (vd. daily) không phải là trình bày. " +
         "Nặng hơn khi: người dùng trình bày hoặc phải ra quyết định, họp trên 60 phút, trên 8 người, nằm giữa hoặc cuối chuỗi họp liền nhau, " +
         "không có khoảng trống sau đó, ngoài giờ làm, đè giờ ăn trưa. Nhẹ hơn khi: 1:1 ngắn, chỉ nghe cập nhật, có khoảng trống sau. " +
-        "load: 1 (nhẹ) tới 5 (rất nặng). kind: một trong Trình bày, 1:1, Họp đông, Trao đổi, Ra quyết định, Cập nhật. " +
+        "load: 1 (nhẹ) tới 5 (rất nặng). kind: một trong Trình bày, 1:1, Họp đông, Trao đổi, Ra quyết định, Cập nhật, Ngồi nghe, Làm việc nhóm. " +
         "recovery_min: số phút nên nghỉ sau cuộc họp, 0–15, tăng theo load. note: tối đa 15 từ tiếng Việt nêu lý do chính.";
 
     private static readonly Dictionary<string, JsonElement> MoodSchema = Schema(
@@ -216,7 +218,8 @@ public sealed class ClaudeLineWriter(LlmOptions opt, Func<string?> apiKey) : IMi
     internal static string MeetingUser(MeetingRequest r) =>
         $"Dài {r.DurationMin:0} phút, bắt đầu {r.Start}, {r.Attendees} người, vai trò của người dùng: {r.Role}, " +
         $"{(r.Online ? "họp online" : "họp trực tiếp")}, là cuộc {r.ChainIndex + 1}/{r.ChainLength} trong chuỗi liền nhau, " +
-        $"sau đó trống {r.GapAfterMin:0} phút{(r.AfterHours ? ", ngoài giờ làm" : "")}{(r.OverLunch ? ", đè giờ ăn trưa" : "")}.";
+        $"sau đó trống {r.GapAfterMin:0} phút{(r.AfterHours ? ", ngoài giờ làm" : "")}{(r.OverLunch ? ", đè giờ ăn trưa" : "")}." +
+        (r.Intent.Length > 0 ? $" Loại cuộc họp (Milo đoán trên máy từ tiêu đề và agenda, chữ gốc không gửi đi): {r.Intent}." : "");
 
     internal static MeetingAssessment? ParseMeeting(string json, string eventId, string source)
     {

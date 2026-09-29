@@ -20,9 +20,10 @@ public class InsightTests
     {
         var e = Engine();
         foreach (var m in e.Meetings) Assert.Equal("Luật", e.Assessment(m.Id)!.Source);
-        var planning = e.Assessment("e1")!;   // 60', 8 người, trình bày
-        Assert.Equal("Trình bày", planning.Kind);
+        var planning = e.Assessment("e1")!;   // "Sprint Planning": 60', 8 người, bạn dẫn → đoán từ tiêu đề là ra quyết định
+        Assert.Equal("Ra quyết định", planning.Kind);
         Assert.Equal(4, planning.Load);
+        Assert.Contains("ra quyết định", planning.Note);
         var oneOnOne = e.Assessment("e3")!;   // 1:1 với lead, cuộc thứ 2 trong chuỗi
         Assert.Equal("1:1", oneOnOne.Kind);
         var demo = e.Assessment("e4")!;       // cuộc thứ 3 liền nhau, trình bày → nặng

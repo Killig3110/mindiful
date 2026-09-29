@@ -88,7 +88,7 @@ public sealed class OpenAiCompatibleWriter(LlmOptions opt, Func<string?> apiKey)
 
     private const string MeetingJson =
         " Chỉ trả về đúng 1 object JSON, không giải thích, với các trường: load (số nguyên 1–5), " +
-        "kind (một trong \"Trình bày\", \"1:1\", \"Họp đông\", \"Trao đổi\", \"Ra quyết định\", \"Cập nhật\"), recovery_min (số nguyên 0–15), note (chuỗi).";
+        "kind (một trong \"Trình bày\", \"1:1\", \"Họp đông\", \"Trao đổi\", \"Ra quyết định\", \"Cập nhật\", \"Ngồi nghe\", \"Làm việc nhóm\"), recovery_min (số nguyên 0–15), note (chuỗi).";
 
     public async Task<MoodInsight?> AssessMoodAsync(MoodRequest r, CancellationToken ct = default)
     {

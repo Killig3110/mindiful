@@ -592,9 +592,20 @@ Khi một case vào hàng đợi, Milo gọi Claude ngay lúc đó để viết 
 | Tính năng | `Rules` (mặc định, không cần key) | Claude |
 | --- | --- | --- |
 | **Mood** (`Features.Mood`) | Mood Engine theo §11 | `Hybrid`: luật làm nền, Claude chỉnh **±10 điểm** và viết 1 câu nhận xét. `Llm`: Claude chấm điểm 0–100, quá 2 chu kỳ không có nhận xét mới thì về điểm luật. Cả hai đều đặt lại 3 chỉ số Office Vibe (Tập trung / Năng lượng / Căng thẳng) |
-| **Cuộc họp** (`Features.Meetings`) | Mức nặng 1–5 tính từ độ dài, số người, trình bày, vị trí trong chuỗi, ngoài giờ/đè trưa | `Llm`: Claude đánh giá mức nặng, loại họp và số phút nên nghỉ sau đó |
+| **Cuộc họp** (`Features.Meetings`) | Mức nặng 1–5 tính từ độ dài, số người, trình bày, **loại cuộc họp**, vị trí trong chuỗi, ngoài giờ/đè trưa | `Llm`: Claude đánh giá mức nặng, loại họp và số phút nên nghỉ sau đó |
 
-- **Claude nhận gì:** Mood chỉ nhận số liệu cả ngày (điểm luật, phút họp, làm liền, nghỉ, quá giờ, task, email…). Cuộc họp chỉ nhận độ dài, số người, vai trò, vị trí trong chuỗi. **Không bao giờ gửi tiêu đề**, có test kiểm tra. `IncludeChatInMood: true` thì gửi kèm tối đa 5 câu bạn tự gõ cho Milo để Claude đọc cảm xúc; mặc định tắt.
+- **Loại cuộc họp đoán trên máy** (`MeetingIntents`): Milo đọc tiêu đề + agenda (phần xem trước của lời mời) bằng từ khoá tiếng Việt (có dấu, không dấu) và tiếng Anh, gắn nhãn *Trình bày / Ra quyết định / Ngồi nghe / Làm việc nhóm / 1:1*. Tiêu đề rõ thì ưu tiên tiêu đề, tiêu đề chung chung thì xem agenda. Agenda không được lưu, chữ gốc không rời máy.
+
+  | Nhãn | Từ khoá ví dụ | Luật chấm |
+  | --- | --- | --- |
+  | Trình bày | demo, thuyết trình, present, sprint review, báo cáo | Bạn trình bày: +1 mức nặng. Người khác trình bày: bạn chủ yếu nghe, −1 |
+  | Ra quyết định | planning, chốt, quyết định, approve, architecture/design review | +1, nên nghỉ ít nhất 5 phút sau đó |
+  | Làm việc nhóm | workshop, brainstorm, retro, grooming, thảo luận | +1, nên nghỉ ít nhất 5 phút sau đó |
+  | Ngồi nghe | daily, standup, sync, update, all-hands, training, đào tạo | −1; người tổ chức daily không bị tính là trình bày |
+  | 1:1 | 1:1, 1-1, one on one, gặp riêng | Loại 1:1 |
+
+  Thẻ *Sắp họp* thêm 1 câu gợi ý theo loại, vd. "Cuộc này cần chốt quyết định: ghi sẵn 1–2 ý chính trước khi vào."
+- **Claude nhận gì:** Mood chỉ nhận số liệu cả ngày (điểm luật, phút họp, làm liền, nghỉ, quá giờ, task, email…). Cuộc họp chỉ nhận độ dài, số người, vai trò, vị trí trong chuỗi, và **nhãn loại cuộc họp** ở trên. **Không bao giờ gửi tiêu đề hay agenda**, có test kiểm tra. `IncludeChatInMood: true` thì gửi kèm tối đa 5 câu bạn tự gõ cho Milo để Claude đọc cảm xúc; mặc định tắt.
 - **Kết quả hiện ở đâu:**
   - Mức nặng cuộc họp là 5 chấm trong dashboard (tab *Tuần này*); rê chuột vào dòng để xem nhận xét.
   - Câu nhận xét mood nằm ở tab *Hôm nay*.

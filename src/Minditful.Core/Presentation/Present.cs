@@ -198,6 +198,9 @@ public static class Present
                 b.Add(new PeopleBlock(ev.People, ev.Role, presenter ? "#FBE7D8" : "#E4E9F7", presenter ? "#8A3F1F" : "#2E4A86"));
                 if (ev.Attachment is not null)
                     b.Add(new ParagraphBlock(ep.Opened ? $"Đã mở **{ev.Attachment}**." : $"Milo mở sẵn **{ev.Attachment}** cho bạn nhé?", Small: true));
+                var intent = MeetingIntents.Of(ev);
+                if (MeetingIntents.Tip(intent, MeetingRules.YouPresent(ev.Role, MeetingIntents.Label(intent))) is { } tip)
+                    b.Add(new ParagraphBlock(tip, Small: true, Color: "#5B4A3C"));
                 var btns = new List<CardButton> { new("join", "Tham gia", ButtonStyle.Teams) };
                 if (ev.Attachment is not null) btns.Add(new("open", "Mở slide", ButtonStyle.Ghost, !ep.Opened));
                 b.Add(new ButtonsBlock(btns));

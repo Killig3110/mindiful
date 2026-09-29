@@ -9,7 +9,8 @@ namespace Minditful.Integrations.Graph;
 public sealed record GraphEvent(
     string Id, string Subject, DateTime Start, DateTime End, bool IsOnlineMeeting, string? JoinUrl, string? WebLink,
     bool IsOrganizer, bool HasAttachments, string ShowAs, bool IsAllDay, bool IsCancelled, string? MyResponse,
-    IReadOnlyList<string> Categories, IReadOnlyList<(string Name, string Address, string Type)> Attendees, string? OrganizerName);
+    IReadOnlyList<string> Categories, IReadOnlyList<(string Name, string Address, string Type)> Attendees, string? OrganizerName,
+    string? BodyPreview = null);
 
 public sealed record GraphMessage(
     string Id, string Subject, string FromName, string FromAddress, DateTime Received, string ConversationId,
@@ -81,7 +82,7 @@ public sealed class GraphClient(MicrosoftAuth auth, HttpClient http)
     public async Task<IReadOnlyList<GraphEvent>> CalendarViewAsync(DateTime from, DateTime to, CancellationToken ct = default)
     {
         var path = $"/me/calendarView?startDateTime={Iso(from)}&endDateTime={Iso(to)}&$top=100&$orderby=start/dateTime" +
-                   "&$select=id,subject,start,end,isOnlineMeeting,onlineMeeting,webLink,isOrganizer,hasAttachments,showAs,isAllDay,isCancelled,responseStatus,categories,attendees,organizer";
+                   "&$select=id,subject,start,end,isOnlineMeeting,onlineMeeting,webLink,isOrganizer,hasAttachments,showAs,isAllDay,isCancelled,responseStatus,categories,attendees,organizer,bodyPreview";
         var list = new List<GraphEvent>();
         string? next = path;
         while (next is not null)
@@ -108,7 +109,8 @@ public sealed class GraphClient(MicrosoftAuth auth, HttpClient http)
                         a?["emailAddress"]?["name"]?.GetValue<string>() ?? "?",
                         a?["emailAddress"]?["address"]?.GetValue<string>() ?? "",
                         a?["type"]?.GetValue<string>() ?? "required")).ToList() ?? [],
-                    e["organizer"]?["emailAddress"]?["name"]?.GetValue<string>()));
+                    e["organizer"]?["emailAddress"]?["name"]?.GetValue<string>(),
+                    e["bodyPreview"]?.GetValue<string>()));
             }
             next = root["@odata.nextLink"]?.GetValue<string>();
         }

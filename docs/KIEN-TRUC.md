@@ -730,7 +730,7 @@ Qua **Anthropic C# SDK** (`client.Beta.Messages.Create`), model mặc định `c
 | Chat | Chat không khớp từ khoá (`ChatWanted`) | Tên case, số liệu, nút chính, 6 lượt trước, tính năng dùng được, **câu người dùng gõ** | JSON `{reply: 1–2 câu ≤ 40 từ, actions: 0–2 mã}` | 2,5s | Câu mặc định + `Talk.Suggest` |
 | Trò chuyện | Mọi câu trong khung Trò chuyện (`ChatWanted`, `Case = Talk`) | Số liệu cả ngày (`Talk.Facts`), 6 lượt trước, tính năng dùng được, câu người dùng gõ | JSON `{reply: 1–3 câu ≤ 60 từ, actions: 0–2 mã}` | 20s | `Talk.Reply` + `Talk.Suggest` theo từ khoá |
 | Mood | Mỗi 30' (`MoodWanted`) | Số liệu cả ngày (+ câu chat nếu bật) | JSON: score, adjust, focus, energy, stress, label, insight | 20s | Điểm luật |
-| Cuộc họp | Cuộc họp mới (`MeetingWanted`) | Độ dài, giờ, số người, vai trò, vị trí trong chuỗi, trống sau đó | JSON: load, kind, recovery_min, note | 20s | Đánh giá luật |
+| Cuộc họp | Cuộc họp mới (`MeetingWanted`) | Độ dài, giờ, số người, vai trò, vị trí trong chuỗi, trống sau đó, **nhãn loại** (`MeetingIntents`, đoán trên máy từ tiêu đề + agenda; chữ gốc không gửi) | JSON: load, kind, recovery_min, note | 20s | Đánh giá luật (cũng dùng nhãn) |
 
 Mood và cuộc họp dùng **structured output** (`output_config.format = json_schema`). API key đọc từ DPAPI (`claude-api-key.bin`) hoặc `ANTHROPIC_API_KEY`.
 
@@ -924,6 +924,7 @@ Lỗi AADSTS được dịch sang tiếng Việt (admin consent, sai tenant, red
 | `StorageTests` | SQLite: lưu, thống kê tuần, tự xoá tuần/tháng, không lưu tiêu đề, xoá toàn bộ, chuyển dữ liệu cũ |
 | `DotEnvTests` | Đọc `.env`, biến thật được ưu tiên, `.env.sample` đủ khoá; mọi biến trong `.env.sample` và README đều có trong appsettings.json |
 | `WorkHoursTests`, `ChatGoHomeTests` | Giờ làm linh hoạt 8→17 / 9→18 / 10→19; chat "về thôi", "đồng ý" ở thẻ tan tầm |
+| `MeetingIntentTests` | Đoán loại cuộc họp từ tiêu đề / agenda (có dấu, không dấu, tiếng Anh; tiêu đề ưu tiên hơn agenda), người tổ chức daily không phải trình bày, ra quyết định / làm việc nhóm nặng hơn, AI nhận nhãn nhưng không nhận tiêu đề, thẻ Sắp họp có gợi ý theo loại |
 | `IncomingTests` | Không báo thứ có sẵn lúc mở app, email mới hiện kèm người gửi + mở link, gộp nhiều thứ 1 thẻ (và gộp khi thẻ đang hiện), không báo họp tự tạo, đang họp thì chờ, tắt được, bỏ qua thì thu không nhắc lại, Demo giả lập email → họp → task |
 | `FocusSleepTests` | Milo ngủ trên chóp đuôi lúc tập trung (kèm giờ kết thúc), tỉnh khi hết giờ, họp/trình chiếu vẫn chỉ chóp đuôi mờ |
 | `PersonalityTests` | Dễ thương giữ nguyên, Hài hước luôn diễn, Pha trộn thỉnh thoảng (40 hạt ngẫu nhiên), chào sáng thứ Hai, bấm 5 lần → ngất, xem thử, không diễn lúc trình chiếu, mạng nhện sau khi vắng, vibe chiều thứ Sáu |
