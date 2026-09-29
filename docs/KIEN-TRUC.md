@@ -351,7 +351,9 @@ Mỗi phase có `PhaseEnd`; `Tick` gọi `AdvanceEp()` khi tới hạn. `CardVer
 | Để sau (Np) | Nhắc lại sau N phút nếu còn đúng; tối đa 2 lần/ngày, lần 3 mất nút |
 | Không cần | Ẩn case 60–90'; lần 2 trong ngày → mọi thời gian chờ ×3 |
 | Không trả lời | Thẻ thu vào, chấm "1" trên đuôi 30' (bấm đuôi để mở lại) |
-| Chat | Nhận diện từ khoá local: *bận* → Để sau · *mệt* → vòng thở · *thôi/không* → Không cần · *cảm ơn* → +1. Không khớp → hỏi Claude (nếu bật) hoặc câu mặc định |
+| Chat | Nhận diện từ khoá local: *bận* → Để sau · *mệt* → vòng thở · *thôi/không* → Không cần · *cảm ơn* → +1. Không khớp → hỏi AI (nếu bật, kèm 6 lượt trước và tên nút chính) hoặc câu mặc định |
+| Trò chuyện (`CaseId.Talk`) | Case người dùng tự mở (`OpenTalk`: nút *Trò chuyện* trên dashboard, bấm Milo lúc đang ghé, menu khay). Không đoán ý định để đóng thẻ; mọi câu hỏi AI với số liệu cả ngày (`Talk.Facts`), AI lỗi → `Talk.Reply` theo từ khoá. Nút *Thở 1 phút* (5 nhịp), *Xong*/Esc; 120 giây không gõ → leo xuống. Không chen ngang lời nhắc khác, bị chặn khi trình chiếu |
+| Câu khủng hoảng | `Talk.IsCrisis` khớp ("muốn chết", "không muốn sống"…) ở mọi ô chat → câu cố định `Talk.CrisisReply`, **không gửi AI** |
 
 ### 5.9 Mood Engine (§11) và 2 hướng tính
 
@@ -420,7 +422,7 @@ Thêm sau prototype, cùng khung Rule Engine → hàng đợi → điều phối
 | --- | --- | --- |
 | **LauncherWindow** | Chưa chọn môi trường | 3 thẻ, trạng thái cấu hình từng môi trường, "Nhớ lựa chọn" |
 | **CompanionWindow** | Luôn có (3 môi trường) | 480×620, **trong suốt hoàn toàn**, Topmost, không có trong Alt+Tab (`WS_EX_TOOLWINDOW`), không chiếm focus; neo góc màn hình đang chọn, ngay trên taskbar. Chỗ không có Milo thì chuột **đi xuyên** xuống desktop (pixel alpha = 0). Sandbox/Prod: `SetWindowDisplayAffinity(WDA_EXCLUDEFROMCAPTURE)` → **không lộ khi share màn hình** |
-| **DemoControlWindow** | Demo | Khung `ControlShell`. Trang: *Kịch bản trình diễn* (`DemoTour.Steps`: 23 bước phủ đủ 19 case, tự chạy khi Milo xong việc), *Bắt đầu* (Mood realtime: `SetStressLevel`, `SimulateBreak`, `CallMilo(hold)`; phát/tạm dừng, tốc độ, công tắc tự trả lời, số liệu hôm nay, mẹo), *Ngày mẫu* (17 mốc, bấm để tua), *Thử tình huống* (19 case chia 4 nhóm + công tắc "Giả vờ bạn đang…"), *Milo của bạn* (tủ đồ, góc neo), *Bộ não Milo* |
+| **DemoControlWindow** | Demo | Khung `ControlShell`. Trang: *Kịch bản trình diễn* (`DemoTour.Steps`: 24 bước phủ đủ 20 case, tự chạy khi Milo xong việc), *Bắt đầu* (Mood realtime: `SetStressLevel`, `SimulateBreak`, `CallMilo(hold)`; phát/tạm dừng, tốc độ, công tắc tự trả lời, số liệu hôm nay, mẹo), *Ngày mẫu* (17 mốc, bấm để tua), *Thử tình huống* (19 case chia 4 nhóm + công tắc "Giả vờ bạn đang…"), *Milo của bạn* (tủ đồ, góc neo), *Bộ não Milo* |
 | **ControlCenterWindow** | Sandbox/Prod | Khung `ControlShell`. Trang *Kiểm chứng điểm* (WHO-5 hằng tuần, tương quan Pearson với điểm Milo, xuất CSV ẩn danh; bảng SQLite `validation_week`). Trang: *Tổng quan* (3 thẻ kết nối chấm xanh/vàng/đỏ, Milo đang thấy gì), *Kết nối* (Microsoft, PAT, API key Claude), *Thử tình huống* (chỉ Sandbox: reset ngày, giờ về, dữ liệu mẫu, chạy case, giả lập tín hiệu), *Milo của bạn* (tủ đồ, góc neo, tính năng chăm sóc, cá nhân hoá, dữ liệu trên máy), *Bộ não Milo* |
 | **`ControlShell`** (`Views/Panel`) | — | Khung chung tông sáng (`P`: kem #F7F0E6, thẻ #FFFDF9, cam #E8772E). Thanh bên + dải "Milo đang làm gì" bằng lời thường (`Describe()`), đồng hồ, điểm mood. Mỗi trang dựng 1 lần; số liệu cập nhật 400 ms/lần qua `Tick()` chỉ cho trang đang mở |
 | **Nhận diện** (`Rendering/Brand.cs`, `Assets/Brand`) | Mọi cửa sổ + khay | Logo Milo đội mũ Bosch (`milo.ico` cho exe/cửa sổ/khay, `logo.png` cho giao diện); dải 3 màu Bosch đặc `Brand.Stripe()` (đỏ · xanh dương · xanh lá) trên đầu bảng điều khiển và màn hình chọn môi trường |
@@ -711,7 +713,7 @@ Xác thực: PAT (header `Basic base64(":"+PAT)`) hoặc Entra (Bearer). PAT sai
 - `ClaudeLineWriter`: SDK Anthropic, structured output.
 - `OpenAiCompatibleWriter`: HTTP `POST {BaseUrl}/chat/completions` với `response_format: json_object`, dùng cho Ollama, Groq, Gemini, OpenRouter.
 
-Cả 2 dùng chung lời nhắc và cách đọc JSON. Chọn bằng `Llm.Provider`. `LlmBridge` đếm request và giãn nhịp chấm mood trong Demo (`DemoMoodMinSeconds`). Trang *Mood Engine* đổi `Cfg.MoodMode` / `MeetingMode` lúc chạy (`LlmBridge.SetModes`) và chạy `MoodEvaluation` (3 bộ kiểm chứng).
+Cả 2 dùng chung lời nhắc (`ClaudeLineWriter.Voice` + `LineRules` / `ChatRules` / `TalkRules` / `MoodRules` / `MeetingRulesPrompt`) và cách đọc JSON. Lời nhắc chấm mood có khung JD-R, mốc từ nghiên cứu, thang 4 mức khớp nhãn, ví dụ hiệu chỉnh và yêu cầu nhất quán. Mọi câu người dùng gõ được đánh dấu là dữ liệu, không phải chỉ thị. Chọn bằng `Llm.Provider`. `LlmBridge` đếm request và giãn nhịp chấm mood trong Demo (`DemoMoodMinSeconds`). Trang *Mood Engine* đổi `Cfg.MoodMode` / `MeetingMode` lúc chạy (`LlmBridge.SetModes`) và chạy `MoodEvaluation` (3 bộ kiểm chứng).
 
 #### Claude API
 
@@ -720,7 +722,8 @@ Qua **Anthropic C# SDK** (`client.Beta.Messages.Create`), model mặc định `c
 | Loại | Kích hoạt | Gửi đi | Nhận về | Timeout | Lỗi/hết giờ → |
 | --- | --- | --- | --- | --- | --- |
 | Câu thoại | Case vào hàng đợi (`LineWanted`) | Tên case, số liệu, nút chính, câu mẫu | 1 câu ≤ 25 từ (kiểm tra `Lines.Clean`) | 2,5s | Template |
-| Chat | Chat không khớp từ khoá (`ChatWanted`) | Tên case, số liệu, **câu người dùng gõ** | 1–2 câu | 2,5s | Câu mặc định |
+| Chat | Chat không khớp từ khoá (`ChatWanted`) | Tên case, số liệu, nút chính, 6 lượt trước, **câu người dùng gõ** | 1–2 câu (≤ 40 từ) | 2,5s | Câu mặc định |
+| Trò chuyện | Mọi câu trong khung Trò chuyện (`ChatWanted`, `Case = Talk`) | Số liệu cả ngày (`Talk.Facts`), 6 lượt trước, câu người dùng gõ | 1–3 câu (≤ 60 từ, nối thành 1 đoạn) | 20s | `Talk.Reply` theo từ khoá |
 | Mood | Mỗi 30' (`MoodWanted`) | Số liệu cả ngày (+ câu chat nếu bật) | JSON: score, adjust, focus, energy, stress, label, insight | 20s | Điểm luật |
 | Cuộc họp | Cuộc họp mới (`MeetingWanted`) | Độ dài, giờ, số người, vai trò, vị trí trong chuỗi, trống sau đó | JSON: load, kind, recovery_min, note | 20s | Đánh giá luật |
 

@@ -54,6 +54,7 @@ Nhấp đúp biểu tượng cũng mở bảng điều khiển.
 | Chóp đuôi có số "1" | Có 1 lời nhắc bạn chưa trả lời. Bấm đuôi để mở lại lời nhắc đó |
 | Kéo chóp đuôi sang góc khác rồi thả | Milo chuyển sang góc đó (trên trái, trên phải, dưới trái, dưới phải) |
 | Bấm Milo, bấm ×, hoặc nhấn Esc | Đóng dashboard |
+| Bấm **Trò chuyện** trên dashboard, bấm Milo lúc Milo đang đứng ở góc, hoặc menu khay → *Trò chuyện với Milo* | Mở **khung trò chuyện** (mục 3.4) |
 
 Màu và dáng Milo đổi theo **điểm mood** của ngày: mọng (≥ 80) thì tươi tắn; mệt dần (40–59) thì nhạt màu, dáng uể oải; kiệt sức (< 40) thì có chữ "z" bay.
 
@@ -92,12 +93,24 @@ Khi có chuyện cần nói, Milo leo lên và hiện **thẻ** phía trên đ�
 | "về thôi", "tan làm" | Ở thẻ tan tầm: chạy ra xe về nhà |
 | "cảm ơn" | Milo vui, tính như nửa lần đồng ý |
 
-Có API key Claude thì câu khó hiểu cũng được trả lời tự nhiên. Không có thì Milo nhắc bạn chọn nút.
+Có AI (Claude, Groq, Ollama…) thì câu khó hiểu cũng được trả lời tự nhiên, và AI biết đúng tên nút chính trên thẻ. Không có thì Milo nhắc bạn chọn nút.
 
 **Chấm chờ:**
 - Lúc Milo phải im lặng (đang họp, tập trung, toàn màn hình…), **chóp đuôi mờ đi** để bạn biết Milo vẫn chạy.
 - Lời nhắc dồn lại thành 1 viên nhỏ "2 lời nhắc đang chờ" ở góc.
 - Bấm vào viên đó thì chỉ thẻ bung ra ở sát góc, Milo vẫn ẩn để không chen vào cuộc họp.
+
+### 3.4 Trò chuyện với Milo
+
+Không cần đợi Milo nhắc, bạn có thể tự mở trò chuyện (cách mở ở mục 3.1).
+
+- Milo mở đầu bằng 1 câu theo điểm hôm nay, kèm 3 câu gợi ý bấm nhanh: *Hôm nay mình sao rồi?*, *Mình thấy mệt*, *Lịch họp còn gì?*.
+- Gõ gì cũng được. Khác với ô chat trên thẻ nhắc, gõ "ok" hay "không" ở đây **không** đóng khung, Milo chỉ trả lời.
+- Nút **Thở 1 phút**: thở 4-4-4 cùng Milo, tính là 1 lần nghỉ. Nút **Xong** (hoặc Esc) để Milo leo xuống. 2 phút không gõ gì thì Milo tự chào rồi đi.
+- **Có AI:** Milo trả lời tự nhiên, nối mạch 6 lượt gần nhất. AI chỉ nhận con số trong ngày (điểm, giờ họp, làm liền, nghỉ, quá giờ, giờ cuộc họp tới), **không** nhận tiêu đề email, cuộc họp hay task.
+- **Không có AI** (hoặc AI lỗi, hết lượt): Milo trả lời theo từ khoá: điểm hôm nay, lịch họp, mệt, nghỉ, giờ về, cảm ơn, chào.
+- Milo không trả lời câu hỏi lập trình hay kiến thức chung, chỉ là bạn đồng hành sức khoẻ.
+- **An toàn:** câu có dấu hiệu khủng hoảng (vd. "muốn chết", "không muốn sống") luôn nhận 1 câu cố định khuyên tìm người thân tin cậy, chuyên gia tâm lý, hoặc gọi 115 nếu đang nguy hiểm. Câu đó không được gửi cho AI.
 
 ## 4. Bảng điều khiển
 
@@ -110,7 +123,7 @@ Cửa sổ riêng, tông kem như thẻ của Milo. **Đóng cửa sổ này th�
 
 | Trang | Để làm gì |
 | --- | --- |
-| **Kịch bản trình diễn** | 23 bước đi qua đủ 19 tình huống + trình chiếu, mood realtime, đồng phục Bosch. Mỗi bước ghi *người xem thấy gì* và *bạn nói gì*. Bấm từng bước hoặc bật *Tự chạy qua các bước*. Kịch bản lời nói: [KICH-BAN-DEMO.md](KICH-BAN-DEMO.md) |
+| **Kịch bản trình diễn** | 24 bước đi qua đủ 20 tình huống + trình chiếu, mood realtime, đồng phục Bosch. Mỗi bước ghi *người xem thấy gì* và *bạn nói gì*. Bấm từng bước hoặc bật *Tự chạy qua các bước*. Kịch bản lời nói: [KICH-BAN-DEMO.md](KICH-BAN-DEMO.md) |
 | **Bắt đầu** | Thẻ **Mood realtime**: kéo mức căng thẳng, bấm nghỉ / xong task, gọi Milo đứng ở góc để thấy dáng và màu đổi ngay. Phát / tạm dừng ngày mẫu, *Làm lại từ 08:50*, tốc độ *Chậm 60× · Vừa 120× · Nhanh 300×*. Công tắc **Người dùng mẫu tự bấm nút**: bật thì kịch bản tự trả lời, tắt thì bạn tự bấm trên thẻ. Số liệu hôm nay và mẹo tương tác |
 | **Ngày mẫu** | 17 mốc của ngày Thứ Năm 24/9. Bấm 1 mốc để tua tới ngay trước lúc đó. Mốc đang diễn ra tô cam |
 | **Thử tình huống** | *Cho Milo làm ngay*: 19 thẻ tình huống chia 4 nhóm, bấm là Milo làm luôn. *Giả vờ bạn đang…*: công tắc gõ phím, rời máy, khoá máy, toàn màn hình, Không làm phiền, trình chiếu, ngày căng thẳng; và nút 1 lần (rời cuộc họp, nhảy việc, xong 1 task, mở dashboard) |
@@ -201,6 +214,7 @@ Vòng thở: vòng tròn phồng 4 giây (hít vào), giữ 4 giây, xẹp 4 gi�
 | **Hôm nay thấy sao?** | Trên thẻ tan tầm | 3 nút Vui / Bình thường / Mệt | Câu trả lời chỉ lưu trên máy, tính vào điểm mood |
 | **Nghỉ giữa chuỗi họp ngày mai** | Trên thẻ tan tầm, khi mai có ≥ 3 cuộc họp liền | "Mai 13:30–16:15 có 3 cuộc họp liền" | *Giữ 10' nghỉ lúc …* |
 | **Trốn khi trình chiếu** | Teams báo bạn đang trình chiếu | Trốn hẳn, kể cả chóp đuôi | — |
+| **Trò chuyện** | Bất cứ lúc nào bạn muốn | Khung chat tự do, trả lời bằng AI hoặc theo từ khoá (mục 3.4) | Gõ tự do · *Thở 1 phút* · *Xong* |
 | **Tủ đồ** | Về đúng giờ 3 / 5 / 10 / 15 ngày liền | Khăn quàng / kẹp hoa / mũ nồi / **đồng phục Bosch** (mũ lưỡi trai đỏ băng 3 màu + thẻ nhân viên đeo cổ); sáng hôm sau Milo khoe | Chọn món ở *Milo của bạn* |
 
 Muốn tắt tính năng nào (vd. thấy nhắc uống nước phiền): xem README mục **Tham chiếu biến `.env`**, nhóm `Wellbeing`.

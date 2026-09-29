@@ -3,7 +3,7 @@
 Dành cho người đứng present Milo, ví dụ ở vòng chấm cuộc thi. Demo **không cần tài khoản, không cần mạng**: Milo sống qua 1 ngày làm việc mẫu (Thứ Năm 24/9) và làm đủ **19 tình huống** trên desktop thật.
 
 - Thời lượng: bản đầy đủ khoảng **15 phút**, bản rút gọn **7 phút** (mục 4).
-- Công cụ chính: bảng điều khiển → trang **Kịch bản trình diễn** (23 bước, có gợi ý câu nói cho từng bước).
+- Công cụ chính: bảng điều khiển → trang **Kịch bản trình diễn** (24 bước, có gợi ý câu nói cho từng bước).
 - Cách dùng app nói chung: [HUONG-DAN-SU-DUNG.md](HUONG-DAN-SU-DUNG.md). Muốn demo với dữ liệu thật: [KICH-BAN-SANDBOX.md](KICH-BAN-SANDBOX.md).
 
 ---
@@ -29,7 +29,7 @@ Dành cho người đứng present Milo, ví dụ ở vòng chấm cuộc thi. D
 
 Mỗi bước, trang hiện sẵn: **Người xem thấy gì** và **Bạn nói gì**.
 
-## 3. Kịch bản đầy đủ · 23 bước, khoảng 15 phút
+## 3. Kịch bản đầy đủ · 24 bước, khoảng 16 phút
 
 ### Mở đầu (30 giây, trước bước 1)
 
@@ -52,7 +52,7 @@ Mỗi bước, trang hiện sẵn: **Người xem thấy gì** và **Bạn nói 
 | 11 | Tan tầm | Thẻ tổng kết ngày + "Hôm nay thấy sao?" + gợi ý nghỉ giữa 3 cuộc họp ngày mai → Thêm 30 phút | "Hết giờ, Milo tổng kết và hỏi cảm nhận. Câu trả lời chỉ lưu trên máy." |
 | 12 | Nhắc lại tan tầm → chạy ra xe | Hết 30 phút → Về thôi → Milo **chạy ra xe** | "Chỉ cho làm thêm 1 lần. Gõ chat 'về thôi' cũng được." |
 
-### Phần B · Các tình huống còn lại (bước 13–20, khoảng 4 phút)
+### Phần B · Các tình huống còn lại (bước 13–21, khoảng 5 phút)
 
 Milo làm từng tình huống ngay, không chờ tới giờ.
 
@@ -66,20 +66,21 @@ Milo làm từng tình huống ngay, không chờ tới giờ.
 | 18 | Giữ giờ tập trung | Thẻ "từ 16:15 tới 17:45 bạn trống 1h30" → Giữ | "Milo tìm khoảng trống dài nhất trong ngày và giữ để tập trung." |
 | 19 | Báo cáo tuần | Thẻ "Tuần trước của bạn" + 1 mẹo | "Sáng thứ Hai Milo tóm tắt tuần trước." |
 | 20 | Nghỉ ngắn | Milo ló lên 5 giây, 1 bóng thoại, không nút | "Nhắc nghỉ ngắn: uống nước, vươn vai. Nghiên cứu 2022 và 2025 cho thấy nghỉ ngắn giảm mệt, nhất là ngày nặng." |
+| 21 | **Trò chuyện với Milo** | Khung chat với câu mở đầu theo điểm hôm nay + 3 câu gợi ý. Bấm *Hôm nay mình sao rồi?*, rồi *Mình thấy mệt* | "Ngoài lời nhắc, bạn có thể tự mở trò chuyện: bấm Milo, bấm *Trò chuyện* trên dashboard, hoặc menu khay. AI chỉ nhận con số trong ngày, không nhận tiêu đề hay nội dung công việc. Chưa bật AI thì Milo trả lời theo từ khoá." |
 
 Ở các bước này có thể bỏ tự chạy và **tự bấm** 1–2 thẻ để người xem thấy thẻ phản hồi thế nào:
 - *Để sau* 2 lần thì mất nút Để sau.
 - Gõ chat "mệt quá" thì Milo rủ thở.
 
-### Phần C · Điểm nhấn (bước 21–23, khoảng 2 phút)
+### Phần C · Điểm nhấn (bước 22–24, khoảng 2 phút)
 
 | # | Bước | Người xem thấy | Bạn nói |
 | --- | --- | --- | --- |
-| 21 | Trốn khi trình chiếu | Milo và chóp đuôi biến mất | "Đang trình chiếu thì Milo trốn hẳn. Và Milo không bao giờ lộ lên màn hình đang chia sẻ." |
-| 22 | **Mood realtime** | Milo đứng ở góc. Kéo thanh *Căng thẳng giả lập* sang phải: điểm tụt, Milo nhạt màu, dáng mệt, có chữ z. Bấm *Nghỉ cùng Milo* / *Xong 1 task*: điểm tăng, Milo tươi lại | "Điểm mood tính lại ngay khi có gì thay đổi. Milo không bật popup, chỉ đổi dáng để bạn tự nhận ra mình đang mệt." |
-| 23 | Đồng phục Bosch | Milo mặc mũ lưỡi trai đỏ và thẻ nhân viên Bosch | "Về đúng giờ 15 ngày liền, Milo được tặng đồng phục Bosch. Phần thưởng dành cho thói quen tốt, không phải cho làm thêm giờ." |
+| 22 | Trốn khi trình chiếu | Milo và chóp đuôi biến mất | "Đang trình chiếu thì Milo trốn hẳn. Và Milo không bao giờ lộ lên màn hình đang chia sẻ." |
+| 23 | **Mood realtime** | Milo đứng ở góc. Kéo thanh *Căng thẳng giả lập* sang phải: điểm tụt, Milo nhạt màu, dáng mệt, có chữ z. Bấm *Nghỉ cùng Milo* / *Xong 1 task*: điểm tăng, Milo tươi lại | "Điểm mood tính lại ngay khi có gì thay đổi. Milo không bật popup, chỉ đổi dáng để bạn tự nhận ra mình đang mệt." |
+| 24 | Đồng phục Bosch | Milo mặc mũ lưỡi trai đỏ và thẻ nhân viên Bosch | "Về đúng giờ 15 ngày liền, Milo được tặng đồng phục Bosch. Phần thưởng dành cho thói quen tốt, không phải cho làm thêm giờ." |
 
-Ở bước 22:
+Ở bước 23:
 - Tự chạy: app tự kéo mức căng thẳng 0 → 30 → 60 → 0.
 - Tự làm: dùng thẻ **Mood realtime** ngay dưới bước hiện tại. Nhìn dải trên cùng bảng điều khiển để đọc điểm.
 
@@ -89,6 +90,8 @@ Trang **Mood Engine**:
 1. Chọn **Luật + AI**. Dải trên cùng hiện điểm luật, phần AI chỉnh thêm và câu nhận xét của AI.
 2. Bấm **1 · Chứng minh luật hợp lý**: 14/14 kiểm tra đạt ngay.
 3. Nếu có AI (Ollama chạy sẵn trên máy là chắc chắn nhất): bấm **2 + 3**. Kết quả: AI có ổn định không, có xếp đúng ngày nặng/nhẹ không, lệch luật bao nhiêu điểm.
+
+Ở bước 21 có thể gõ thêm 1 câu tự do (vd. "cuối tuần nên làm gì cho đỡ stress?") để người xem thấy AI trả lời tự nhiên. Gõ "viết code giúp mình" thì Milo từ chối nhẹ nhàng vì Milo chỉ là bạn đồng hành sức khoẻ.
 
 Nói: *"Luật được chứng minh bằng test. AI được kiểm trước khi bật: hỏi lại nhiều lần vẫn ra gần như nhau, và phải đồng ý với nghiên cứu về ngày nào nặng hơn."*
 

@@ -151,6 +151,30 @@ Cả 3 bộ dùng chung **10 ngày làm việc mẫu**: nhẹ, bình thường, 
 | Nghỉ đủ, tập trung tốt | 100 (Mọng) |
 | Kiệt sức | 0 (Kiệt sức) |
 
+**Kết quả chạy thật với AI** (29/09/2026, Groq · `qwen/qwen3.8-27b`, 3 lần hỏi mỗi ngày, 30 request):
+
+| Ngày mẫu | Luật | AI (3 lần) |
+| --- | --- | --- |
+| Nhẹ | 100 | 92 / 92 / 92 |
+| Bình thường | 95 | 72 / 72 / 72 |
+| Họp nhiều | 71 | 65 / 65 / 65 |
+| Họp liền không nghỉ | 67 | 55 / 55 / 55 |
+| Ngồi liền không nghỉ | 64 | 55 / 55 / 55 |
+| Quá giờ 2 tiếng | 57 | 45 / 45 / 45 |
+| Cả tuần 55 giờ | 47 | 45 / 45 / 45 |
+| Nhảy việc | 83 | 55 / 55 / 55 |
+| Nghỉ đủ, tập trung tốt | 100 | 88 / 88 / 88 |
+| Kiệt sức | 0 | 12 / 12 / 12 |
+
+- **Bộ 2 đạt 11/11:** 30/30 câu đúng dạng, hỏi lại lệch 0 điểm, xếp đúng cả 9 cặp ngày.
+- **Bộ 3 đạt 3/4:** lệch trung bình 12,4 điểm, tương quan r = 0,95, 60% cùng mức mood.
+  - Chưa đạt 1 cặp: AI chấm "quá giờ 2 tiếng" và "cả tuần 55 giờ" bằng nhau (45), còn luật trừ thêm 10 điểm cho tuần trên 48 giờ theo [Kim et al., 2024].
+- **Hai nơi AI và luật khác nhau rõ nhất:**
+  - "Bình thường": AI 72, luật 95. AI gần với chuẩn dân số WHO-5 (~68) hơn luật.
+  - "Nhảy việc": AI 55, luật 83. AI coi việc bị ngắt quãng nặng hơn luật.
+  - Cả hai là ứng viên đầu tiên để hiệu chỉnh khi có số liệu WHO-5 (mục 5).
+- Model `openai/gpt-oss-20b` trên cùng dịch vụ **không đạt** độ ổn định: hỏi lại cùng một ngày lệch tới hơn 30 điểm. Vì thế bộ 2 phải chạy lại mỗi khi đổi model.
+
 **Điểm cần hiệu chỉnh (nói thẳng):**
 - "Ngày bình thường" được 95, hơi rộng tay so với chuẩn dân số WHO-5 (~68).
 - Ngày nhẹ và ngày nghỉ đủ cùng chạm trần 100 (hiệu ứng trần).

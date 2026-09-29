@@ -163,7 +163,7 @@ Cả 3 môi trường đều là **cùng một app**:
 
 Dùng để present và để kiểm tra đủ 16 case của prototype. Giờ, lịch, email, task và thao tác của người dùng đều theo **ngày mẫu Thứ Năm 24/9**.
 
-**Cách nhanh nhất để xem đủ mọi case:** trang **Kịch bản trình diễn** → bật *Tự chạy qua các bước*. 23 bước (12 bước theo ngày mẫu, rồi 8 case còn lại, trình chiếu, mood realtime, đồng phục Bosch), có gợi ý câu nói từng bước. Chi tiết: [docs/KICH-BAN-DEMO.md](docs/KICH-BAN-DEMO.md).
+**Cách nhanh nhất để xem đủ mọi case:** trang **Kịch bản trình diễn** → bật *Tự chạy qua các bước*. 24 bước (12 bước theo ngày mẫu, rồi 9 case còn lại gồm trò chuyện, trình chiếu, mood realtime, đồng phục Bosch), có gợi ý câu nói từng bước. Chi tiết: [docs/KICH-BAN-DEMO.md](docs/KICH-BAN-DEMO.md).
 
 **Mood realtime:** trang *Bắt đầu* (và *Kịch bản trình diễn*) có thẻ **Mood realtime**:
 - Kéo *Căng thẳng giả lập* 0–60, hoặc bấm *Nghỉ cùng Milo (+3)* / *Xong 1 task (+2)*: điểm tính lại ngay.
@@ -518,7 +518,7 @@ Code không cần sửa gì khi đổi dịch vụ.
 | Dịch vụ | Chi phí / giới hạn | Điền vào `.env` | Hợp với |
 | --- | --- | --- | --- |
 | **Ollama** (chạy trên máy) — **khuyên dùng để test** | Miễn phí, **không giới hạn**, dữ liệu không rời máy. Cần máy khá (card NVIDIA càng tốt) và tải model vài GB | `Provider=OpenAI` · `BaseUrl=http://localhost:11434/v1` · `Model=qwen2.5:7b` · không cần key | Chạy bộ kiểm chứng nhiều lần, demo không lo hết lượt |
-| **Groq** | Gói miễn phí có giới hạn theo phút và theo ngày (khoảng 1.000 request/ngày cho model mở, tuỳ model) | `Provider=OpenAI` · `BaseUrl=https://api.groq.com/openai/v1` · `Model=openai/gpt-oss-20b` · `LLM_API_KEY=gsk_…` | Rất nhanh, đủ cho vài lượt kiểm chứng/ngày |
+| **Groq** | Gói miễn phí: mỗi key 1.000 request/ngày và 8.000 token/phút (mỗi lần chấm mood tốn khoảng 1.650 token) | `Provider=OpenAI` · `BaseUrl=https://api.groq.com/openai/v1` · `Model=qwen/qwen3.8-27b` · `LLM_API_KEY=gsk_…` | Rất nhanh, đủ nhiều lượt kiểm chứng/ngày |
 | **Google Gemini** | Gói miễn phí: model *Flash-Lite* thường nhiều lượt/ngày hơn *Flash*; Google đổi giới hạn thường xuyên, xem số thật trong AI Studio | `Provider=OpenAI` · `BaseUrl=https://generativelanguage.googleapis.com/v1beta/openai/` · `Model=gemini-2.5-flash-lite` · `LLM_API_KEY=…` | Khi đã có key Gemini |
 | **OpenRouter** | Model `:free`: khoảng 50 request/ngày khi tài khoản chưa nạp tiền | `Provider=OpenAI` · `BaseUrl=https://openrouter.ai/api/v1` · `Model=<tên model>:free` | Thử nhiều model khác nhau |
 | **Claude** | Trả phí theo lượng dùng | `ANTHROPIC_API_KEY=sk-ant-…` (Provider để trống) | Chất lượng tiếng Việt tốt nhất, dùng khi lên Production |
@@ -536,7 +536,16 @@ Giới hạn gói miễn phí thay đổi thường xuyên; con số trên chỉ
 - Key nào báo hết lượt (429) thì nghỉ đúng khoảng thời gian dịch vụ yêu cầu; key bị từ chối (401/403) nghỉ 1 giờ. App tự chuyển ngay sang key khác trong cùng lần gọi.
 - Hết cả mấy key thì Milo chấm bằng luật, không gửi request thừa.
 - Trang *Mood Engine* hiện số key còn lượt, vd. "(2/3 key còn lượt)".
-- Model `openai/gpt-oss-…` có bước suy luận trước khi trả lời; app tự gửi `reasoning_effort: low` để model viết kịp JSON (mỗi lần chấm khoảng 1–2 giây trên Groq).
+- **Chọn model trên Groq** (đo ngày 29/09/2026 với prompt hiện tại; Qwen: 10 ngày mẫu × 3 lần hỏi, gpt-oss: 4 ngày mẫu × 2–4 lần hỏi):
+
+  | Model | Hỏi lại cùng ngày | Nhận xét |
+  | --- | --- | --- |
+  | `qwen/qwen3.8-27b` — **khuyên dùng** | Lệch 0 điểm, cả 10 ngày | Bộ 2 đạt 11/11; bộ 3 r = 0,95. Trò chuyện tiếng Việt tự nhiên nhất |
+  | `openai/gpt-oss-120b` | Lệch tới 10–15 điểm | Dùng được nhưng kém ổn định |
+  | `openai/gpt-oss-20b` | Lệch tới hơn 30 điểm | Có lần chấm ngày quá giờ 2 tiếng thành 0 · Kiệt sức. Không nên dùng để chấm |
+
+- Model `openai/gpt-oss-…` có bước suy luận trước khi trả lời; app tự gửi `reasoning_effort: low` để model viết kịp JSON.
+- Groq báo hết lượt trong phút (429) thì bộ kiểm chứng tự chờ 30 giây rồi hỏi lại, không tính là AI trả lời sai.
 - Lưu ý: Groq tính giới hạn theo **tổ chức (organization)**, không theo key. Nhiều key trong cùng 1 tổ chức dùng chung một hạn mức, nên xoay vòng không tăng thêm lượt. Hãy đọc điều khoản của Groq trước khi dùng key từ nhiều tài khoản.
 
 **Mỗi lần dùng tốn bao nhiêu request:**
