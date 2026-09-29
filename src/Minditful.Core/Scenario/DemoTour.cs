@@ -34,7 +34,7 @@ public sealed record TourStep(string Title, string Show, string Say, TourKind Ki
 }
 
 /// <summary>
-/// Kịch bản trình diễn: đi lần lượt qua cả 19 tình huống và các tính năng mới trong ~15 phút.
+/// Kịch bản trình diễn: đi lần lượt qua cả 22 tình huống và các tính năng mới (28 bước, ~21 phút).
 /// Phần đầu theo đúng ngày mẫu Thứ Năm 24/9 (tài liệu mục 13), phần sau cho Milo làm từng case còn lại.
 /// Chi tiết lời thoại: docs/KICH-BAN-DEMO.md.
 /// </summary>

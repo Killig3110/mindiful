@@ -7,7 +7,7 @@ Tài liệu này dành cho người **chưa biết gì về app**, đọc xong p
 | Tài liệu | Nói về |
 | --- | --- |
 | [Kịch bản hành vi Milo](Kịch%20bản%20hành%20vi%20Milo.md) | **Hành vi** (Milo nên làm gì). Các ký hiệu "§x" trong tài liệu này trỏ về đó |
-| [KET-NOI-SANDBOX.md](KET-NOI-SANDBOX.md) | Setup tenant sandbox, checklist test 23 bước |
+| [KET-NOI-SANDBOX.md](KET-NOI-SANDBOX.md) | Setup tenant sandbox, checklist test 30 bước |
 | [README](../README.md) | Cách chạy, cấu hình, hướng dẫn test và kịch bản present |
 | [HUONG-DAN-SU-DUNG.md](HUONG-DAN-SU-DUNG.md) | Hướng dẫn cho người dùng: thao tác với Milo, bảng điều khiển, từng tính năng |
 | [CO-SO-KHOA-HOC.md](CO-SO-KHOA-HOC.md) | Nguồn nghiên cứu của điểm mood, chứng minh bằng test, kiểm chứng bằng WHO-5 |
@@ -427,7 +427,7 @@ Thêm sau prototype, cùng khung Rule Engine → hàng đợi → điều phối
 | --- | --- | --- |
 | **LauncherWindow** | Chưa chọn môi trường | 3 thẻ, trạng thái cấu hình từng môi trường, "Nhớ lựa chọn" |
 | **CompanionWindow** | Luôn có (3 môi trường) | 480×620, **trong suốt hoàn toàn**, Topmost, không có trong Alt+Tab (`WS_EX_TOOLWINDOW`), không chiếm focus; neo góc màn hình đang chọn, ngay trên taskbar. Chỗ không có Milo thì chuột **đi xuyên** xuống desktop (pixel alpha = 0). Sandbox/Prod: `SetWindowDisplayAffinity(WDA_EXCLUDEFROMCAPTURE)` → **không lộ khi share màn hình** |
-| **DemoControlWindow** | Demo | Khung `ControlShell`. Trang: *Kịch bản trình diễn* (`DemoTour.Steps`: 28 bước phủ đủ 21 case, `MemeReel` (9 động tác), `OutfitReel` (6 bộ đồ); host xếp lịch từng bước trong `DemoControlWindow.ScheduleStep`, tự chạy khi Milo xong việc), *Bắt đầu* (Mood realtime: `SetStressLevel`, `SimulateBreak`, `CallMilo(hold)`; phát/tạm dừng, tốc độ, công tắc tự trả lời, số liệu hôm nay, mẹo), *Ngày mẫu* (17 mốc, bấm để tua), *Thử tình huống* (19 case chia 4 nhóm + công tắc "Giả vờ bạn đang…"), *Milo của bạn* (tủ đồ, góc neo), *Bộ não Milo* |
+| **DemoControlWindow** | Demo | Khung `ControlShell`. Trang: *Kịch bản trình diễn* (`DemoTour.Steps`: 28 bước phủ đủ 22 case, `MemeReel` (9 động tác), `OutfitReel` (6 bộ đồ); host xếp lịch từng bước trong `DemoControlWindow.ScheduleStep`, tự chạy khi Milo xong việc), *Bắt đầu* (Mood realtime: `SetStressLevel`, `SimulateBreak`, `CallMilo(hold)`; phát/tạm dừng, tốc độ, công tắc tự trả lời, số liệu hôm nay, mẹo), *Ngày mẫu* (17 mốc, bấm để tua), *Thử tình huống* (19 case chia 4 nhóm + công tắc "Giả vờ bạn đang…"), *Milo của bạn* (tủ đồ, góc neo), *Bộ não Milo* |
 | **ControlCenterWindow** | Sandbox/Prod | Khung `ControlShell`. Trang *Kiểm chứng điểm* (WHO-5 hằng tuần, tương quan Pearson với điểm Milo, xuất CSV ẩn danh; bảng SQLite `validation_week`). Trang: *Tổng quan* (3 thẻ kết nối chấm xanh/vàng/đỏ, Milo đang thấy gì), *Kết nối* (Microsoft, PAT, API key Claude), *Thử tình huống* (chỉ Sandbox: reset ngày, giờ về, dữ liệu mẫu, chạy case, giả lập tín hiệu), *Milo của bạn* (tủ đồ, góc neo, tính năng chăm sóc, cá nhân hoá, dữ liệu trên máy), *Bộ não Milo* |
 | **`ControlShell`** (`Views/Panel`) | — | Khung chung tông sáng (`P`: kem #F7F0E6, thẻ #FFFDF9, cam #E8772E). Thanh bên + dải "Milo đang làm gì" bằng lời thường (`Describe()`), đồng hồ, điểm mood. Mỗi trang dựng 1 lần; số liệu cập nhật 400 ms/lần qua `Tick()` chỉ cho trang đang mở |
 | **Nhận diện** (`Rendering/Brand.cs`, `Assets/Brand`) | Mọi cửa sổ + khay | Logo Milo đội mũ Bosch (`milo.ico` cho exe/cửa sổ/khay, `logo.png` cho giao diện); dải 3 màu Bosch đặc `Brand.Stripe()` (đỏ · xanh dương · xanh lá) trên đầu bảng điều khiển và màn hình chọn môi trường |
@@ -904,8 +904,11 @@ Lỗi AADSTS được dịch sang tiếng Việt (admin consent, sai tenant, red
 | `<Env>.AzureDevOps.Organization/Project/Team/Auth/PatEnvVar/ActiveStates/DoneStates` | theo môi trường | Azure Boards |
 | `<Env>.PresenceMode` | Graph | Graph / Local |
 | `<Env>.ContentProtection` | true | Ẩn khi share màn hình |
-| `<Env>.Polling.*Seconds` | 30/120/300/180 | Presence / lịch / mail / Boards |
+| `<Env>.Polling.*Seconds` | 30/120/300/180 | Presence / lịch / mail / Boards (Production) |
 | `Sandbox.BehaviorOverrides.*` | xem appsettings | Ngưỡng rút gọn (chế độ test) |
+| `Sandbox.BehaviorOverrides.Mail/Calendar/BoardsPollSeconds` | 20 / 30 / 30 | Chu kỳ đọc nhanh ở Sandbox (cả 2 chế độ) cho thẻ *Có mới* |
+| `Wellbeing.Incoming` | true | Thẻ *Có mới* (email / lời mời họp / task mới) |
+| `Wellbeing.Personality` | Mixed | Tính cách Milo: Mixed / Cute / Funny |
 | `Sandbox.TestMode` | true | Chế độ Sandbox lúc mở app lần đầu; lựa chọn trong bảng điều khiển lưu ở `%LOCALAPPDATA%\Minditful\Sandbox\test-mode.txt` và thắng giá trị này |
 
 ---

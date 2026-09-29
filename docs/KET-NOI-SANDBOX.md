@@ -164,10 +164,15 @@ Trong Visual Studio: Project → Properties → Debug → *Command line argument
     "overloadMinChainCount": 3,
     "budgetGapMin": 3,
     "visitEveryMin": [3, 5],
-    "parkedReminderTtlMin": 5
+    "parkedReminderTtlMin": 5,
+    "mailPollSeconds": 20,
+    "calendarPollSeconds": 30,
+    "boardsPollSeconds": 30
   }
 }
 ```
+
+**Chu kỳ đọc:** `Polling` là chu kỳ chuẩn (Production). Sandbox đè bằng `mailPollSeconds` / `calendarPollSeconds` / `boardsPollSeconds` ở **cả 2 chế độ** (test và như Production), vì đây là hạ tầng chứ không phải ngưỡng hành vi: nhờ vậy gửi 1 email thật là khoảng 20 giây sau Milo báo thẻ *Có mới*. App hỏi provider mỗi 10 giây, provider tự quyết nguồn nào tới hạn đọc lại.
 
 `BehaviorOverrides` chỉ có ở Sandbox. Nó rút ngắn các ngưỡng phải chờ lâu (task Active 3 ngày, email chờ 1 ngày, làm liền 2 giờ, ngân sách 15 phút, nhắc uống nước 50 phút, khoảng trống giữ giờ tập trung 60 phút) để test trong một buổi. Prod không có khối này, nên dùng đúng ngưỡng trong tài liệu (mục 4, 8, 11).
 
@@ -533,6 +538,13 @@ Chạy app với `--env Sandbox`, đăng nhập thulu@, dán PAT (bảng điều
 | 21 | Bảng điều khiển → *Milo của bạn* → *Tủ đồ* | Hiện chuỗi ngày về đúng giờ; món chưa mở khoá bị mờ. Về đúng giờ 3 ngày liền thì sáng thứ 4 thẻ Chào sáng báo "Milo được tặng khăn quàng" |
 | 22 | Bấm chóp đuôi → *Chi tiết* | Bảng nhỏ trên đầu Milo: dòng thời gian, Office Vibe, cuộc họp sắp tới; tab Tuần có 7 quả nho |
 | 23 | *Tổng quan* → *Chế độ Sandbox* → **Chạy như Production** | Trang *Thử tình huống* biến mất, nhãn thanh bên thành "SANDBOX · NHƯ PRODUCTION", Bộ não ghi "ngưỡng chuẩn"; ngồi 25 phút không còn thẻ Làm liền. Chuyển lại **Chế độ test** thì mọi thứ quay về |
+| 24 | Từ **tài khoản thứ 2**, gửi 1 email thẳng cho thulu@ | ≤ 20 giây: thẻ **Có mới** "… vừa gửi mail cho bạn" + *Mở email*. Email có sẵn lúc mở app không được báo lại |
+| 25 | Tài khoản thứ 2 gửi lời mời họp Teams, rồi giao 1 task Azure Boards cho thulu@ | ≤ 30 giây: gộp "… thứ mới vừa tới". Cuộc họp do thulu@ tự tạo không được báo |
+| 26 | Trong cuộc họp Teams, gửi thêm 1 email từ tài khoản thứ 2 | Không bật thẻ khi đang họp; chấm chờ ở góc. Rời họp 2 phút sau thẻ Có mới hiện |
+| 27 | Tạo cuộc họp tên "Sprint planning" / "Daily standup" / "Demo …" | Thẻ Sắp họp có gợi ý theo loại (ra quyết định / ngồi nghe / trình bày). Bộ não ghi "đoán từ tiêu đề/agenda: …" |
+| 28 | *Thử tình huống* → *Task kẹt* → Khoá 90 phút | Milo ngủ trên chóp đuôi, rê chuột thấy "Bạn đang tập trung tới HH:MM" |
+| 29 | *Tổng quan* → bật **Hiện Milo khi chia sẻ màn hình**, share màn hình qua Teams | Người xem thấy Milo; trình chiếu không làm Milo trốn. Tắt lại thì Milo biến khỏi màn hình chia sẻ ngay |
+| 30 | Chuột phải Milo → *Thay đồ cho Milo* / *Trò chuyện với Milo* / *Tính cách Milo* | Tủ đồ mở trên đầu Milo; khung chat; đổi tính cách có hiệu lực ngay |
 
 **Dọn dẹp sau khi test:** trong Outlook, tìm và xoá các sự kiện có category **Milo** (gồm cả "Tập trung · Milo giữ chỗ" và "Nghỉ cùng Milo" ngày mai). Azure Boards thì để nguyên, sprint sau dùng tiếp.
 

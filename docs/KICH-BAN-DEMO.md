@@ -1,10 +1,71 @@
 # Kịch bản present · môi trường Demo
 
-Dành cho người đứng present Milo, ví dụ ở vòng chấm cuộc thi. Demo **không cần tài khoản, không cần mạng**: Milo sống qua 1 ngày làm việc mẫu (Thứ Năm 24/9) và làm đủ **19 tình huống** trên desktop thật.
+Dành cho người đứng present Milo, ví dụ ở vòng chấm cuộc thi. Demo **không cần tài khoản, không cần mạng**: Milo sống qua 1 ngày làm việc mẫu (Thứ Năm 24/9) và làm đủ **22 tình huống** (17 của prototype + 5 mở rộng), 9 động tác hài, tủ đồ 14 món trên desktop thật.
 
-- Thời lượng: bản đầy đủ khoảng **15 phút**, bản rút gọn **7 phút** (mục 4).
+- Thời lượng: bản đầy đủ 28 bước khoảng **21 phút**; bản chọn lọc cho ngày present **13 phút** (mục 0 và mục 4).
 - Công cụ chính: bảng điều khiển → trang **Kịch bản trình diễn** (28 bước, có gợi ý câu nói cho từng bước).
 - Cách dùng app nói chung: [HUONG-DAN-SU-DUNG.md](HUONG-DAN-SU-DUNG.md). Muốn demo với dữ liệu thật: [KICH-BAN-SANDBOX.md](KICH-BAN-SANDBOX.md).
+
+---
+
+## 0. Flow ngày present: Demo → Sandbox realtime (~25 phút)
+
+| Phần | Thời lượng | Môi trường | Mục tiêu |
+| --- | --- | --- | --- |
+| Mở đầu | 1' | Màn hình chọn môi trường | "Một app, 3 môi trường, một bộ não" |
+| **Phần 1 · Demo** | 13' | Demo | Milo làm được gì: đủ tình huống, hoạt ảnh, tính cách, tủ đồ |
+| Chuyển cảnh | 1' | Thoát Demo → giữ **Shift** mở lại → Sandbox | "Giờ xem Milo chạy thật" |
+| **Phần 2 · Sandbox realtime** | 9' | Sandbox, chế độ *Như Production* | Gửi mail / mời họp / giao task thật → Milo báo trong ~20 giây; im lặng khi họp; ẩn khỏi màn hình chia sẻ |
+| Kết + hỏi đáp | 1' + | — | Riêng tư, cơ sở khoa học, lên tenant Bosch không đổi code |
+
+### 0.1 Tối hôm trước
+
+| Việc | Cách làm |
+| --- | --- |
+| Bản app mới nhất | Giải nén `Minditful-win-x64.zip` mới vào máy present. Nếu đè `.env` cũ thì kiểm tra lại key AI và PAT còn đủ |
+| Chạy thử Demo | Mở **Demo** → *Kịch bản trình diễn* → bật *Tự chạy* → chạy 1 lượt để máy tải sẵn hình, rồi khay → *Làm lại ngày mẫu từ 08:50* |
+| Sandbox đăng nhập | Mở **Sandbox** → đăng nhập thulu@ → *Tổng quan* có 2 chấm xanh (Microsoft 365, Azure Boards). Cài Teams desktop, đăng nhập thulu@ |
+| Tài khoản thứ 2 | Chuẩn bị 1 tài khoản khác (hoặc điện thoại) để hôm sau **gửi mail, gửi lời mời họp Teams, giao task Azure Boards** cho thulu@. Tự gửi cho chính mình thì Milo không báo |
+| Email chờ | Nhờ người gửi thulu@ 1 email có dấu "?" (vd. "Chốt scope sprint 43?") để hôm sau email đã chờ ≥ 1 ngày → hiện quả anh đào trên dashboard |
+| Task sẵn | Azure Boards `Milo-Sandbox` có vài task **Active** giao cho thulu@ (để kéo sang Closed) |
+| AI (tuỳ chọn) | Trang *Mood Engine* ghi "Sẵn sàng: Groq · … (n/n key còn lượt)". Không có AI Milo vẫn chạy đủ bằng luật |
+
+### 0.2 Trước giờ present 15 phút
+
+1. **2 màn hình** nếu được: màn hình chiếu chỉ có Milo ở góc phải dưới, màn hình của bạn để bảng điều khiển.
+2. **Tắt thông báo** Windows và Teams để không có popup khác chen vào.
+3. **Cách chiếu:**
+   - HDMI / máy chiếu: người xem luôn thấy Milo.
+   - Chia sẻ qua Teams: Demo luôn hiện Milo. Sandbox phải bật **Hiện Milo khi chia sẻ màn hình** (bảng điều khiển → *Tổng quan* → thẻ *Chế độ Sandbox*, hoặc menu khay).
+4. **Sandbox:** tạo sẵn 1 cuộc họp **Teams meeting** bắt đầu vào khoảng phút thứ 22 của buổi present, đặt tên như *"Demo Milo cho ban giám khảo"* (Milo hiện gợi ý cho người trình bày). Mở sẵn 3 tab trình duyệt bằng thulu@: Outlook Mail, Outlook Calendar, Azure Boards. Chọn *Chạy như Production*.
+5. **Demo:** mở app → **Demo** → trang *Bắt đầu*: tốc độ *Nhanh 300×*, bật *Người dùng mẫu tự bấm nút*. Mỗi lúc chỉ chạy 1 môi trường.
+
+### 0.3 Phần 1 · Demo (13 phút): bấm thẳng các bước trong *Kịch bản trình diễn*
+
+| Bước | Khoe điều gì | Phút |
+| --- | --- | --- |
+| 1 Chào buổi sáng | Hoạt ảnh bám mép leo lên, "Hello!", bản tin sáng | 1' |
+| 2 Sắp họp → 3 Đang họp | Nhắc 5 phút trước + gợi ý theo loại cuộc họp; vào họp Milo ẩn hẳn, lời nhắc thành chấm chờ | 1'30 |
+| 4 Task kẹt → khoá giờ tập trung | Hành động thật: chặn lịch, bật Không làm phiền Teams | 1' |
+| 8 Dashboard 4 quả | Câu chuyện cáo và chùm nho | 1' |
+| 9 Họp liên tục → thở 4-4-4 | Chăm sóc sức khoẻ ngay trong thẻ | 1' |
+| 12 Chạy ra xe | Kết thúc ngày dễ thương | 30" |
+| 21 Trò chuyện | App tự gõ "mệt mà còn nhiều task" → Milo đề nghị nút tính năng | 1' |
+| 22 Có mới | Email → lời mời họp → task mới, gộp 1 thẻ (dẫn sang phần Sandbox) | 30" |
+| 24 Milo ngủ khi tập trung | Ngủ trên chóp đuôi, tỉnh dậy khi hết giờ | 30" |
+| 26 Mood realtime | Kéo thanh căng thẳng, Milo đổi dáng và màu ngay | 1' |
+| 27 Milo hài hước | 9 động tác lấy cảm hứng meme | 45" |
+| 28 Tủ đồ & đồng phục Bosch | Phối 6 bộ, kết bằng đồng phục Bosch | 1' |
+
+Còn thời gian thì thêm: 6 Lịch kín, 7 Email chờ, 23 Dashboard chi tiết, 25 Trốn khi trình chiếu, và trang *Mood Engine* (mục 3 · Tuỳ chọn).
+
+**Câu chuyển cảnh:** *"Đó là ngày mẫu. Giờ xem Milo chạy thật với Teams, Outlook và Azure Boards."* → khay → **Thoát Milo** → giữ **Shift** mở `Minditful.exe` → **Sandbox**.
+
+### 0.4 Phần 2 · Sandbox realtime (9 phút)
+
+Làm theo [KICH-BAN-SANDBOX.md](KICH-BAN-SANDBOX.md) mục 3: *Tổng quan* + dashboard số thật → người phụ gửi mail (~20 giây Milo báo) → gửi lời mời họp và giao task (gộp "3 thứ mới") → kéo task Closed (Milo ăn mừng) → cuộc họp tạo sẵn: Sắp họp → Tham gia (Milo ẩn) → Share màn hình (người xem không thấy Milo) → Rời họp → Teams DND.
+
+**Kết:** *"Cùng một bộ não với Demo. Lên tenant Bosch chỉ cần IT cấp quyền cho app, không đổi code."*
 
 ---
 
@@ -23,7 +84,9 @@ Dành cho người đứng present Milo, ví dụ ở vòng chấm cuộc thi. D
 
 - **Tự chạy** (khuyên dùng khi vừa nói vừa chỉ):
   - Bật *Tự chạy qua các bước*.
-  - Milo làm xong 1 tình huống, khoảng 2,5 giây sau tự sang bước kế. Bước không có Milo (đang họp, trình chiếu, mood, tủ đồ) chờ 12 giây.
+  - Milo làm xong 1 tình huống, khoảng 2,5 giây sau tự sang bước kế.
+  - Bước không chờ Milo xong việc thì chờ theo độ dài bước: trình chiếu, mood 12 giây; dashboard chi tiết 15 giây; ngủ khi tập trung 14 giây; tủ đồ khoảng 21 giây; Milo hài hước khoảng 48 giây.
+  - Bước Trò chuyện: app tự gõ 1 câu sau 3,5 giây, tự đóng khung chat sau 14 giây.
   - Muốn dừng để giải thích lâu hơn: tắt công tắc, bước hiện tại vẫn giữ nguyên.
 - **Bấm từng bước**: nút **Bước tiếp ›** / **‹ Bước trước** / **Chạy lại bước này**, hoặc bấm thẳng 1 dòng trong *Tất cả bước*.
 
@@ -108,21 +171,9 @@ Nói: *"Luật được chứng minh bằng test. AI được kiểm trước kh
 >
 > Chỉ gửi con số cho AI, không gửi tiêu đề email hay cuộc họp. Dữ liệu cá nhân tự xoá mỗi tuần."
 
-## 4. Bản rút gọn 8 phút
+## 4. Bản rút gọn 13 phút
 
-Tắt tự chạy, bấm thẳng các bước sau trong *Tất cả bước*:
-
-| Bước | Thời gian | Vì sao chọn |
-| --- | --- | --- |
-| 1 Chào buổi sáng | 1' | Hoạt ảnh xuất hiện đẹp nhất |
-| 3 Đang họp: Milo im lặng | 30" | Nguyên tắc cốt lõi: không chen vào họp |
-| 4 Task kẹt → khoá giờ tập trung | 1' | Milo hành động thật: chặn lịch, bật DND |
-| 8 Dashboard 4 quả | 1' | Câu chuyện cáo và nho |
-| 9 Họp liên tục → thở 4-4-4 | 1' | Chăm sóc sức khoẻ |
-| 22 Có mới (realtime) | 30" | Email / họp / task mới tới là Milo báo |
-| 26 Mood realtime | 1' | Thấy Milo đổi trạng thái ngay |
-| 12 Chạy ra xe | 30" | Kết thúc ngày dễ thương |
-| 28 Tủ đồ & đồng phục Bosch | 1' | Phối đồ, kết bằng yếu tố Bosch |
+Là phần Demo của ngày present, xem bảng ở **mục 0.3**. Tắt tự chạy, bấm thẳng từng dòng trong *Tất cả bước*. Chỉ có 7 phút thì giữ: 1, 2→3, 4, 8, 22, 26, 28.
 
 ## 5. Vì sao là trái cây (nói ở bước 8)
 
@@ -148,6 +199,11 @@ Chữ nhỏ ở góc mỗi quả là nguồn dữ liệu: T = Teams, O = Outlook
 | Không có AI thì sao? | Chạy đủ bằng luật và câu mẫu. Có API key thì Claude viết lời tự nhiên hơn và chấm mood tinh hơn (±10 điểm) |
 | Có chạy thật với Teams không? | Có, xem [KICH-BAN-SANDBOX.md](KICH-BAN-SANDBOX.md): đổi dữ liệu trên Teams/Outlook/Azure Boards thật là Milo phản ứng |
 | Milo đọc phím tôi gõ à? | Không. Chỉ biết lúc nào có thao tác (để không nói khi bạn đang gõ) và app nào đang mở phía trước (để biết nhảy việc) |
+| Milo đọc tiêu đề cuộc họp? | Chỉ **ngay trên máy**, để đoán loại cuộc họp (trình bày, ra quyết định, ngồi nghe, làm việc nhóm, 1:1) và đưa gợi ý. AI chỉ nhận **nhãn** đó, không nhận tiêu đề hay agenda. Có test kiểm tra |
+| Có báo realtime không? | Có: email mới gửi thẳng cho bạn, lời mời họp mới, task mới được giao. Production đọc email 5 phút/lần, Sandbox ~20 giây. Đang họp thì giữ lại, hết họp mới báo |
+| Sao lại có meme? | Tính cách mặc định *Pha trộn*: phần lớn dễ thương, lâu lâu hài cho bớt khô khan. Chỉ lấy cảm hứng cử chỉ, vẽ lại theo Milo. Ai không thích thì chọn *Dễ thương* |
+| Tủ đồ có khuyến khích làm thêm giờ không? | Không. Món đồ chỉ mở bằng thói quen tốt: về đúng giờ, nghỉ cùng Milo, tập trung sâu, và theo mùa |
+| Milo có biết khi tôi khoá máy / rời máy? | Có, từ Windows: khoá/mở khoá, ngủ/thức, không thao tác ≥ 5 phút (tính là 1 lần nghỉ), toàn màn hình. Không đọc nội dung |
 
 ## 7. Sự cố khi đang present
 

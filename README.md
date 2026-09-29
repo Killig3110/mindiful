@@ -10,13 +10,23 @@ Cả **3 môi trường đều là cùng một app**: Milo sống trên desktop 
 
 | Môi trường | Dữ liệu | Milo hiện ở đâu | Dùng để |
 | --- | --- | --- | --- |
-| **Demo** | Ngày mẫu Thứ Năm 24/9 của prototype: giờ, lịch, email, task và thao tác người dùng theo kịch bản | **Desktop thật** (overlay trong suốt ở góc màn hình) + khay hệ thống + bảng điều khiển kịch bản | Chạy đủ 16 case của prototype (+ 3 case mở rộng) trên app thật: tua 60×/120×/300×, nhảy 17 mốc, bật từng case, "Giả vờ bạn đang…" để bẻ kịch bản |
-| **Sandbox** | Tenant thử `mindiful.onmicrosoft.com` (Teams, Outlook) + Azure DevOps `mindiful-sandbox` — API thật | Desktop thật (overlay trong suốt) + khay hệ thống + Bảng điều khiển có công cụ test | Thử tích hợp thật mà không đụng tenant Bosch; ngưỡng hành vi rút gọn để test trong 1 buổi |
+| **Demo** | Ngày mẫu Thứ Năm 24/9 của prototype: giờ, lịch, email, task và thao tác người dùng theo kịch bản | **Desktop thật** (overlay trong suốt ở góc màn hình) + khay hệ thống + bảng điều khiển kịch bản | Chạy đủ 17 tình huống của prototype + 5 tình huống mở rộng trên app thật: tua 60×/120×/300×, nhảy 17 mốc, kịch bản trình diễn 28 bước tự chạy, bật từng case, "Giả vờ bạn đang…" để bẻ kịch bản. Tủ đồ mở full |
+| **Sandbox** | Tenant thử `mindiful.onmicrosoft.com` (Teams, Outlook) + Azure DevOps `mindiful-sandbox` — API thật | Desktop thật (overlay trong suốt) + khay hệ thống + Bảng điều khiển có công cụ test | Thử tích hợp thật mà không đụng tenant Bosch. 2 chế độ: *test* (ép Milo làm, ngưỡng rút gọn) và *như Production*. Đọc email ~20 giây, lịch và task ~30 giây để demo realtime. Có công tắc hiện Milo khi chia sẻ màn hình |
 | **Production** | Tenant Bosch: Teams presence, Outlook, Azure Boards | Desktop thật, ẩn khỏi share màn hình | Dùng hằng ngày |
+
+**Milo làm được gì (tóm tắt):**
+- **Nhắc đúng lúc, im lặng đúng lúc:** chào sáng, sắp họp (kèm gợi ý theo loại cuộc họp đoán từ tiêu đề/agenda ngay trên máy), họp liên tục, làm liền, nghỉ quá ít, chưa nghỉ trưa, nhảy việc, quá giờ, tan tầm; im lặng khi họp, trình chiếu, toàn màn hình, tập trung (lúc tập trung Milo ngủ trên chóp đuôi).
+- **Làm giúp:** giữ chỗ nghỉ trong lịch, khoá giờ tập trung + bật Không làm phiền Teams, tìm khoảng trống dài nhất để tập trung, mở slide, mở email chờ, báo task kẹt.
+- **Có mới (realtime):** email mới gửi thẳng cho bạn, lời mời họp mới, task mới được giao → Milo báo ngay.
+- **Trò chuyện với Milo:** chat tự do (AI hoặc theo từ khoá); Milo đề nghị nút tính năng hợp với câu bạn gõ.
+- **Điểm mood có cơ sở khoa học** (JD-R, nghiên cứu từ 2021), dashboard trái cây, bảng chi tiết hôm nay / tuần, báo cáo tuần sáng thứ Hai, kiểm chứng WHO-5.
+- **Cá tính:** tính cách Dễ thương / Hài hước / Pha trộn (9 động tác lấy cảm hứng meme), tủ đồ 14 món phối 5 ô mở khoá bằng thói quen tốt, đồng phục Bosch.
+- **Tiện dụng:** chuột phải Milo để thay đồ / trò chuyện / đổi tính cách, kéo chóp đuôi đổi góc, khởi động cùng Windows, nhiều key AI xoay vòng.
+- **Riêng tư:** AI chỉ nhận con số và nhãn, không bao giờ nhận tiêu đề, agenda hay nội dung; dữ liệu cá nhân chỉ trên máy và tự xoá theo tuần.
 
 **Điểm mood lấy từ đâu?** Mô hình Job Demands–Resources, mỗi khoản dựa trên nghiên cứu công bố từ 2021 tới nay, có bộ test chứng minh công thức đúng chiều nghiên cứu với 20.000 bộ số liệu ngẫu nhiên, và trang *Kiểm chứng điểm* (WHO-5) để đo với người thật: **[docs/CO-SO-KHOA-HOC.md](docs/CO-SO-KHOA-HOC.md)**.
 
-**Đi present?** Kịch bản từng bước: **[Demo](docs/KICH-BAN-DEMO.md)** (đủ 19 tình huống, ~15 phút) · **[Sandbox chạy như Production](docs/KICH-BAN-SANDBOX.md)** (đổi dữ liệu thật trên Teams/Outlook/Azure Boards, Milo phản ứng).
+**Đi present?** Flow ngày present (Demo ~13 phút → Sandbox realtime ~9 phút) và checklist chuẩn bị: **[KICH-BAN-DEMO.md mục 0](docs/KICH-BAN-DEMO.md)**. Kịch bản từng bước: **[Demo](docs/KICH-BAN-DEMO.md)** (28 bước, đủ mọi tình huống, động tác, tủ đồ) · **[Sandbox realtime](docs/KICH-BAN-SANDBOX.md)** (gửi mail / mời họp / giao task thật, Milo báo trong ~20 giây).
 
 **Mới dùng app?** Đọc **[Hướng dẫn sử dụng](docs/HUONG-DAN-SU-DUNG.md)**: Milo trên màn hình, bảng điều khiển từng trang, từng tính năng, cách dùng ở 3 môi trường, vì sao Milo không hiện. README này dành cho cài đặt, cấu hình và test.
 
@@ -262,24 +272,22 @@ Dọn dẹp sau khi test: trong Outlook, xoá các sự kiện category **Milo**
 4. Khởi động cùng Windows: menu khay → **Khởi động cùng Windows** (hoặc bảng điều khiển → *Milo của bạn*). Tắt mặc định. Bật thì Milo ghi `"<đường dẫn Minditful.exe>" --env Prod` vào `HKCU\...\CurrentVersion\Run` (không cần admin). Đăng xuất rồi đăng nhập lại để thử. Sandbox cũng có công tắc này; mỗi lần chỉ 1 môi trường tự chạy.
 5. Prod dùng **ngưỡng chuẩn** của tài liệu: làm liền 120', task kẹt ≥ 3 ngày, 2 lời nhắc cách nhau ≥ 15'. Vì vậy trong 1 buổi sẽ thấy ít lời nhắc hơn Sandbox. Đó là thiết kế, không phải lỗi.
 
-### 4. Kịch bản present ~10 phút
+### 4. Kịch bản present (~22 phút: Demo → Sandbox realtime)
+
+Flow đầy đủ, checklist tối hôm trước và 15 phút trước giờ: **[KICH-BAN-DEMO.md mục 0](docs/KICH-BAN-DEMO.md)**. Tóm tắt:
 
 | Phút | Làm gì | Nói gì |
 | --- | --- | --- |
-| 0–1 | Mở app → màn hình chọn 3 môi trường | "Một app, 3 môi trường: Demo chạy kịch bản, Sandbox là tenant thử, Prod là Bosch" |
-| 1–3 | Chọn **Demo**, tốc độ *Nhanh 300×*; trang *Ngày mẫu* → bấm mốc **08:58** | Milo sống ở góc màn hình thật; chào sáng + bản tin |
-| 3–4 | Mốc **09:25** → **09:30** | Nhắc họp đúng lúc; vào họp thì Milo **im lặng**, lời nhắc dồn thành chấm chờ |
-| 4–5 | Mốc **10:37** | JumpIn sau họp, Task kẹt → khoá 90' tập trung (tạo lịch + Teams DND) |
-| 5–6 | Mốc **16:12**, tắt "Người dùng mẫu tự bấm nút", tự bấm *Đồng ý* | Vòng thở 4-4-4 ngay trong thẻ |
-| 6–7 | Rê chuột lên đuôi → bấm → rê lên từng quả → *Tuần này →* | Dashboard trái cây: nho mood, cam họp, anh đào email, táo sprint; tuần là chùm nho 7 ngày + thống kê tuần |
-| 7–8 | Trang **Bộ não Milo** trên bảng điều khiển | Mọi quyết định có lý do: cổng im lặng, ngân sách 15', hàng đợi ưu tiên; mood tính minh bạch |
-| 8–9 | (Tuỳ chọn) chuyển sang **Sandbox** đã đăng nhập sẵn: Tạo dữ liệu mẫu → 2' sau Milo nhắc Teams meeting thật | Cùng bộ não, dữ liệu thật từ Graph + Azure Boards |
-| 9–10 | Kéo đuôi sang góc khác; nhắc riêng tư | Chỉ gửi số liệu cho LLM, dữ liệu cá nhân tự xoá mỗi tuần, ẩn khi share màn hình |
+| 0–1 | Mở app → màn hình chọn 3 môi trường → **Demo** | "Một app, 3 môi trường, một bộ não." |
+| 1–14 | Trang **Kịch bản trình diễn**, bấm 12 bước: 1, 2→3, 4, 8, 9, 12, 21, 22, 24, 26, 27, 28 | Nhắc đúng lúc, im lặng khi họp, làm giúp thật, dashboard trái cây, chat + nút tính năng, có mới, ngủ khi tập trung, mood realtime, tính cách hài hước, tủ đồ + Bosch |
+| 14–15 | Khay → *Thoát Milo* → giữ **Shift** mở lại → **Sandbox** | "Giờ xem Milo chạy thật với Teams, Outlook, Azure Boards." |
+| 15–24 | Người phụ gửi mail, mời họp, giao task; kéo task Closed; cuộc họp tạo sẵn → Sắp họp → Tham gia → Share → Rời → DND | Milo báo trong ~20 giây, im lặng khi họp, ẩn khỏi màn hình chia sẻ |
+| 24–25 | Kết | "Lên tenant Bosch chỉ cần IT cấp quyền cho app, không đổi code." |
 
 Mẹo:
 - Để bảng điều khiển ở màn hình thứ hai, màn hình chính chỉ có Milo.
-- Trước giờ present chạy thử 1 lượt, rồi bấm *Làm lại ngày mẫu* trong menu khay.
-- Present Sandbox thì đăng nhập trước, để lần đầu không phải chờ trình duyệt.
+- Tối hôm trước chạy thử 1 lượt kịch bản Demo, đăng nhập sẵn Sandbox, nhờ người gửi 1 email có dấu "?" để hôm sau có email chờ.
+- Chiếu qua Teams: Sandbox bật *Hiện Milo khi chia sẻ màn hình* (tắt lại ở bước chứng minh Milo ẩn khỏi màn hình chia sẻ).
 
 ### 5. Sự cố hay gặp khi test
 
@@ -290,6 +298,9 @@ Mẹo:
 | Đăng nhập báo lỗi | Bảng điều khiển ghi lý do bằng tiếng Việt; xem thêm bảng lỗi AADSTS ở KET-NOI-SANDBOX.md mục 8 |
 | Azure Boards 0 task | PAT phải do đúng người được giao task tạo; project/team đúng tên |
 | App lỗi | Xem `%LOCALAPPDATA%\Minditful\crash.log` |
+| Gửi mail mà Milo không báo *Có mới* | Mail phải gửi **thẳng** cho bạn (ô To) từ **tài khoản khác** (tự gửi cho mình chỉ báo khi `IncludeSelfSentMail=true`). Thứ có sẵn lúc mở app không được báo. Chờ ~20 giây ở Sandbox (Production 5 phút) hoặc bấm *Làm mới ngay*. Đang họp / tập trung thì thẻ nằm ở chấm chờ |
+| Người xem Teams không thấy Milo | Sandbox/Production mặc định ẩn Milo khỏi màn hình chia sẻ. Sandbox: bật *Hiện Milo khi chia sẻ màn hình* (bảng điều khiển → *Tổng quan*, hoặc menu khay). Chiếu bằng HDMI thì luôn thấy |
+| AI không trả lời / báo hết lượt | Trang *Mood Engine* xem dòng trạng thái (vd. "3/5 key còn lượt"). Hết lượt thì Milo tự dùng luật và câu mẫu, không lỗi. Thêm key vào `LLM_API_KEY` (ngăn bằng dấu phẩy) |
 
 ## Cấu hình
 
@@ -423,7 +434,7 @@ Kiểm tra app đã nhận cấu hình: mở **bảng điều khiển**. Trang *
 
 ### Sandbox (tenant `mindiful.onmicrosoft.com`)
 
-Hướng dẫn đầy đủ: **[docs/KET-NOI-SANDBOX.md](docs/KET-NOI-SANDBOX.md)**. Tài liệu gồm app registration, quyền Graph, Teams/Outlook/Azure DevOps, cách kiểm tra bằng tay, checklist 23 bước test và các lỗi thường gặp.
+Hướng dẫn đầy đủ: **[docs/KET-NOI-SANDBOX.md](docs/KET-NOI-SANDBOX.md)**. Tài liệu gồm app registration, quyền Graph, Teams/Outlook/Azure DevOps, cách kiểm tra bằng tay, checklist 30 bước test và các lỗi thường gặp.
 
 TenantId, ClientId, org `mindiful-sandbox`, project `Milo-Sandbox` và team `Milo-Sandbox Team` đã có sẵn trong appsettings.json. Việc còn lại:
 
@@ -450,7 +461,7 @@ Dùng *Chạy như Production* để xem Milo trên Production trông và cư x�
 
 **Hiện Milo khi chia sẻ màn hình** (chỉ Sandbox; thẻ *Chế độ Sandbox* hoặc menu khay; mặc định tắt): bật để demo qua Teams. Khi bật, cửa sổ Milo không bị loại khỏi ảnh chia sẻ (`SetWindowDisplayAffinity` về `WDA_NONE`), và trạng thái *Presenting* của Teams không làm Milo trốn. Lựa chọn lưu ở `%LOCALAPPDATA%\Minditful\Sandbox\show-on-share.txt`. Production luôn ẩn.
 
-Mỗi nguồn được đọc lại theo chu kỳ riêng: presence 30 giây, lịch 2 phút, mail 5 phút, Boards 3 phút. **Sandbox đọc nhanh hơn** (cả 2 chế độ: mail 20 giây, lịch và Boards 30 giây; `BehaviorOverrides.MailPollSeconds` / `CalendarPollSeconds` / `BoardsPollSeconds`) để demo thẻ *Có mới*: gửi 1 email thật là khoảng 20 giây sau Milo báo. Khi mở khoá máy, đăng nhập hoặc bấm *Làm mới*, app đọc lại tất cả ngay.
+Mỗi nguồn được đọc lại theo chu kỳ riêng (Production): presence 30 giây, lịch 2 phút, mail 5 phút, Boards 3 phút. **Sandbox đọc nhanh hơn** (cả 2 chế độ: mail 20 giây, lịch và Boards 30 giây; `BehaviorOverrides.MailPollSeconds` / `CalendarPollSeconds` / `BoardsPollSeconds`) để demo thẻ *Có mới*: gửi 1 email thật là khoảng 20 giây sau Milo báo. Khi mở khoá máy, đăng nhập hoặc bấm *Làm mới*, app đọc lại tất cả ngay.
 
 Tên môi trường nhận cả `Scenario`/`Demo`, `Sandbox`, `Prod`/`Production`. Thứ tự chọn: `--env` > biến `MINDITFUL_ENV` > `Minditful:Environment`. Visual Studio có sẵn 3 launch profile.
 

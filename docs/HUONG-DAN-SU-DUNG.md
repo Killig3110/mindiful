@@ -187,7 +187,7 @@ Cửa sổ riêng, tông kem như thẻ của Milo. **Đóng cửa sổ này th�
 
 | Trang | Để làm gì |
 | --- | --- |
-| **Kịch bản trình diễn** | 28 bước đi qua đủ 21 tình huống + dashboard chi tiết, Milo ngủ khi tập trung, trình chiếu, mood realtime, 9 động tác hài, tủ đồ. Mỗi bước ghi *người xem thấy gì* và *bạn nói gì*. Bấm từng bước hoặc bật *Tự chạy qua các bước*. Kịch bản lời nói: [KICH-BAN-DEMO.md](KICH-BAN-DEMO.md) |
+| **Kịch bản trình diễn** | 28 bước đi qua đủ 22 tình huống + dashboard chi tiết, Milo ngủ khi tập trung, trình chiếu, mood realtime, 9 động tác hài, tủ đồ. Mỗi bước ghi *người xem thấy gì* và *bạn nói gì*. Bấm từng bước hoặc bật *Tự chạy qua các bước*. Kịch bản lời nói: [KICH-BAN-DEMO.md](KICH-BAN-DEMO.md) |
 | **Bắt đầu** | Thẻ **Mood realtime**: kéo mức căng thẳng, bấm nghỉ / xong task, gọi Milo đứng ở góc để thấy dáng và màu đổi ngay. Phát / tạm dừng ngày mẫu, *Làm lại từ 08:50*, tốc độ *Chậm 60× · Vừa 120× · Nhanh 300×*. Công tắc **Người dùng mẫu tự bấm nút**: bật thì kịch bản tự trả lời, tắt thì bạn tự bấm trên thẻ. Số liệu hôm nay và mẹo tương tác |
 | **Ngày mẫu** | 17 mốc của ngày Thứ Năm 24/9. Bấm 1 mốc để tua tới ngay trước lúc đó. Mốc đang diễn ra tô cam |
 | **Thử tình huống** | *Cho Milo làm ngay*: 19 thẻ tình huống chia 4 nhóm, bấm là Milo làm luôn. *Giả vờ bạn đang…*: công tắc gõ phím, rời máy, khoá máy, toàn màn hình, Không làm phiền, trình chiếu, ngày căng thẳng; và nút 1 lần (rời cuộc họp, nhảy việc, xong 1 task, mở dashboard) |
@@ -322,7 +322,9 @@ Có Claude và bật chế độ Hybrid thì Claude được chỉnh thêm tối
    - 18:31 chạy ra xe
 4. Muốn tự bấm: tắt công tắc tự bấm, rồi bấm nút trên thẻ của Milo hoặc gõ chat.
 5. Trang **Thử tình huống**: bấm bất kỳ thẻ nào để xem Milo làm tình huống đó. Bật *Đang trình chiếu* để thấy Milo trốn.
-6. Trang **Milo của bạn**: cho Milo mặc đồng phục Bosch.
+6. Trang **Milo của bạn**: tủ đồ mở full 14 món, phối thử; chọn tính cách Milo; 9 nút xem thử động tác hài.
+7. Trên desktop: **chuột phải Milo** → *Thay đồ cho Milo* / *Trò chuyện với Milo* / *Tính cách Milo*.
+8. Trang **Thử tình huống** → *Có mới*: bấm 3 lần để thấy email mới → lời mời họp → task mới gộp 1 thẻ.
 
 Present: dùng trang **Kịch bản trình diễn** và làm theo [KICH-BAN-DEMO.md](KICH-BAN-DEMO.md). Demo với dữ liệu thật: [KICH-BAN-SANDBOX.md](KICH-BAN-SANDBOX.md). Để bảng điều khiển ở màn hình thứ hai, màn hình chính chỉ có Milo. Chạy thử 1 lượt trước, rồi *Làm lại từ 08:50*.
 
@@ -335,9 +337,10 @@ Present: dùng trang **Kịch bản trình diễn** và làm theo [KICH-BAN-DEMO
    - *Giữ chỗ*: Outlook có "Nghỉ cùng Milo".
    - *Khoá 90 phút*: Teams chuyển Không làm phiền.
 5. *Giờ về = bây giờ + 2 phút*: xem thẻ tan tầm, bấm *Mệt*, *Về thôi*.
-6. Checklist đầy đủ: [KET-NOI-SANDBOX.md](KET-NOI-SANDBOX.md) mục 7. Test xong xoá các sự kiện có category **Milo** trong Outlook.
-
-7. Muốn xem bản Production trông thế nào: *Tổng quan* → *Chế độ Sandbox* → **Chạy như Production**. Trang *Thử tình huống* ẩn đi, Milo tự chạy với ngưỡng chuẩn. Muốn ép Milo làm lại thì chuyển về **Chế độ test**.
+6. **Realtime:** từ 1 tài khoản khác, gửi email / lời mời họp Teams cho tài khoản Sandbox, hoặc giao 1 task Azure Boards. Khoảng 20–30 giây sau Milo báo thẻ **Có mới** (Sandbox đọc email mỗi ~20 giây, lịch và task ~30 giây; Production 5 / 2 / 3 phút).
+7. Demo cho người xem qua Teams: bật **Hiện Milo khi chia sẻ màn hình** (*Tổng quan* → thẻ *Chế độ Sandbox*, hoặc menu khay). Mặc định tắt, giống Production.
+8. Checklist đầy đủ: [KET-NOI-SANDBOX.md](KET-NOI-SANDBOX.md) mục 7. Test xong xoá các sự kiện có category **Milo** trong Outlook.
+9. Muốn xem bản Production trông thế nào: *Tổng quan* → *Chế độ Sandbox* → **Chạy như Production**. Trang *Thử tình huống* ẩn đi, Milo tự chạy với ngưỡng chuẩn. Muốn ép Milo làm lại thì chuyển về **Chế độ test**.
 
 Ở chế độ test, Sandbox dùng ngưỡng rút ngắn (vd. ngồi liền 20 phút đã nhắc) để test trong 1 buổi.
 
@@ -392,5 +395,13 @@ Không thấy cả chóp đuôi:
 **Sửa `.env` mà không thấy đổi?** Thoát hẳn Milo ở khay rồi mở lại.
 
 **Đang present mà Milo nhảy ra?** Ở Production/Sandbox Milo tự trốn khi Teams báo đang trình chiếu. Ở Demo bật công tắc *Teams: đang trình chiếu* trên bảng điều khiển.
+
+**Gửi mail mà Milo không báo?** Mail phải gửi thẳng cho bạn (ô To) từ tài khoản khác. Những thứ có sẵn lúc mở app không được báo lại. Đang họp hay tập trung thì thẻ chờ ở chấm chờ. Production đọc email 5 phút/lần, Sandbox ~20 giây; bấm *Làm mới ngay* nếu không muốn chờ.
+
+**Milo đọc tiêu đề cuộc họp của tôi à?** Có, nhưng chỉ **ngay trên máy** để đoán loại cuộc họp (trình bày, ra quyết định, ngồi nghe, làm việc nhóm, 1:1) và đưa gợi ý trên thẻ Sắp họp. AI chỉ nhận **nhãn** đó, không nhận tiêu đề hay agenda.
+
+**Không thích Milo làm trò?** Chuột phải Milo → *Tính cách Milo* → **Dễ thương**.
+
+**Muốn Milo luôn chạy khi mở máy?** Menu khay → *Khởi động cùng Windows* (Sandbox/Production).
 
 **Có lỗi?** Dải trên cùng và trang *Tổng quan* ghi lý do bằng tiếng Việt. App gặp lỗi lạ thì xem `%LOCALAPPDATA%\Minditful\crash.log`.

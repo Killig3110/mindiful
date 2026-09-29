@@ -29,7 +29,7 @@ internal sealed class DemoControlWindow : ControlShell
     {
         _session = session;
         AddPage("home", IcHome, "Bắt đầu", Home);
-        AddPage("tour", IcPlay, "Kịch bản trình diễn", Tour, "đủ 19 tình huống · ~15 phút");
+        AddPage("tour", IcPlay, "Kịch bản trình diễn", Tour, "28 bước · ~21 phút");
         AddPage("day", IcTimeline, "Ngày mẫu", Day, "nhảy tới từng mốc");
         AddPage("try", IcTry, "Thử tình huống", Try, "cho Milo làm ngay");
         AddPage("milo", IcMilo, "Milo của bạn", Milo, "tủ đồ, góc màn hình");
@@ -92,7 +92,7 @@ internal sealed class DemoControlWindow : ControlShell
             player, today,
             MoodCard(),
             TipBox(
-                "Đi present? Mở trang \"Kịch bản trình diễn\": Milo làm lần lượt đủ 19 tình huống, có gợi ý câu nói cho từng bước.",
+                "Đi present? Mở trang \"Kịch bản trình diễn\": 28 bước đi qua đủ 22 tình huống, 9 động tác hài, tủ đồ, có gợi ý câu nói cho từng bước. Bản 13 phút cho ngày present: docs/KICH-BAN-DEMO.md mục 0.",
                 "Rê chuột lên chóp đuôi cam ở góc màn hình khoảng nửa giây: Milo ló đầu thì thầm điểm mood.",
                 "Bấm chóp đuôi: mở dashboard 4 quả. Bấm \"Chi tiết\" để xem bảng nhỏ hôm nay / tuần này.",
                 "Kéo chóp đuôi sang góc khác để đổi chỗ Milo. Esc để đóng dashboard.",
@@ -372,7 +372,7 @@ internal sealed class DemoControlWindow : ControlShell
         });
 
         return Page("Kịch bản trình diễn",
-            "28 bước đi qua đủ 21 tình huống của Milo cùng các tính năng mới, khoảng 15 phút. 12 bước đầu theo ngày mẫu Thứ Năm 24/9, các bước sau cho Milo làm từng tình huống còn lại. Kịch bản lời nói đầy đủ: docs/KICH-BAN-DEMO.md.",
+            "28 bước đi qua đủ 22 tình huống của Milo cùng các tính năng mới, khoảng 21 phút. 12 bước đầu theo ngày mẫu Thứ Năm 24/9, các bước sau cho Milo làm từng tình huống còn lại. Kịch bản lời nói đầy đủ: docs/KICH-BAN-DEMO.md.",
             current, MoodCard(), Card(list, "Tất cả bước", "Bấm 1 bước để chạy ngay bước đó."));
     }
 
