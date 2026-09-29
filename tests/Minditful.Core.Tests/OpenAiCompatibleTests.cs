@@ -145,4 +145,17 @@ public sealed class OpenAiCompatibleTests : IDisposable
         Assert.Contains("hết lượt", w.LastError); // hết cả 3 → dùng luật, không gửi request thừa
         Assert.DoesNotContain("gsk_", w.LastError!); // không bao giờ lộ key trong log
     }
+
+    [Fact]
+    public async Task Reasoning_models_get_low_effort_so_json_fits()
+    {
+        var w = MiloLlm.Create(new LlmOptions { Provider = "OpenAI", BaseUrl = _base, Model = "openai/gpt-oss-20b", InsightTimeoutMs = 5000 }, () => "gsk_x");
+        _reply = "{\"score\":60,\"adjust\":-5,\"focus\":3,\"energy\":2,\"stress\":4,\"label\":\"Mệt dần\",\"insight\":\"Bạn họp liền khá lâu, nghỉ 5 phút nha.\"}";
+        Assert.NotNull(await w.AssessMoodAsync(new MoodRequest(80, "x", [])));
+        var root = JsonDocument.Parse(LastBody!).RootElement;
+        Assert.Equal("low", root.GetProperty("reasoning_effort").GetString());
+        Assert.True(root.GetProperty("max_tokens").GetInt32() >= 1000);
+        await Writer().AssessMoodAsync(new MoodRequest(80, "x", []));
+        Assert.False(JsonDocument.Parse(LastBody!).RootElement.TryGetProperty("reasoning_effort", out _)); // model thường không gửi
+    }
 }

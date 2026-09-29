@@ -536,6 +536,7 @@ Giới hạn gói miễn phí thay đổi thường xuyên; con số trên chỉ
 - Key nào báo hết lượt (429) thì nghỉ đúng khoảng thời gian dịch vụ yêu cầu; key bị từ chối (401/403) nghỉ 1 giờ. App tự chuyển ngay sang key khác trong cùng lần gọi.
 - Hết cả mấy key thì Milo chấm bằng luật, không gửi request thừa.
 - Trang *Mood Engine* hiện số key còn lượt, vd. "(2/3 key còn lượt)".
+- Model `openai/gpt-oss-…` có bước suy luận trước khi trả lời; app tự gửi `reasoning_effort: low` để model viết kịp JSON (mỗi lần chấm khoảng 1–2 giây trên Groq).
 - Lưu ý: Groq tính giới hạn theo **tổ chức (organization)**, không theo key. Nhiều key trong cùng 1 tổ chức dùng chung một hạn mức, nên xoay vòng không tăng thêm lượt. Hãy đọc điều khoản của Groq trước khi dùng key từ nhiều tài khoản.
 
 **Mỗi lần dùng tốn bao nhiêu request:**

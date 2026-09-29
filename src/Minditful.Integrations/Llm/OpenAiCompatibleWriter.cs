@@ -131,6 +131,12 @@ public sealed class OpenAiCompatibleWriter(LlmOptions opt, Func<string?> apiKey)
             ["max_tokens"] = 600,
         };
         if (json) body["response_format"] = new { type = "json_object" };
+        // Model có bước suy luận (gpt-oss) tiêu token cho suy luận trước khi viết; để "high" thì hết 600 token mà chưa có JSON
+        if (opt.Model.Contains("gpt-oss", StringComparison.OrdinalIgnoreCase))
+        {
+            body["reasoning_effort"] = "low";
+            body["max_tokens"] = 1200;
+        }
         var payload = JsonSerializer.Serialize(body);
         var order = KeyOrder();
         if (order.Count == 0)
