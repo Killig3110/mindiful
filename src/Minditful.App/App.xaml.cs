@@ -135,7 +135,7 @@ public partial class App : Application
         menu.Items.Add("Mở dashboard của Milo", null, (_, _) => Companion?.OpenDashboard());
         if (_session is DemoSession demo)
         {
-            menu.Items.Add("Điều khiển kịch bản · Bộ não Milo", null, (_, _) => ShowControlCenter());
+            menu.Items.Add("Mở bảng điều khiển", null, (_, _) => ShowControlCenter());
             menu.Items.Add("Phát / tạm dừng ngày mẫu", null, (_, _) => demo.TogglePlay());
             menu.Items.Add("Làm lại ngày mẫu từ 08:50", null, (_, _) =>
             {
@@ -145,7 +145,7 @@ public partial class App : Application
         }
         else if (_session is LiveSession live)
         {
-            menu.Items.Add("Bảng điều khiển · Bộ não Milo", null, (_, _) => ShowControlCenter());
+            menu.Items.Add("Mở bảng điều khiển", null, (_, _) => ShowControlCenter());
             menu.Items.Add("Đăng nhập Microsoft", null, async (_, _) => await live.SignInAsync(true));
             menu.Items.Add("Làm mới dữ liệu", null, async (_, _) => await live.RefreshAsync());
         }

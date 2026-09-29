@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Minditful · Chọn môi trường" Width="920" Height="520" ResizeMode="CanMinimize"
-        Background="{StaticResource Bg}" Foreground="{StaticResource Text}" FontFamily="{StaticResource Sans}" FontSize="13"
+        Background="#F7F0E6" Foreground="#3A2A1E" FontFamily="{StaticResource Sans}" FontSize="13"
         WindowStartupLocation="CenterScreen">
     <Window.Resources>
         <Style x:Key="EnvCard" TargetType="Button">
@@ -11,15 +11,15 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="b" Background="{StaticResource Panel}" CornerRadius="16" Padding="18" BorderThickness="2" BorderBrush="Transparent">
+                        <Border x:Name="b" Background="#FFFDF9" CornerRadius="16" Padding="18" BorderThickness="2" BorderBrush="#EADCC7">
                             <ContentPresenter />
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="b" Property="BorderBrush" Value="{StaticResource Amber}" />
+                                <Setter TargetName="b" Property="BorderBrush" Value="#E8772E" />
                             </Trigger>
                             <Trigger Property="IsKeyboardFocused" Value="True">
-                                <Setter TargetName="b" Property="BorderBrush" Value="{StaticResource Amber}" />
+                                <Setter TargetName="b" Property="BorderBrush" Value="#E8772E" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -35,42 +35,42 @@
         </Grid.RowDefinitions>
         <StackPanel>
             <TextBlock Style="{StaticResource Eyebrow}" Text="MINDITFUL · MILO" />
-            <TextBlock Text="Chạy Milo ở môi trường nào?" FontSize="22" FontWeight="Bold" Foreground="{StaticResource Cream}" Margin="0,4,0,0" />
-            <TextBlock Style="{StaticResource Hint}" Margin="0,6,0,0" Text="Cả ba môi trường dùng chung một bộ não (Rule Engine → Điều phối → Mood Engine). Khác nhau ở nguồn dữ liệu và nơi Milo xuất hiện." />
+            <TextBlock Text="Hôm nay chạy Milo ở đâu?" FontSize="22" FontWeight="Bold" Foreground="#3A2A1E" Margin="0,4,0,0" />
+            <TextBlock Style="{StaticResource Hint}" Margin="0,6,0,0" Text="Cả ba đều là Milo thật ở góc màn hình. Chỉ khác nhau chỗ Milo lấy lịch, email, task từ đâu. Lần đầu dùng thì chọn Demo." />
         </StackPanel>
 
         <UniformGrid Grid.Row="1" Columns="3" Margin="0,18,0,0">
             <Button Style="{StaticResource EnvCard}" Margin="0,0,8,0" Click="Demo_Click">
                 <StackPanel>
-                    <TextBlock Style="{StaticResource Eyebrow}" Text="1 · DEMO" Foreground="{StaticResource Amber}" />
-                    <TextBlock Text="App thật · dữ liệu kịch bản" FontSize="17" FontWeight="Bold" Foreground="{StaticResource Cream}" Margin="0,6,0,0" />
-                    <TextBlock TextWrapping="Wrap" Foreground="{StaticResource Soft}" Margin="0,8,0,0"
-                               Text="Milo sống trên desktop như Sandbox/Production, nhưng giờ, lịch, email, task và thao tác người dùng lấy từ ngày mẫu Thứ Năm 24/9 để chạy đủ mọi case của prototype. Có bảng điều khiển để tua, nhảy mốc, bật từng case." />
+                    <TextBlock Style="{StaticResource Eyebrow}" Text="1 · DEMO · NGÀY MẪU" Foreground="#7261B0" />
+                    <TextBlock Text="Xem thử, present" FontSize="17" FontWeight="Bold" Foreground="#3A2A1E" Margin="0,6,0,0" />
+                    <TextBlock TextWrapping="Wrap" Foreground="#6B5646" Margin="0,8,0,0"
+                               Text="Milo sống qua 1 ngày làm việc mẫu (Thứ Năm 24/9) với lịch, email, task có sẵn. Tua nhanh, nhảy tới từng mốc, cho Milo làm từng tình huống." />
                     <TextBlock Style="{StaticResource Hint}" Margin="0,12,0,0" Text="Không cần tài khoản, không kết nối mạng" />
                 </StackPanel>
             </Button>
             <Button Style="{StaticResource EnvCard}" Margin="4,0" Click="Sandbox_Click">
                 <StackPanel>
-                    <TextBlock Style="{StaticResource Eyebrow}" Text="2 · SANDBOX" Foreground="{StaticResource Amber}" />
-                    <TextBlock Text="Tài khoản cá nhân" FontSize="17" FontWeight="Bold" Foreground="{StaticResource Cream}" Margin="0,6,0,0" />
-                    <TextBlock TextWrapping="Wrap" Foreground="{StaticResource Soft}" Margin="0,8,0,0"
-                               Text="Milo sống trên desktop thật, đọc lịch và email từ Microsoft account cá nhân, work item từ Azure DevOps org cá nhân. Có nút tạo dữ liệu mẫu, giả lập tín hiệu và chạy thử từng case." />
+                    <TextBlock Style="{StaticResource Eyebrow}" Text="2 · SANDBOX · TENANT THỬ" Foreground="#2E7D6B" />
+                    <TextBlock Text="Thử với dữ liệu thật" FontSize="17" FontWeight="Bold" Foreground="#3A2A1E" Margin="0,6,0,0" />
+                    <TextBlock TextWrapping="Wrap" Foreground="#6B5646" Margin="0,8,0,0"
+                               Text="Đăng nhập tenant thử mindiful.onmicrosoft.com: lịch Teams/Outlook, email, Azure Boards thật. Có nút tạo dữ liệu mẫu và chạy thử từng tình huống." />
                     <TextBlock x:Name="SandboxState" Style="{StaticResource Hint}" Margin="0,12,0,0" />
                 </StackPanel>
             </Button>
             <Button Style="{StaticResource EnvCard}" Margin="8,0,0,0" Click="Prod_Click">
                 <StackPanel>
-                    <TextBlock Style="{StaticResource Eyebrow}" Text="3 · PRODUCTION" Foreground="{StaticResource Amber}" />
-                    <TextBlock Text="Bosch · Teams + Azure Boards" FontSize="17" FontWeight="Bold" Foreground="{StaticResource Cream}" Margin="0,6,0,0" />
-                    <TextBlock TextWrapping="Wrap" Foreground="{StaticResource Soft}" Margin="0,8,0,0"
-                               Text="Tenant công ty: Teams presence làm cổng Đang họp, bật Không làm phiền khi khoá tập trung, lịch Outlook, Azure Boards thật. Ẩn khỏi share màn hình." />
+                    <TextBlock Style="{StaticResource Eyebrow}" Text="3 · PRODUCTION · BOSCH" Foreground="#0F6CBD" />
+                    <TextBlock Text="Dùng hằng ngày" FontSize="17" FontWeight="Bold" Foreground="#3A2A1E" Margin="0,6,0,0" />
+                    <TextBlock TextWrapping="Wrap" Foreground="#6B5646" Margin="0,8,0,0"
+                               Text="Tài khoản Bosch: Milo đọc lịch, trạng thái Teams, Azure Boards của bạn, tự im lặng khi bạn họp và ẩn khỏi màn hình chia sẻ." />
                     <TextBlock x:Name="ProdState" Style="{StaticResource Hint}" Margin="0,12,0,0" />
                 </StackPanel>
             </Button>
         </UniformGrid>
 
         <DockPanel Grid.Row="2" Margin="0,16,0,0">
-            <CheckBox x:Name="Remember" Foreground="{StaticResource Soft}" VerticalAlignment="Center"
+            <CheckBox x:Name="Remember" Foreground="#6B5646" VerticalAlignment="Center"
                       Content="Nhớ lựa chọn (giữ Shift khi mở app để quay lại màn hình này)" />
             <TextBlock Style="{StaticResource Hint}" HorizontalAlignment="Right" VerticalAlignment="Center" Text="Cũng có thể chạy: Minditful.exe --env Demo | Sandbox | Production" />
         </DockPanel>

@@ -7,9 +7,11 @@ Cả **3 môi trường đều là cùng một app**: Milo sống trên desktop 
 
 | Môi trường | Dữ liệu | Milo hiện ở đâu | Dùng để |
 | --- | --- | --- | --- |
-| **Demo** | Ngày mẫu Thứ Năm 24/9 của prototype: giờ, lịch, email, task và thao tác người dùng theo kịch bản | **Desktop thật** (overlay trong suốt ở góc màn hình) + khay hệ thống + bảng điều khiển kịch bản | Chạy đủ 16 case của prototype (+ 3 case mở rộng) trên app thật: tua 60×/120×/300×, nhảy 17 mốc, bật từng case, "Bạn thử làm" để bẻ kịch bản |
+| **Demo** | Ngày mẫu Thứ Năm 24/9 của prototype: giờ, lịch, email, task và thao tác người dùng theo kịch bản | **Desktop thật** (overlay trong suốt ở góc màn hình) + khay hệ thống + bảng điều khiển kịch bản | Chạy đủ 16 case của prototype (+ 3 case mở rộng) trên app thật: tua 60×/120×/300×, nhảy 17 mốc, bật từng case, "Giả vờ bạn đang…" để bẻ kịch bản |
 | **Sandbox** | Tenant thử `mindiful.onmicrosoft.com` (Teams, Outlook) + Azure DevOps `mindiful-sandbox` — API thật | Desktop thật (overlay trong suốt) + khay hệ thống + Bảng điều khiển có công cụ test | Thử tích hợp thật mà không đụng tenant Bosch; ngưỡng hành vi rút gọn để test trong 1 buổi |
 | **Production** | Tenant Bosch: Teams presence, Outlook, Azure Boards | Desktop thật, ẩn khỏi share màn hình | Dùng hằng ngày |
+
+**Mới dùng app?** Đọc **[Hướng dẫn sử dụng](docs/HUONG-DAN-SU-DUNG.md)**: Milo trên màn hình, bảng điều khiển từng trang, từng tính năng, cách dùng ở 3 môi trường, vì sao Milo không hiện. README này dành cho cài đặt, cấu hình và test.
 
 ## Cài đặt từ đầu
 
@@ -140,20 +142,21 @@ dotnet test
 
 ### 0. Chuẩn bị
 
-Làm xong mục **[Cài đặt từ đầu](#cài-đặt-từ-đầu)** ở trên: `dotnet test` ra `Passed! … 87`, và `.env` đã điền cho môi trường cần test.
+Làm xong mục **[Cài đặt từ đầu](#cài-đặt-từ-đầu)** ở trên: `dotnet test` ra `Passed! … 124`, và `.env` đã điền cho môi trường cần test.
 
 Mở thẳng một môi trường: `--env Scenario` (= Demo), `--env Sandbox`, `--env Prod`. Nếu đã tick "Nhớ lựa chọn", **giữ Shift** khi mở app để hiện lại màn hình chọn.
 
 Cả 3 môi trường đều là **cùng một app**:
 - Milo sống ở **góc phải dưới màn hình thật**, ngay trên taskbar.
 - Khay hệ thống có biểu tượng **chóp đuôi cáo**; chuột phải vào để mở menu.
-- Có một **bảng điều khiển** riêng: Demo là "Điều khiển kịch bản", Sandbox/Prod là "Bảng điều khiển".
+- Có một **bảng điều khiển** (tông kem như thẻ của Milo): thanh bên trái chọn trang, dải trên cùng luôn ghi "Milo đang làm gì" bằng lời thường. Demo có các trang *Bắt đầu · Ngày mẫu · Thử tình huống · Milo của bạn · Bộ não Milo*; Sandbox/Prod có *Tổng quan · Kết nối · (Sandbox: Thử tình huống) · Milo của bạn · Bộ não Milo*.
+- Hướng dẫn dùng app cho người mới, từng tính năng: **[docs/HUONG-DAN-SU-DUNG.md](docs/HUONG-DAN-SU-DUNG.md)**.
 
 ### 1. Demo (Scenario): không cần tài khoản, không cần mạng
 
 Dùng để present và để kiểm tra đủ 16 case của prototype. Giờ, lịch, email, task và thao tác của người dùng đều theo **ngày mẫu Thứ Năm 24/9**.
 
-**1a. Để ngày mẫu tự chạy** (tick "Người dùng trong kịch bản tự trả lời", tốc độ 120×):
+**1a. Để ngày mẫu tự chạy** (trang *Bắt đầu*: bật công tắc "Người dùng mẫu tự bấm nút", tốc độ *Vừa 120×*):
 
 | Giờ kịch bản | Nhìn vào góc màn hình | Nhìn vào bảng điều khiển |
 | --- | --- | --- |
@@ -171,12 +174,12 @@ Dùng để present và để kiểm tra đủ 16 case của prototype. Giờ, l
 | 17:45 | Milo nhảy tưng "Xong #4821 rồi!", điểm hồi lại | Mức về *Cân bằng* |
 | 18:00 → 18:31 | Thẻ **Tan tầm** (tổng kết ngày) → *Thêm 30 phút* → 18:31 **Nhắc lại tan tầm** → *Về thôi* → Milo **chạy ra xe** | Điểm cuối ngày **54**, trạng thái *Nghỉ làm* |
 
-**1b. Tự bấm:** bỏ tick "tự trả lời", rồi bấm các nút trên thẻ của Milo ngay trên desktop. Nên thử:
+**1b. Tự bấm:** tắt công tắc "Người dùng mẫu tự bấm nút", rồi bấm các nút trên thẻ của Milo ngay trên desktop. Nên thử:
 - *Để sau* 2 lần: lần thứ 3 thẻ không còn nút Để sau.
 - *Không cần*: chờ lâu hơn, bấm lần 2 thì giãn ×3.
 - Gõ chat "mệt quá": Milo vào vòng thở. Gõ "đang bận": tương đương Để sau.
 
-**1c. Chạy từng case:** mục **Chạy từng case**, bấm một dòng là Milo giao ngay (16 case của prototype + nhóm *Mở rộng*). Checklist:
+**1c. Chạy từng case:** trang **Thử tình huống** → *Cho Milo làm ngay*, bấm 1 thẻ là Milo giao ngay (4 nhóm: Chào hỏi, Giúp việc, Chăm sóc, Mới thêm). Checklist:
 
 | Nhóm | Case | Cần thấy |
 | --- | --- | --- |
@@ -186,30 +189,30 @@ Dùng để present và để kiểm tra đủ 16 case của prototype. Giờ, l
 | Người dùng | Dashboard | 4 quả quanh Milo: nho (mood) · cam (cuộc họp, múi đã ăn = đã họp) · anh đào (email chờ) · táo cắn dở (sprint); rê chuột lên từng quả xem chi tiết. Bấm **Chi tiết** trên thanh tiêu đề: bảng nhỏ cỡ 1 thẻ ngay trên đầu Milo (dòng thời gian, Office Vibe, cuộc họp sắp tới; trang Tuần có 7 quả nho, thống kê, bạn trả lời Milo thế nào) |
 | Mở rộng | Giữ giờ tập trung · Báo cáo tuần · Uống nước · nhìn xa | Thẻ "khoảng trống dài nhất 16:15–17:45" → *Giữ 1h30* · thẻ "Tuần trước của bạn" + 1 mẹo → *Xem chùm nho* mở dashboard tuần · bóng thoại 5 giây, không nút |
 
-**1d. Bẻ kịch bản** (mục *Bạn thử làm*):
+**1d. Bẻ kịch bản** (trang **Thử tình huống** → *Giả vờ bạn đang…*, bật/tắt công tắc):
 - *Đang gõ phím*: lời nhắc bị hoãn; gõ liên tục 5' thì chỉ hiện nhãn gọn "Milo có lời nhắn".
 - *Toàn màn hình* hoặc *Không làm phiền*: Milo im lặng và hiện chấm chờ; **bấm chấm chờ** thì thẻ bung ra ngay kể cả đang họp.
 - *Nhảy việc 12 lần/giờ*: case Phân mảnh.
 - *Giả lập ngày căng*: Milo đổi dáng mệt, có chữ z bay.
 - *Teams: đang trình chiếu*: Milo trốn hẳn, kể cả chóp đuôi và chấm chờ; bấm lại thì hiện lại.
-- *Tủ đồ: đổi phụ kiện*: xoay vòng tự chọn → khăn quàng → kẹp hoa → mũ nồi → không mặc (ngày mẫu có sẵn chuỗi 10 ngày về đúng giờ).
+- Trang **Milo của bạn** → *Tủ đồ*: bấm khăn quàng / kẹp hoa / mũ nồi để Milo mặc ngay (ngày mẫu có sẵn chuỗi 10 ngày về đúng giờ).
 - Ở thẻ **Tan tầm** (18:00): bấm *Vui / Bình thường / Mệt* để thấy điểm đổi (+3 / 0 / −6), bấm *Giữ 10' nghỉ lúc 15:30* cho chuỗi họp ngày mai.
 
 **1e. Tương tác chung** (cả 3 môi trường):
 - Rê chuột lên chóp đuôi **0,6 giây** thì Milo ló đầu; bấm vào đuôi thì mở dashboard; Esc để đóng.
 - **Kéo chóp đuôi** sang góc khác thì Milo neo góc đó; góc trái lật ngang, góc trên thò xuống.
-- Menu khay có: Mở dashboard · Điều khiển kịch bản · Phát/tạm dừng · Làm lại ngày mẫu · Thoát.
+- Menu khay có: Mở dashboard · Mở bảng điều khiển · Phát/tạm dừng · Làm lại ngày mẫu · Thoát.
 
 ### 2. Sandbox: dữ liệu thật của tenant `mindiful.onmicrosoft.com`
 
 Điều kiện: đã setup theo [docs/KET-NOI-SANDBOX.md](docs/KET-NOI-SANDBOX.md) mục 1, và đã điền `MINDITFUL_SANDBOX_ADO_PAT` trong `.env`.
 
 1. `dotnet run --project src/Minditful.App -- --env Sandbox`. **Lần đầu** trình duyệt mở màn hình đăng nhập: chọn **thulu@mindiful.onmicrosoft.com**, rồi đồng ý quyền nếu được hỏi.
-2. Bảng điều khiển phải hiện:
-   - *Đã đăng nhập thulu@… · quyền: …*, không có chữ "THIẾU".
-   - Azure Boards: *N work item đang làm · Sprint 1 x/y*.
-   - Dòng *Ngưỡng rút gọn: task kẹt ≥ 0 ngày · làm liền 20' …*.
-3. Chạy **checklist 14 bước** ở mục 7 của KET-NOI-SANDBOX.md. Công cụ trong Bảng điều khiển giúp làm nhanh:
+2. Trang **Tổng quan** của bảng điều khiển phải có 2 chấm xanh:
+   - *Microsoft 365*: "Đã đăng nhập thulu@… · quyền: …", không có chữ "THIẾU".
+   - *Azure Boards*: "N work item đang làm · Sprint 1 x/y".
+   - Trang **Thử tình huống** → *Chuẩn bị* ghi "Ngưỡng đang dùng: task kẹt ≥ 0 ngày · làm liền 20' …".
+3. Chạy **checklist** ở mục 7 của KET-NOI-SANDBOX.md. Trang **Thử tình huống** có sẵn công cụ:
 
 | Muốn test | Dùng |
 | --- | --- |
@@ -217,16 +220,16 @@ Dùng để present và để kiểm tra đủ 16 case của prototype. Giờ, l
 | Sắp họp, Lịch kín (bước 2, 4) mà không cần đồng nghiệp | **Tạo dữ liệu mẫu**: Teams meeting sau 7' + chuỗi 3 cuộc sau 52' + 6 work item |
 | Tan tầm ngay (bước 12) | **Giờ về = bây giờ + 2'** |
 | Xoá PAT (bước 14) | **Xoá PAT**: dashboard phải có dòng "Chưa kết nối Azure Boards" |
-| Một case bất kỳ ngay lập tức | **Chạy thử 1 case** (bỏ qua điều kiện và ngân sách) |
-| Giả lập gõ phím / rời máy / toàn màn hình / DND | Các nút *Giả lập tín hiệu* (đè lên tín hiệu thật, bấm lần nữa để trả lại) |
+| Một case bất kỳ ngay lập tức | *Cho Milo làm ngay* → bấm thẻ case (bỏ qua điều kiện và ngân sách) |
+| Giả lập gõ phím / rời máy / toàn màn hình / DND / trình chiếu | *Giả vờ bạn đang…* (công tắc đè lên tín hiệu thật, tắt để trả lại) |
 
 4. Kiểm tra hành động thật:
    - *Giữ chỗ*: Outlook của thulu@ có sự kiện "Nghỉ cùng Milo" (tentative, category **Milo**).
    - *Khoá 90 phút*: có sự kiện "Tập trung: #id" (busy), và Teams chuyển **Do not disturb** nếu Teams đang mở.
    - Share màn hình trong Teams: người xem **không thấy** Milo.
-5. Kiểm tra dữ liệu local: dashboard → *Tuần này →* → rê chuột lên **chùm nho** để xem **Thống kê tuần**. Bảng điều khiển → *Dữ liệu cá nhân trên máy* ghi chính sách xoá và có nút **Xoá toàn bộ dữ liệu thống kê ngay**.
+5. Kiểm tra dữ liệu local: dashboard → *Tuần này →* → rê chuột lên **chùm nho** để xem **Thống kê tuần**. Trang **Milo của bạn** → *Riêng tư & dữ liệu* ghi chính sách xoá và có nút **Xoá toàn bộ dữ liệu thống kê ngay**.
 6. (Có API key) điền `ANTHROPIC_API_KEY`, đặt `…Features__Mood=Hybrid` và `…Features__Meetings=Llm`, mở lại app:
-   - Bảng Bộ não có "Nguồn: luật X + Claude ±Y" và câu nhận xét.
+   - Trang *Bộ não Milo* có "Nguồn: luật X + Claude ±Y" và câu nhận xét; trang *Kết nối* → Claude chấm xanh.
    - Dashboard có mức nặng cuộc họp nguồn *Claude*.
    - Nhật ký có dòng *Claude viết sẵn câu cho …*.
 
@@ -250,12 +253,12 @@ Dọn dẹp sau khi test: trong Outlook, xoá các sự kiện category **Milo**
 | Phút | Làm gì | Nói gì |
 | --- | --- | --- |
 | 0–1 | Mở app → màn hình chọn 3 môi trường | "Một app, 3 môi trường: Demo chạy kịch bản, Sandbox là tenant thử, Prod là Bosch" |
-| 1–3 | Chọn **Demo**, tốc độ **300×**; nhảy mốc **08:58** | Milo sống ở góc màn hình thật; chào sáng + bản tin |
+| 1–3 | Chọn **Demo**, tốc độ *Nhanh 300×*; trang *Ngày mẫu* → bấm mốc **08:58** | Milo sống ở góc màn hình thật; chào sáng + bản tin |
 | 3–4 | Mốc **09:25** → **09:30** | Nhắc họp đúng lúc; vào họp thì Milo **im lặng**, lời nhắc dồn thành chấm chờ |
 | 4–5 | Mốc **10:37** | JumpIn sau họp, Task kẹt → khoá 90' tập trung (tạo lịch + Teams DND) |
-| 5–6 | Mốc **16:12**, bỏ tick tự trả lời, tự bấm *Đồng ý* | Vòng thở 4-4-4 ngay trong thẻ |
+| 5–6 | Mốc **16:12**, tắt "Người dùng mẫu tự bấm nút", tự bấm *Đồng ý* | Vòng thở 4-4-4 ngay trong thẻ |
 | 6–7 | Rê chuột lên đuôi → bấm → rê lên từng quả → *Tuần này →* | Dashboard trái cây: nho mood, cam họp, anh đào email, táo sprint; tuần là chùm nho 7 ngày + thống kê tuần |
-| 7–8 | Bảng **Bộ não Milo** (cột phải) | Mọi quyết định có lý do: cổng im lặng, ngân sách 15', hàng đợi ưu tiên; mood tính minh bạch |
+| 7–8 | Trang **Bộ não Milo** trên bảng điều khiển | Mọi quyết định có lý do: cổng im lặng, ngân sách 15', hàng đợi ưu tiên; mood tính minh bạch |
 | 8–9 | (Tuỳ chọn) chuyển sang **Sandbox** đã đăng nhập sẵn: Tạo dữ liệu mẫu → 2' sau Milo nhắc Teams meeting thật | Cùng bộ não, dữ liệu thật từ Graph + Azure Boards |
 | 9–10 | Kéo đuôi sang góc khác; nhắc riêng tư | Chỉ gửi số liệu cho LLM, dữ liệu cá nhân tự xoá mỗi tuần, ẩn khi share màn hình |
 
@@ -395,24 +398,25 @@ MINDITFUL__Minditful__Wellbeing__WeekReport=false
 MINDITFUL__Minditful__Storage__KeepPreviousPeriod=false
 ```
 
-Kiểm tra app đã nhận cấu hình: mở **Bảng điều khiển**. Mục *Chăm sóc mở rộng* ghi đang bật/tắt những gì, mục *Claude* ghi "Đang dùng claude-opus-5" hay "Chưa có API key", dòng *Khung giờ hôm nay* ghi giờ vào/về.
+Kiểm tra app đã nhận cấu hình: mở **bảng điều khiển**. Trang *Milo của bạn* → *Milo chăm sóc bạn thế nào* ghi từng tính năng Bật/Tắt; trang *Kết nối* → *Claude* ghi "Đang dùng claude-opus-5" hay "Chưa có API key"; dải trên cùng và trang *Tổng quan* ghi giờ làm hôm nay.
 
 `src/Minditful.App/appsettings.json` giữ các giá trị mặc định không bí mật. Giờ làm (`WorkDay`: mặc định **Flexible** kiểu Bosch, bắt đầu = lần mở máy đầu ngày trong 08:00–10:00, làm 9 tiếng → 8→17, 9→18, 10→19; đặt `Mode=Fixed` để dùng `Start/End` cố định), ngưỡng rời máy, ngưỡng phân mảnh và nhịp làm mới dữ liệu nằm trong mục `WorkDay`.
 
 ### Sandbox (tenant `mindiful.onmicrosoft.com`)
 
-Hướng dẫn đầy đủ: **[docs/KET-NOI-SANDBOX.md](docs/KET-NOI-SANDBOX.md)**. Tài liệu gồm app registration, quyền Graph, Teams/Outlook/Azure DevOps, cách kiểm tra bằng tay, checklist 14 bước test và các lỗi thường gặp.
+Hướng dẫn đầy đủ: **[docs/KET-NOI-SANDBOX.md](docs/KET-NOI-SANDBOX.md)**. Tài liệu gồm app registration, quyền Graph, Teams/Outlook/Azure DevOps, cách kiểm tra bằng tay, checklist 22 bước test và các lỗi thường gặp.
 
 TenantId, ClientId, org `mindiful-sandbox`, project `Milo-Sandbox` và team `Milo-Sandbox Team` đã có sẵn trong appsettings.json. Việc còn lại:
 
 1. Điền `MINDITFUL_SANDBOX_ADO_PAT` vào `.env`. PAT do **thulu@** tạo, hoặc dán vào ô *Lưu PAT* trong Bảng điều khiển.
 2. Chạy `--env Sandbox`, bấm *Đăng nhập Microsoft* rồi chọn **thulu@mindiful.onmicrosoft.com**.
-3. Làm theo checklist ở mục 7 của hướng dẫn. Bảng điều khiển có sẵn các công cụ:
-   - **Reset ngày**: chào sáng lại.
-   - **Giờ về = bây giờ + 2'**: test Tan tầm ngay.
-   - **Xoá PAT**.
+3. Làm theo checklist ở mục 7 của hướng dẫn. Trang **Thử tình huống** của bảng điều khiển có sẵn:
+   - **Reset ngày (chào sáng lại)**.
+   - **Giờ về = bây giờ + 2 phút**: test Tan tầm ngay.
    - **Tạo dữ liệu mẫu**: tự tạo Teams meeting và work item.
-   - **Chạy thử 1 case**.
+   - *Cho Milo làm ngay*: chạy thử 1 case.
+   - *Giả vờ bạn đang…*: đè tín hiệu thật.
+   Trang **Kết nối** có **Lưu PAT / Xoá PAT**.
 
 Sandbox dùng **ngưỡng rút gọn** (`BehaviorOverrides`) để test trong 1 buổi: task Active 0 ngày đã tính là kẹt, email chờ 0 ngày, làm liền 20 phút, 2 lời nhắc cách nhau 3 phút, ghé ngang 3–5 phút, chấm chờ giữ 5 phút. Production không có khối này nên dùng đúng ngưỡng của tài liệu.
 
@@ -543,7 +547,7 @@ Milo chớp mắt 4.5 giây/lần, khi mệt thì nhắm lâu hơn (§9.4). Chuy
 
 ## Tính năng chăm sóc mở rộng (mục `Wellbeing`)
 
-7 tính năng thêm ngoài prototype. Sandbox/Production bật theo `Wellbeing` trong `appsettings.json` hoặc `.env`. Demo tắt sẵn để ngày mẫu giữ đúng các mốc của tài liệu; bật thử từng cái ở mục **Mở rộng** của bảng điều khiển kịch bản.
+7 tính năng thêm ngoài prototype. Sandbox/Production bật theo `Wellbeing` trong `appsettings.json` hoặc `.env`. Demo tắt sẵn để ngày mẫu giữ đúng các mốc của tài liệu; bật thử từng cái ở trang **Thử tình huống** → nhóm *Mới thêm* của bảng điều khiển Demo.
 
 | Tính năng | Khi nào | Milo làm gì | Cấu hình |
 | --- | --- | --- | --- |
@@ -553,9 +557,9 @@ Milo chớp mắt 4.5 giây/lần, khi mệt thì nhắm lâu hơn (§9.4). Chuy
 | Nghỉ giữa chuỗi họp ngày mai | Thẻ Tan tầm, khi mai có ≥ 3 cuộc họp liền | *Giữ 10' nghỉ lúc HH:mm* tạo sự kiện tentative trong lịch ngày mai | `EveningCheck` |
 | Uống nước · 20-20-20 | Mỗi 50 phút ngồi máy liên tục (không tính giờ họp), tối đa 6 lần/ngày | Ló lên 5 giây với 1 bóng thoại, không nút, không tính ngân sách lời nhắc. Rời máy ≥ 5 phút thì đếm lại | `MicroBreakEveryMinutes` (0 = tắt), `MicroBreakMaxPerDay` |
 | Trốn khi trình chiếu | Teams presence = Presenting | Trốn hẳn, kể cả chóp đuôi và chấm chờ; thẻ đang mở thu lại | `HideWhenPresenting` |
-| Tủ đồ của Milo | Về đúng giờ (quá giờ < 15 phút) 3 / 5 / 10 ngày liền | Mở khoá khăn quàng / kẹp hoa / mũ nồi, sáng hôm sau thẻ Chào sáng báo. Chọn món ở Bảng điều khiển (mặc định: món mới nhất) | `Wardrobe` |
+| Tủ đồ của Milo | Về đúng giờ (quá giờ < 15 phút) 3 / 5 / 10 ngày liền | Mở khoá khăn quàng / kẹp hoa / mũ nồi, sáng hôm sau thẻ Chào sáng báo. Chọn món ở bảng điều khiển → *Milo của bạn* (mặc định: món mới nhất) | `Wardrobe` |
 
-Test nhanh trên Sandbox: chọn *Giữ giờ tập trung*, *Báo cáo tuần* hoặc *Uống nước · nhìn xa* ở ô **Chạy thử 1 case**; bấm *Đang trình chiếu* ở mục giả lập tín hiệu; bấm *Giờ về = bây giờ + 2'* để thấy thẻ Tan tầm có 3 nút cảm xúc. Báo cáo tuần cần dữ liệu tuần trước trên máy (chạy app ít nhất 1 ngày tuần trước).
+Test nhanh trên Sandbox: trang **Thử tình huống** → nhóm *Mới thêm* (Giữ giờ tập trung, Báo cáo tuần, Uống nước · nhìn xa); công tắc *Đang trình chiếu*; *Giờ về = bây giờ + 2 phút* để thấy thẻ Tan tầm có 3 nút cảm xúc. Báo cáo tuần cần dữ liệu tuần trước trên máy (chạy app ít nhất 1 ngày tuần trước).
 
 ## Góc neo (§9.1)
 
@@ -563,7 +567,7 @@ Kéo chóp đuôi rồi thả ở đâu thì Milo neo vào **góc gần nhất**
 
 - Góc trái: Milo được lật ngang.
 - Góc trên: Milo thò xuống từ mép trên; thẻ và dashboard mọc xuống dưới.
-- Góc neo lưu riêng từng môi trường. Bảng điều khiển Sandbox/Production có 4 nút chọn góc; ở cả 3 môi trường đều kéo chóp đuôi được.
+- Góc neo lưu riêng từng môi trường. Bảng điều khiển → *Milo của bạn* có 4 nút chọn góc (cả 3 môi trường); cũng kéo chóp đuôi được.
 
 ## Dữ liệu cá nhân trên máy (SQLite, tự xoá)
 

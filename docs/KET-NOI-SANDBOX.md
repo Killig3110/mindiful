@@ -499,11 +499,11 @@ public static class PatStore
 
 ## 7. Checklist test sandbox: dựng lại từng hành vi
 
-Chạy app với `--env Sandbox`, đăng nhập thulu@, dán PAT. Mở cửa sổ **Bộ não Milo** để theo dõi trạng thái, cổng, hàng đợi và nhật ký, giống cột phải của prototype.
+Chạy app với `--env Sandbox`, đăng nhập thulu@, dán PAT (bảng điều khiển → trang *Kết nối*). Trang **Thử tình huống** có công cụ test; trang **Bộ não Milo** để theo dõi trạng thái, lý do im lặng, lời nhắc đang chờ và nhật ký, giống cột phải của prototype.
 
 | # | Làm gì (ai làm) | Milo phải… | Mục |
 |---|---|---|---|
-| 1 | Khoá máy rồi mở lại lần đầu trong ngày *(Thư)*. Muốn test lại thì bấm **Reset ngày** trong cửa sổ điều khiển | Bám mép → leo lên → Hello → bản tin: số họp, số email chưa đọc, số task đang dở | 6.1 |
+| 1 | Khoá máy rồi mở lại lần đầu trong ngày *(Thư)*. Muốn test lại thì bấm **Reset ngày** ở trang *Thử tình huống* của bảng điều khiển | Bám mép → leo lên → Hello → bản tin: số họp, số email chưa đọc, số task đang dở | 6.1 |
 | 2 | Tạo Teams meeting mời Thư, bắt đầu sau **7 phút**, đính kèm 1 file .pptx *(Duy)* | Khi còn 5 phút: thẻ Sắp họp, vai trò Bắt buộc, có nút Mở slide / Tham gia | 7.1 |
 | 3 | Thư bấm **Tham gia**, vào họp và share màn hình | Milo thụt xuống. Presence thành `InACall`/`Presenting`. Milo và chóp đuôi đều ẩn, và **không lộ trên màn hình share** | 4 |
 | 4 | Tạo **3 cuộc họp 15 phút liền nhau**, bắt đầu sau 20 phút *(Duy)* | Trước giờ họp: thẻ **Lịch kín** → bấm Giữ chỗ → Outlook của Thư có sự kiện "Nghỉ cùng Milo" (tentative) | 7.2 |
@@ -516,19 +516,19 @@ Chạy app với `--env Sandbox`, đăng nhập thulu@, dán PAT. Mở cửa s�
 | 11 | Làm liên tục 20 phút không rời máy (ngưỡng sandbox) | Thẻ **Làm liền** | 8 |
 | 12 | Đặt giờ kết thúc khung làm việc = giờ hiện tại + 2 phút | Thẻ **Tan tầm** → Thêm 30 phút → nhắc lại → Về thôi → chạy ra xe | 6.2 |
 | 13 | Đăng xuất Teams, chờ 10 phút | Log ghi "đang dùng lịch để đoán cuộc họp"; cổng họp vẫn đúng giờ theo lịch | 5.2 |
-| 14 | Xoá PAT (Cài đặt → Xoá) | Các tính năng Boards tắt, không popup lỗi; dashboard có dòng "Chưa kết nối Azure Boards" | 14 |
+| 14 | Xoá PAT (bảng điều khiển → *Kết nối* → *Xoá PAT*) | Các tính năng Boards tắt, không popup lỗi; dashboard có dòng "Chưa kết nối Azure Boards" | 14 |
 
 **Tính năng mở rộng** (bật bằng mục `Wellbeing`; để test trong 1 buổi đặt `MINDITFUL__Minditful__Wellbeing__MicroBreakEveryMinutes=5` và `…__FocusPlanMinMinutes=30` trong `.env`, xem README mục *Tham chiếu biến `.env`*):
 
 | # | Làm gì | Milo phải… |
 |---|---|---|
-| 15 | Mở máy, chờ 20 phút, lịch còn khoảng trống ≥ 30 phút (hoặc *Chạy thử 1 case* → Giữ giờ tập trung) | Thẻ **Giữ giờ tập trung** → Giữ → Outlook có "Tập trung · Milo giữ chỗ" (busy). Tới giờ: Teams chuyển **Do not disturb**, Milo im lặng tới hết khối |
-| 16 | *Chạy thử 1 case* → Báo cáo tuần (cần app đã chạy ít nhất 1 ngày tuần trước) | Thẻ "Tuần trước của bạn" + 1 mẹo → *Xem chùm nho* mở dashboard trang Tuần |
+| 15 | Mở máy, chờ 20 phút, lịch còn khoảng trống ≥ 30 phút (hoặc *Thử tình huống* → *Giữ giờ tập trung*) | Thẻ **Giữ giờ tập trung** → Giữ → Outlook có "Tập trung · Milo giữ chỗ" (busy). Tới giờ: Teams chuyển **Do not disturb**, Milo im lặng tới hết khối |
+| 16 | *Thử tình huống* → *Báo cáo tuần* (cần app đã chạy ít nhất 1 ngày tuần trước) | Thẻ "Tuần trước của bạn" + 1 mẹo → *Xem chùm nho* mở dashboard trang Tuần |
 | 17 | Ngồi máy liên tục 5 phút (ngưỡng test) | Milo ló lên 5 giây "Uống ngụm nước nha!", lần sau là câu 20-20-20 |
-| 18 | Trong cuộc họp Teams, bấm **Share / Present** (hoặc nút *Đang trình chiếu* ở mục giả lập) | Milo trốn hẳn, **cả chóp đuôi**; thôi trình chiếu thì chóp đuôi hiện lại |
+| 18 | Trong cuộc họp Teams, bấm **Share / Present** (hoặc công tắc *Đang trình chiếu* ở *Giả vờ bạn đang…*) | Milo trốn hẳn, **cả chóp đuôi**; thôi trình chiếu thì chóp đuôi hiện lại |
 | 19 | Tạo 3 cuộc họp liền nhau cho **ngày mai**, rồi bấm *Giờ về = bây giờ + 2'* | Thẻ Tan tầm có dòng "Mai … có 3 cuộc họp liền" → *Giữ 10' nghỉ* → Outlook ngày mai có "Nghỉ cùng Milo" (tentative) |
 | 20 | Trên thẻ Tan tầm bấm *Mệt* | Nút Mệt tô đậm, điểm giảm 6; tuần sau dashboard chi tiết có dòng "Bạn tự thấy" |
-| 21 | Bảng điều khiển → *Tủ đồ* | Hiện chuỗi ngày về đúng giờ; món chưa mở khoá bị mờ. Về đúng giờ 3 ngày liền thì sáng thứ 4 thẻ Chào sáng báo "Milo được tặng khăn quàng" |
+| 21 | Bảng điều khiển → *Milo của bạn* → *Tủ đồ* | Hiện chuỗi ngày về đúng giờ; món chưa mở khoá bị mờ. Về đúng giờ 3 ngày liền thì sáng thứ 4 thẻ Chào sáng báo "Milo được tặng khăn quàng" |
 | 22 | Bấm chóp đuôi → *Chi tiết* | Bảng nhỏ trên đầu Milo: dòng thời gian, Office Vibe, cuộc họp sắp tới; tab Tuần có 7 quả nho |
 
 **Dọn dẹp sau khi test:** trong Outlook, tìm và xoá các sự kiện có category **Milo** (gồm cả "Tập trung · Milo giữ chỗ" và "Nghỉ cùng Milo" ngày mai). Azure Boards thì để nguyên, sprint sau dùng tiếp.

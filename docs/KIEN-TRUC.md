@@ -7,8 +7,9 @@ Tài liệu này dành cho người **chưa biết gì về app**, đọc xong p
 | Tài liệu | Nói về |
 | --- | --- |
 | [Kịch bản hành vi Milo](Kịch%20bản%20hành%20vi%20Milo.md) | **Hành vi** (Milo nên làm gì). Các ký hiệu "§x" trong tài liệu này trỏ về đó |
-| [KET-NOI-SANDBOX.md](KET-NOI-SANDBOX.md) | Setup tenant sandbox, checklist test 14 bước |
+| [KET-NOI-SANDBOX.md](KET-NOI-SANDBOX.md) | Setup tenant sandbox, checklist test 22 bước |
 | [README](../README.md) | Cách chạy, cấu hình, hướng dẫn test và kịch bản present |
+| [HUONG-DAN-SU-DUNG.md](HUONG-DAN-SU-DUNG.md) | Hướng dẫn cho người dùng: thao tác với Milo, bảng điều khiển, từng tính năng |
 
 Mục lục: [1. Milo là gì](#1-milo-là-gì) · [2. Bức tranh tổng thể](#2-bức-tranh-tổng-thể) · [3. Ba môi trường](#3-ba-môi-trường) · [4. Vòng đời app](#4-vòng-đời-app) · [5. Bộ não](#5-bộ-não-minditfulcore) · [6. UI/UX](#6-uiux) · [7. Mô hình dữ liệu](#7-mô-hình-dữ-liệu) · [8. Tích hợp nền tảng](#8-tích-hợp-nền-tảng) · [9. Lưu trữ & xoá dữ liệu](#9-lưu-trữ--xoá-dữ-liệu) · [10. Riêng tư & bảo mật](#10-riêng-tư--bảo-mật) · [11. Lỗi & hạ cấp](#11-xử-lý-lỗi--hạ-cấp) · [12. Cấu hình](#12-cấu-hình) · [13. Kiểm thử](#13-kiểm-thử) · [14. Mở rộng](#14-mở-rộng-app) · [15. Thuật ngữ](#15-thuật-ngữ)
 
@@ -111,14 +112,14 @@ classDiagram
 | Class | `DemoSession` | `LiveSession` | `LiveSession` |
 | Giờ | Đồng hồ **kịch bản** ngày 24/9: tua 60/120/300× khi Milo ẩn, 1× khi Milo hiện | Giờ thật | Giờ thật |
 | Dữ liệu | `DemoScenario.Snapshot()` cố định | Graph + Azure Boards của tenant `mindiful.onmicrosoft.com` | Graph + Azure Boards của Bosch |
-| Tín hiệu (khoá máy, gõ…) | Kịch bản (`ScenarioScript.World`) + nút "Bạn thử làm" | Windows thật (+ nút giả lập đè lên) | Windows thật |
+| Tín hiệu (khoá máy, gõ…) | Kịch bản (`ScenarioScript.World`) + công tắc "Giả vờ bạn đang…" | Windows thật (+ nút giả lập đè lên) | Windows thật |
 | Presence Teams | Theo lịch kịch bản | `/me/presence` | `/me/presence` |
 | Người dùng mẫu tự bấm | Có (`AutoReplies`), tắt được | Không | Không |
 | Ngưỡng hành vi | Chuẩn (§4, §8) | **Rút gọn** (`BehaviorOverrides`) để test trong 1 buổi | Chuẩn |
 | Lưu SQLite | Không | Có | Có |
 | Hành động ra ngoài | Chỉ ghi nhật ký | Gọi API thật | Gọi API thật (hạ cấp khi thiếu quyền) |
 | Ẩn khi share màn hình | Không | Có | Có |
-| Bảng điều khiển | `DemoControlWindow` (điều khiển kịch bản) | `ControlCenterWindow` + công cụ test | `ControlCenterWindow` |
+| Bảng điều khiển | `DemoControlWindow` | `ControlCenterWindow` + trang Thử tình huống | `ControlCenterWindow` |
 
 Giao diện Milo trên desktop (`CompanionWindow` + `MiloLayer`) **giống hệt nhau** ở cả 3 môi trường.
 
@@ -216,7 +217,7 @@ Luật (EvalRules) chạy **mỗi phút**; điều phối (Arbitrate) chạy **m
 | --- | --- | --- | --- |
 | Khoá / mở máy | `SetLocked` | Kịch bản 08:58, 12:15, 12:55, 18:32 | `SystemEvents.SessionSwitch`, `PowerModeChanged` |
 | Rời máy | `SetAway` | Kịch bản 10:30–10:37 | Idle ≥ `AwayAfterMinutes` (5') qua `GetLastInputInfo`; 5 phút idle được tính luôn vào lần nghỉ |
-| Đang gõ | `SetTyping` | Nút "Bạn thử làm" | Idle < 3s liên tục ≥ 20s |
+| Đang gõ | `SetTyping` | Công tắc "Giả vờ bạn đang…" | Idle < 3s liên tục ≥ 20s |
 | Toàn màn hình | `SetFullscreen` | Nút | `SHQueryUserNotificationState` = busy/D3D/presentation, hoặc cửa sổ foreground phủ kín màn hình |
 | Chuyển app | `RecordSwitch` | Nút "Nhảy việc 12 lần" | `SetWinEventHook(EVENT_SYSTEM_FOREGROUND)`, bỏ tiến trình shell, chống đếm trùng 2s |
 | Đang họp | `SetInCallOverride` | Theo lịch (`Ongoing()`) | Presence `InACall/InAConferenceCall/InAMeeting/Presenting`; `Offline`/lỗi → `null` = đoán theo lịch |
@@ -415,8 +416,9 @@ Thêm sau prototype, cùng khung Rule Engine → hàng đợi → điều phối
 | --- | --- | --- |
 | **LauncherWindow** | Chưa chọn môi trường | 3 thẻ, trạng thái cấu hình từng môi trường, "Nhớ lựa chọn" |
 | **CompanionWindow** | Luôn có (3 môi trường) | 480×620, **trong suốt hoàn toàn**, Topmost, không có trong Alt+Tab (`WS_EX_TOOLWINDOW`), không chiếm focus; neo góc màn hình đang chọn, ngay trên taskbar. Chỗ không có Milo thì chuột **đi xuyên** xuống desktop (pixel alpha = 0). Sandbox/Prod: `SetWindowDisplayAffinity(WDA_EXCLUDEFROMCAPTURE)` → **không lộ khi share màn hình** |
-| **DemoControlWindow** | Demo | Trái: đồng hồ kịch bản, chú thích "Milo đang làm gì", phát/tạm dừng, tốc độ, tự trả lời, 17 mốc, 16 case + nhóm Mở rộng, "Bạn thử làm" (có thêm Đang trình chiếu, Tủ đồ). Phải: Bộ não |
-| **ControlCenterWindow** | Sandbox/Prod | Kết nối Microsoft/Azure Boards, PAT, Claude, cá nhân hoá, dữ liệu local, góc neo; Sandbox thêm công cụ test. Phải: Bộ não |
+| **DemoControlWindow** | Demo | Khung `ControlShell`. Trang: *Bắt đầu* (phát/tạm dừng, tốc độ, công tắc tự trả lời, số liệu hôm nay, mẹo), *Ngày mẫu* (17 mốc, bấm để tua), *Thử tình huống* (19 case chia 4 nhóm + công tắc "Giả vờ bạn đang…"), *Milo của bạn* (tủ đồ, góc neo), *Bộ não Milo* |
+| **ControlCenterWindow** | Sandbox/Prod | Khung `ControlShell`. Trang: *Tổng quan* (3 thẻ kết nối chấm xanh/vàng/đỏ, Milo đang thấy gì), *Kết nối* (Microsoft, PAT, API key Claude), *Thử tình huống* (chỉ Sandbox: reset ngày, giờ về, dữ liệu mẫu, chạy case, giả lập tín hiệu), *Milo của bạn* (tủ đồ, góc neo, tính năng chăm sóc, cá nhân hoá, dữ liệu trên máy), *Bộ não Milo* |
+| **`ControlShell`** (`Views/Panel`) | — | Khung chung tông sáng (`P`: kem #F7F0E6, thẻ #FFFDF9, cam #E8772E). Thanh bên + dải "Milo đang làm gì" bằng lời thường (`Describe()`), đồng hồ, điểm mood. Mỗi trang dựng 1 lần; số liệu cập nhật 400 ms/lần qua `Tick()` chỉ cho trang đang mở |
 | **Khay hệ thống** | Luôn có | Icon chóp đuôi vẽ bằng code; menu theo môi trường |
 
 ### 6.2 Bố cục góc Milo (`MiloLayer`)

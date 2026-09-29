@@ -1,0 +1,269 @@
+# Hướng dẫn sử dụng Milo
+
+Tài liệu cho người **dùng** app: đồng nghiệp dùng thử, người đi present, người test. Cài đặt và cấu hình kỹ thuật nằm ở [README](../README.md); cách app được xây nằm ở [KIEN-TRUC.md](KIEN-TRUC.md).
+
+Mục lục:
+1. [Milo là ai](#1-milo-là-ai)
+2. [Mở app và chọn môi trường](#2-mở-app-và-chọn-môi-trường)
+3. [Milo trên màn hình của bạn](#3-milo-trên-màn-hình-của-bạn)
+4. [Bảng điều khiển](#4-bảng-điều-khiển)
+5. [Milo làm được gì: từng tính năng](#5-milo-làm-được-gì-từng-tính-năng)
+6. [Dùng theo từng môi trường](#6-dùng-theo-từng-môi-trường)
+7. [Vì sao Milo không hiện?](#7-vì-sao-milo-không-hiện)
+8. [Riêng tư](#8-riêng-tư)
+9. [Hỏi nhanh](#9-hỏi-nhanh)
+
+---
+
+## 1. Milo là ai
+
+Milo là một chú cáo nhỏ sống ở góc màn hình. Milo nhìn lịch họp, email và task của bạn, rồi nhắc đúng lúc: sắp họp, họp liền quá lâu, ngồi máy quá lâu, quá giờ về. Milo **không nói khi bạn đang bận** (đang họp, đang trình chiếu, đang tập trung) và mỗi lần chỉ nhắc 1 chuyện.
+
+Bình thường Milo ẩn, chỉ còn **chóp đuôi màu cam** ở góc phải dưới màn hình, ngay trên thanh taskbar.
+
+## 2. Mở app và chọn môi trường
+
+Mở `Minditful.exe` (hoặc chạy từ Visual Studio). Màn hình đầu tiên hỏi **"Hôm nay chạy Milo ở đâu?"**:
+
+| Chọn | Dành cho | Cần gì |
+| --- | --- | --- |
+| **Demo · xem thử, present** | Lần đầu dùng, đi present, xem Milo làm đủ mọi tình huống | Không cần tài khoản, không cần mạng |
+| **Sandbox · thử với dữ liệu thật** | Nhóm phát triển test với tenant thử `mindiful.onmicrosoft.com` | Tài khoản thulu@, PAT Azure DevOps |
+| **Production · dùng hằng ngày** | Dùng thật với tài khoản Bosch | Tài khoản Bosch; IT đã duyệt quyền |
+
+Tick **"Nhớ lựa chọn"** để lần sau mở thẳng. Muốn chọn lại: **giữ Shift** khi mở app.
+
+App chạy nền. Biểu tượng **chóp đuôi cáo** nằm ở khay hệ thống (góc phải taskbar, có thể nằm trong mũi tên ^). Chuột phải vào biểu tượng:
+
+- **Mở dashboard của Milo**
+- **Mở bảng điều khiển**
+- Demo: **Phát / tạm dừng ngày mẫu**, **Làm lại ngày mẫu**
+- Sandbox/Production: **Đăng nhập Microsoft**, **Làm mới dữ liệu**
+- **Thoát Milo**: tắt hẳn app
+
+Nhấp đúp biểu tượng cũng mở bảng điều khiển.
+
+## 3. Milo trên màn hình của bạn
+
+### 3.1 Chóp đuôi, ló đầu, dashboard
+
+| Bạn làm | Milo làm |
+| --- | --- |
+| Rê chuột lên chóp đuôi khoảng nửa giây | Milo **ló đầu** và thì thầm 1 dòng, vd. "Hôm nay mọng 80 · chạm để xem" |
+| Bấm chóp đuôi | Mở **dashboard 4 quả** quanh Milo |
+| Chóp đuôi có số "1" | Có 1 lời nhắc bạn chưa trả lời. Bấm đuôi để mở lại lời nhắc đó |
+| Kéo chóp đuôi sang góc khác rồi thả | Milo chuyển sang góc đó (trên trái, trên phải, dưới trái, dưới phải) |
+| Bấm Milo, bấm ×, hoặc nhấn Esc | Đóng dashboard |
+
+Màu và dáng Milo đổi theo **điểm mood** của ngày: mọng (≥ 80) thì tươi tắn; mệt dần (40–59) thì nhạt màu, dáng uể oải; kiệt sức (< 40) thì có chữ "z" bay.
+
+### 3.2 Dashboard 4 quả
+
+| Quả | Ý nghĩa | Rê chuột lên để xem |
+| --- | --- | --- |
+| **Nho** (tím) | Điểm mood hôm nay. Quả càng mọng càng ổn, héo vàng là mệt | Câu tóm tắt, so với hôm qua, Office Vibe (tập trung / năng lượng / căng thẳng) |
+| **Cam** | Cuộc họp: mỗi múi là 1 cuộc, múi đã ăn = đã họp xong | Lịch họp hôm nay, mức nặng từng cuộc |
+| **Anh đào** | Mỗi quả là 1 email hỏi thẳng bạn mà chưa trả lời | 3 email chờ lâu nhất |
+| **Táo** | Sprint: càng gần xong táo càng bị cắn nhiều | Điểm sprint, số task đang làm / kẹt |
+
+Trên thanh tiêu đề nhỏ:
+- **Tuần này →**: nho thành **chùm 7 quả**, mỗi quả là 1 ngày (quả viền cam là hôm nay). Cam có 5 múi = 5 ngày làm việc.
+- **Chi tiết**: mở **bảng nhỏ** ngay trên đầu Milo, cỡ 1 thẻ.
+  - Trang *Hôm nay*: dòng thời gian giờ làm (họp, tập trung, nghỉ, vạch cam là bây giờ), Office Vibe, 3 cuộc họp sắp tới.
+  - Trang *Tuần*: 7 quả nho, tổng giờ họp / nghỉ / tập trung / task, bạn trả lời Milo thế nào, bạn tự thấy thế nào, 1 mẹo.
+  - Bấm **‹ 4 quả** để quay lại.
+
+### 3.3 Thẻ nhắc và cách trả lời
+
+Khi có chuyện cần nói, Milo leo lên và hiện **thẻ** phía trên đầu.
+
+- **Nút chính** (cam hoặc nâu đậm): làm luôn. Ví dụ *Tham gia*, *Giữ chỗ trong lịch*, *Khoá 90 phút*, *Đồng ý, nghỉ chút*.
+- **Để sau (15p)**: Milo hỏi lại sau, tối đa 2 lần/ngày cho mỗi chuyện.
+- **Không cần**: Milo thôi nhắc chuyện đó 1 lúc. Bấm "Không cần" lần 2 trong ngày thì Milo giãn ra lâu hơn nữa.
+- **Không trả lời**: sau 45 giây thẻ tự thu lại, chóp đuôi hiện số "1" giữ trong 30 phút.
+- **Ô chat**: gõ tự nhiên.
+
+| Bạn gõ | Milo hiểu |
+| --- | --- |
+| "ok", "đồng ý", "làm luôn" | Bấm nút chính |
+| "đang bận", "lát nữa", "đang họp" | Để sau |
+| "không", "thôi", "ổn mà" | Không cần |
+| "mệt quá", "căng thẳng" | Rủ bạn thở cùng vài nhịp |
+| "về thôi", "tan làm" | Ở thẻ tan tầm: chạy ra xe về nhà |
+| "cảm ơn" | Milo vui, tính như nửa lần đồng ý |
+
+Có API key Claude thì câu khó hiểu cũng được trả lời tự nhiên. Không có thì Milo nhắc bạn chọn nút.
+
+**Chấm chờ:** lúc Milo phải im lặng (đang họp…), lời nhắc dồn lại thành 1 viên nhỏ "2 lời nhắc đang chờ" ở góc. Bấm vào thì thẻ bung ra ngay, kể cả đang họp.
+
+## 4. Bảng điều khiển
+
+Cửa sổ riêng, tông kem như thẻ của Milo. **Đóng cửa sổ này thì Milo vẫn chạy.**
+
+- **Dải trên cùng:** hình Milo, câu "Milo đang làm gì" (vd. *Milo đang im lặng · Vì đang họp. Có 2 lời nhắc đang chờ*), đồng hồ, điểm mood.
+- **Thanh bên trái:** chọn trang.
+
+### 4.1 Demo
+
+| Trang | Để làm gì |
+| --- | --- |
+| **Bắt đầu** | Phát / tạm dừng ngày mẫu, *Làm lại từ 08:50*, tốc độ *Chậm 60× · Vừa 120× · Nhanh 300×*. Công tắc **Người dùng mẫu tự bấm nút**: bật thì kịch bản tự trả lời, tắt thì bạn tự bấm trên thẻ. Số liệu hôm nay và mẹo tương tác |
+| **Ngày mẫu** | 17 mốc của ngày Thứ Năm 24/9. Bấm 1 mốc để tua tới ngay trước lúc đó. Mốc đang diễn ra tô cam |
+| **Thử tình huống** | *Cho Milo làm ngay*: 19 thẻ tình huống chia 4 nhóm, bấm là Milo làm luôn. *Giả vờ bạn đang…*: công tắc gõ phím, rời máy, khoá máy, toàn màn hình, Không làm phiền, trình chiếu, ngày căng thẳng; và nút 1 lần (rời cuộc họp, nhảy việc, xong 1 task, mở dashboard) |
+| **Milo của bạn** | Tủ đồ (bấm món để Milo mặc ngay), chọn góc màn hình |
+| **Bộ não Milo** | Nâng cao: trạng thái, điều gì đang khiến Milo im lặng, lời nhắc đang chờ, điểm mood được tính thế nào, nhật ký từng quyết định |
+
+Lúc Milo ẩn, đồng hồ kịch bản tua nhanh. Lúc Milo xuất hiện, thời gian chạy thật để bạn xem trọn hoạt ảnh.
+
+### 4.2 Sandbox và Production
+
+| Trang | Để làm gì |
+| --- | --- |
+| **Tổng quan** | 3 thẻ kết nối: *Microsoft 365*, *Azure Boards*, *Claude*. **Chấm xanh** là ổn, **vàng** là cần làm thêm 1 bước, **đỏ** là lỗi (dòng chữ cạnh chấm ghi lý do bằng tiếng Việt). Phần *Milo đang thấy*: số cuộc họp, email chờ, task, sprint, điểm mood, cuộc họp kế tiếp, giờ làm hôm nay |
+| **Kết nối** | *Đăng nhập / Đăng xuất Microsoft*, *Làm mới dữ liệu*. Ô dán **PAT** Azure DevOps (*Lưu PAT / Xoá PAT*). Ô dán **API key Claude** (*Lưu key*). Tất cả lưu mã hoá trên máy |
+| **Thử tình huống** (chỉ Sandbox) | *Chuẩn bị*: Reset ngày (chào sáng lại), đặt giờ về (*Giờ về = bây giờ + 2 phút*), *Tạo dữ liệu mẫu* trong tenant. *Cho Milo làm ngay* và *Giả vờ bạn đang…* như Demo |
+| **Milo của bạn** | Tủ đồ, góc màn hình, *Milo chăm sóc bạn thế nào* (tính năng nào đang Bật/Tắt), *Riêng tư & dữ liệu* (Milo tự điều chỉnh theo 7 ngày ra sao, dữ liệu giữ trên máy, nút **Xoá toàn bộ dữ liệu thống kê ngay**) |
+| **Bộ não Milo** | Như Demo |
+
+Production mặc định không tự mở bảng điều khiển (Milo chỉ ở góc màn hình). Mở bằng biểu tượng ở khay.
+
+## 5. Milo làm được gì: từng tính năng
+
+Cột "Thử ở đâu": trang **Thử tình huống** của bảng điều khiển (Demo và Sandbox) có thẻ cùng tên.
+
+### 5.1 Chào hỏi
+
+| Tính năng | Khi nào | Milo làm | Bạn trả lời |
+| --- | --- | --- | --- |
+| **Chào sáng** | Mở máy lần đầu trong ngày | Bám mép leo lên, "Hello!", bản tin: mấy cuộc họp, email chưa đọc, task đang dở, giờ về hôm nay, món mới trong tủ đồ | *Đã rõ* · *Nhắc lúc 10h* |
+| **Chào hỏi** | Thỉnh thoảng khi bạn đang làm tốt | 1 câu động viên | *Cảm ơn Milo* |
+| **Tan tầm** | Tới giờ về | Tổng kết ngày (giờ họp, lần nghỉ, tập trung, điểm), hỏi **"Hôm nay thấy sao?"** (Vui / Bình thường / Mệt), gợi ý giữ nghỉ cho chuỗi họp ngày mai | *Về thôi* (Milo chạy ra xe) · *Thêm 30 phút* (1 lần) |
+| **Nhắc lại tan tầm** | Hết 30 phút làm thêm | Nhắc về | *Về thôi* |
+
+Giờ về theo **giờ linh hoạt kiểu Bosch**: bắt đầu tính từ lúc bạn mở máy đầu ngày (trong khoảng 8:00–10:00), làm 9 tiếng. Vào 8h về 17h, vào 9h về 18h, vào 10h về 19h.
+
+### 5.2 Giúp việc
+
+| Tính năng | Khi nào | Milo làm | Bạn trả lời |
+| --- | --- | --- | --- |
+| **Sắp họp** | 5 phút trước cuộc họp Teams | Thẻ tên cuộc họp, người tham gia, vai trò; nếu bạn trình bày thì mời mở slide | *Tham gia* (mở Teams) · *Mở slide* |
+| **Lịch kín** | Buổi sáng/chiều có ≥ 3 cuộc họp liền nhau | Lịch mini, đề nghị chèn 10 phút nghỉ | *Giữ chỗ trong lịch* (tạo "Nghỉ cùng Milo" trong Outlook) · *Thôi* |
+| **Email chờ** | Sau 10:00, có email hỏi thẳng bạn mà chưa trả lời | Liệt kê 3 email chờ lâu nhất | *Nhắc tôi lúc 16:00* · *Mở Outlook* |
+| **Task kẹt** | Task dở nhiều ngày và có khoảng trống ≥ 45 phút | Đề nghị khoá giờ tập trung | *Khoá 90 phút*: chặn lịch + Teams "Không làm phiền", Milo im lặng tới hết khối |
+| **Task xong** | Task chuyển sang Done | Nhảy tưng ăn mừng 3 giây | — |
+| **Hết giờ tập trung** | Hết khối tập trung | Chúc mừng 3 giây | — |
+
+### 5.3 Chăm sóc
+
+Mỗi lần Milo chỉ nhắc 1 chuyện chăm sóc. Những chuyện khác gộp vào tổng kết cuối ngày.
+
+| Tính năng | Khi nào | Milo rủ |
+| --- | --- | --- |
+| **Họp liên tục** | Vừa xong chuỗi ≥ 3 cuộc họp liền | Thở 4-4-4 cùng Milo (3 nhịp) |
+| **Làm liền** | Ngồi máy 2 tiếng không nghỉ ≥ 5 phút | Thở 1 phút, uống nước |
+| **Nghỉ quá ít** | Cả ngày nghỉ quá ít so với giờ đã làm | Nghỉ hẳn 15 phút, Milo canh giờ |
+| **Chưa nghỉ trưa** | 12:30–14:00 mà chưa rời máy | Đi ăn thôi · Khoá 30' nghỉ trưa trong lịch |
+| **Phân mảnh** | Nhảy qua lại giữa các app quá nhiều trong 1 giờ | Gom việc, tắt thông báo 30 phút |
+| **Quá giờ** | Quá giờ về 30 phút mà vẫn làm | Chốt việc rồi về |
+
+Vòng thở: vòng tròn phồng 4 giây (hít vào), giữ 4 giây, xẹp 4 giây (thở ra). Bấm *Dừng* lúc nào cũng được, vẫn tính là đã nghỉ.
+
+### 5.4 Tính năng mở rộng
+
+| Tính năng | Khi nào | Milo làm | Bạn trả lời |
+| --- | --- | --- | --- |
+| **Giữ giờ tập trung** | 1 lần/ngày, buổi sáng, khi lịch còn khoảng trống ≥ 60 phút | Đề nghị giữ khoảng trống dài nhất để tập trung | *Giữ*: tạo "Tập trung · Milo giữ chỗ" trong lịch; tới giờ Milo tự bật Không làm phiền · *Thôi* |
+| **Báo cáo tuần** | Sáng thứ Hai | Tóm tắt tuần trước + 1 mẹo cho tuần mới | *Đã rõ* · *Xem chùm nho* |
+| **Uống nước · nhìn xa** | Mỗi 50 phút ngồi máy liên tục (tối đa 6 lần/ngày) | Ló lên 5 giây: "Uống ngụm nước nha!" hoặc "20-20-20: nhìn xa 6 mét trong 20 giây" | Không cần trả lời |
+| **Hôm nay thấy sao?** | Trên thẻ tan tầm | 3 nút Vui / Bình thường / Mệt | Câu trả lời chỉ lưu trên máy, tính vào điểm mood |
+| **Nghỉ giữa chuỗi họp ngày mai** | Trên thẻ tan tầm, khi mai có ≥ 3 cuộc họp liền | "Mai 13:30–16:15 có 3 cuộc họp liền" | *Giữ 10' nghỉ lúc …* |
+| **Trốn khi trình chiếu** | Teams báo bạn đang trình chiếu | Trốn hẳn, kể cả chóp đuôi | — |
+| **Tủ đồ** | Về đúng giờ 3 / 5 / 10 ngày liền | Khăn quàng / kẹp hoa / mũ nồi; sáng hôm sau Milo khoe | Chọn món ở *Milo của bạn* |
+
+Muốn tắt tính năng nào (vd. thấy nhắc uống nước phiền): xem README mục **Tham chiếu biến `.env`**, nhóm `Wellbeing`.
+
+### 5.5 Điểm mood
+
+Mỗi ngày bắt đầu từ 92 điểm:
+- **Bị trừ khi:** họp quá nhiều, họp liền, ngồi liền, quá giờ, nghỉ ít, nhảy việc, nhiều task dở, task kẹt, email chờ, hoặc bạn tự nói "Mệt" (−6).
+- **Được cộng khi:** nghỉ cùng Milo, xong task, xong khối tập trung, bạn nói "Vui" (+3).
+
+Có Claude và bật chế độ Hybrid thì Claude được chỉnh thêm tối đa ±10 điểm. Trang **Bộ não Milo** ghi rõ từng khoản.
+
+## 6. Dùng theo từng môi trường
+
+### 6.1 Demo: xem thử trong 5 phút
+
+1. Chọn **Demo**. Bảng điều khiển mở ở bên trái, Milo ở góc phải dưới.
+2. Trang **Bắt đầu**: để công tắc *Người dùng mẫu tự bấm nút* bật, tốc độ *Vừa 120×*, bấm **Phát tiếp** nếu đang dừng. Nhìn góc màn hình: 08:58 Milo chào sáng.
+3. Trang **Ngày mẫu**: bấm từng mốc để nhảy tới cảnh hay.
+   - 09:25 sắp họp
+   - 10:37 task kẹt
+   - 13:15 dashboard
+   - 16:12 thở cùng Milo
+   - 18:31 chạy ra xe
+4. Muốn tự bấm: tắt công tắc tự bấm, rồi bấm nút trên thẻ của Milo hoặc gõ chat.
+5. Trang **Thử tình huống**: bấm bất kỳ thẻ nào để xem Milo làm tình huống đó. Bật *Đang trình chiếu* để thấy Milo trốn.
+6. Trang **Milo của bạn**: cho Milo đội mũ nồi.
+
+Present: để bảng điều khiển ở màn hình thứ hai, màn hình chính chỉ có Milo. Chạy thử 1 lượt trước, rồi *Làm lại từ 08:50*.
+
+### 6.2 Sandbox: thử với dữ liệu thật
+
+1. Chọn **Sandbox**. Trình duyệt mở đăng nhập: chọn **thulu@mindiful.onmicrosoft.com**, đồng ý quyền.
+2. Trang **Tổng quan**: đợi 2 chấm xanh (Microsoft 365, Azure Boards). Azure Boards vàng thì sang trang **Kết nối**, dán PAT, *Lưu PAT*.
+3. Trang **Thử tình huống** → **Tạo dữ liệu mẫu**: tạo 1 cuộc họp Teams sau 7 phút, chuỗi 3 cuộc họp liền, 6 task. Khoảng 2 phút sau Milo nhắc sắp họp.
+4. Bấm nút trên thẻ để thấy hành động thật:
+   - *Giữ chỗ*: Outlook có "Nghỉ cùng Milo".
+   - *Khoá 90 phút*: Teams chuyển Không làm phiền.
+5. *Giờ về = bây giờ + 2 phút*: xem thẻ tan tầm, bấm *Mệt*, *Về thôi*.
+6. Checklist đầy đủ: [KET-NOI-SANDBOX.md](KET-NOI-SANDBOX.md) mục 7. Test xong xoá các sự kiện có category **Milo** trong Outlook.
+
+Sandbox dùng ngưỡng rút ngắn (vd. ngồi liền 20 phút đã nhắc) để test trong 1 buổi.
+
+### 6.3 Production: dùng hằng ngày
+
+1. Chọn **Production**, đăng nhập bằng tài khoản Bosch. Tick *Nhớ lựa chọn*.
+2. Không cần làm gì thêm: Milo tự chào sáng, nhắc họp, im lặng khi bạn họp hoặc trình chiếu, rủ nghỉ khi cần, nhắc về.
+3. Nếu thẻ ghi "Nhắc tôi lúc đó" thay cho "Giữ chỗ trong lịch": tenant chưa cấp quyền ghi lịch. Milo vẫn nhắc đúng giờ nhưng không ghi vào Outlook. Đây là đúng thiết kế.
+4. Muốn Milo nói tự nhiên hơn: dán API key Claude ở trang **Kết nối** (không bắt buộc).
+
+## 7. Vì sao Milo không hiện?
+
+Nhìn dải trên cùng của bảng điều khiển, hoặc trang **Bộ não Milo** → *Điều đang khiến Milo im lặng*.
+
+| Dải trên cùng ghi | Lý do | Milo sẽ… |
+| --- | --- | --- |
+| Milo đang nghỉ | Chưa tới giờ làm, máy khoá, hoặc đã tan tầm | Chào sáng lần mở máy đầu tiên của ngày mai |
+| Milo đang im lặng · vì đang họp | Teams báo đang trong cuộc gọi, hoặc lịch đang có họp | Hết họp chờ 2 phút rồi mới nói |
+| … vì toàn màn hình / không làm phiền / giờ tập trung | Bạn đang cần tập trung | Dồn lời nhắc thành chấm chờ |
+| Milo đang trốn | Bạn đang trình chiếu | Hiện lại khi thôi trình chiếu |
+| Milo đang ẩn ở góc màn hình | Không có gì cần nói, hoặc đã nhắc đủ số lần (tối đa 3 lần/giờ, 10 lần/ngày, cách nhau ≥ 15 phút) | Chờ đúng lúc |
+
+Không thấy cả chóp đuôi:
+1. Kiểm tra Milo có đang ở góc khác không (trang *Milo của bạn* → góc màn hình).
+2. Kiểm tra biểu tượng ở khay còn không. Nếu mất thì app đã tắt, mở lại.
+
+## 8. Riêng tư
+
+- Milo **chỉ lưu số liệu** trên máy bạn (điểm, số phút, số lần). Không lưu tiêu đề hay nội dung email, cuộc họp, task.
+- Dữ liệu **tự xoá theo tuần**. Máy chỉ giữ tuần này và tuần trước để vẽ chùm nho và so sánh.
+- Muốn xoá ngay: *Milo của bạn* → **Xoá toàn bộ dữ liệu thống kê ngay**.
+- Claude (nếu bật) chỉ nhận tên tình huống và con số, vd. "3 cuộc họp liền, 2h40". Không bao giờ nhận tiêu đề hay nội dung.
+- Milo **không đọc phím bạn gõ**, chỉ biết lúc nào có thao tác.
+- Ở Sandbox/Production, người xem màn hình chia sẻ **không thấy Milo**.
+- PAT, API key, đăng nhập được mã hoá theo tài khoản Windows của bạn.
+
+## 9. Hỏi nhanh
+
+**Milo nhắc nhiều quá?** Bấm *Không cần*. Milo tự thưa dần những chuyện bạn hay từ chối (xem *Milo của bạn* → *Milo tự điều chỉnh theo 7 ngày*). Tắt hẳn tính năng mở rộng trong `.env` nhóm `Wellbeing`.
+
+**Muốn đổi giờ về hôm nay?** Giờ về tính tự động từ lúc mở máy. Muốn giờ cố định: README → Tham chiếu biến `.env` → `WorkDay__Mode=Fixed`.
+
+**Milo che mất nút của app khác?** Kéo chóp đuôi sang góc khác. Chỗ trống quanh Milo cho chuột bấm xuyên qua.
+
+**Sửa `.env` mà không thấy đổi?** Thoát hẳn Milo ở khay rồi mở lại.
+
+**Đang present mà Milo nhảy ra?** Ở Production/Sandbox Milo tự trốn khi Teams báo đang trình chiếu. Ở Demo bật công tắc *Teams: đang trình chiếu* trên bảng điều khiển.
+
+**Có lỗi?** Dải trên cùng và trang *Tổng quan* ghi lý do bằng tiếng Việt. App gặp lỗi lạ thì xem `%LOCALAPPDATA%\Minditful\crash.log`.
