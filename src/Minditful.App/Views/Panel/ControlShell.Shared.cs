@@ -73,60 +73,48 @@ internal abstract partial class ControlShell
         return sp;
     }
 
-    /// <summary>Tủ đồ: 5 lựa chọn, món chưa mở khoá bị mờ. Mỗi món có ảnh Milo đang mặc.</summary>
-    protected Border WardrobeCard(AppEnvironment env, Func<int> best, Func<string> progress)
+    /// <summary>
+    /// Tủ đồ phối theo ô, cùng control với bảng tủ đồ trên đầu Milo. Bấm món là Milo trên desktop mặc ngay.
+    /// </summary>
+    protected Border WardrobeCard(AppEnvironment env, Func<WardrobeInfo?> info, Func<DateOnly> today)
     {
-        (string Id, string Name, int Need)[] items = [("auto", "Tự chọn món mới nhất", 0), ("none", "Không mặc", 0),
-            .. Wardrobe.Items.Select(i => (i.Id, $"{char.ToUpper(i.Name[0])}{i.Name[1..]}", i.Streak))];
-        var wrap = new WrapPanel();
-        var boxes = new List<(Border Box, string Id, int Need, TextBlock Lock)>();
-        foreach (var (id, name, need) in items)
+        var view = new WardrobeView(env, info, today, () => UiSettings.LoadAccessory(env),
+            choice => ((App)Application.Current).Companion?.SetAccessory(choice));
+        Tick(view.Refresh);
+        return Card(view, "Tủ đồ của Milo",
+            "Phối theo ô: mũ, kẹp tóc, kính, cổ, tay cầm. Bấm món để Milo mặc, bấm lại để cởi. Mở khoá bằng thói quen tốt: về đúng giờ, nghỉ cùng Milo, tập trung sâu, và đồ theo mùa. " +
+            "Trên desktop: chuột phải Milo → Thay đồ.");
+    }
+
+    /// <summary>Tính cách Milo: dễ thương, hài hước, hoặc pha trộn. Demo có thêm nút xem thử từng clip hài để trình diễn.</summary>
+    protected Border PersonalityCard(AppEnvironment env, MiloEngine engine, bool preview = false)
+    {
+        var seg = Segmented(Catalog.Personalities.Select(p => (p.Name, p.Value.ToString())).ToArray(),
+            () => engine.Cfg.Personality.ToString(), v => PersonalitySetting.Set(env, engine, Enum.Parse<Personality>(v)));
+        var hint = Text("", 11.5, P.Ink2);
+        hint.Margin = new Thickness(0, 6, 0, 0);
+        Tick(() => hint.Text = Catalog.Personalities.First(p => p.Value == engine.Cfg.Personality).Hint);
+        var body = new StackPanel { Children = { seg, hint } };
+        if (preview)
         {
-            var acc = Wardrobe.Find(id)?.Id;
-            var img = new Image
+            (Core.Engine.Clip Clip, string Label)[] clips =
+            [
+                (Core.Engine.Clip.Slay, "Slay"), (Core.Engine.Clip.SideEye, "Liếc xéo"), (Core.Engine.Clip.Confused, "Toán bay"),
+                (Core.Engine.Clip.Faint, "Ơ kìa → ngất"), (Core.Engine.Clip.Vibe, "Vibe thứ Sáu"), (Core.Engine.Clip.Loading, "Đang tải tuần"),
+                (Core.Engine.Clip.Cobweb, "Mạng nhện"), (Core.Engine.Clip.ThisIsFine, "Mọi thứ vẫn ổn"), (Core.Engine.Clip.Zombie, "NPC mode"),
+            ];
+            var wrap = new WrapPanel { Margin = new Thickness(0, 10, 0, 0) };
+            foreach (var (clip, label) in clips)
             {
-                Width = 74, Height = 74, HorizontalAlignment = HorizontalAlignment.Center,
-                Source = id == "none" || id == "auto" ? MiloSkin.Get(Pose.Idle, 1) : MiloSkin.Frame(Pose.Idle, MiloRig.Idle, 0, false, 1, acc),
-            };
-            var title = Text(name, 12, P.Ink, FontWeights.SemiBold);
-            title.TextAlignment = TextAlignment.Center;
-            var lockText = Text(need > 0 ? $"{need} ngày về đúng giờ" : id == "auto" ? "mặc định" : "", 10.5, P.Muted);
-            lockText.TextAlignment = TextAlignment.Center;
-            var box = new Border
-            {
-                Width = 128, Padding = new Thickness(8, 8, 8, 10), Margin = new Thickness(0, 0, 8, 8), CornerRadius = new CornerRadius(14),
-                Background = Br(P.Fill), BorderThickness = new Thickness(2), Cursor = System.Windows.Input.Cursors.Hand,
-                Child = new StackPanel { Children = { img, title, lockText } },
-            };
-            System.Windows.Automation.AutomationProperties.SetName(box, name);
-            var chosen = id;
-            box.MouseLeftButtonUp += (_, _) =>
-            {
-                if (need > best()) return;
-                ((App)Application.Current).Companion?.SetAccessory(chosen);
-                Refresh();
-            };
-            boxes.Add((box, id, need, lockText));
-            wrap.Children.Add(box);
-        }
-        var prog = Text("", 12.5, P.Ink2);
-        prog.Margin = new Thickness(0, 4, 0, 0);
-        Tick(() =>
-        {
-            var b = best();
-            var cur = UiSettings.LoadAccessory(env);
-            foreach (var (box, id, need, lk) in boxes)
-            {
-                var open = need <= b;
-                box.Opacity = open ? 1 : .45;
-                box.BorderBrush = Br(id == cur ? P.Accent : "#00000000");
-                box.Background = Br(id == cur ? "#FFF1DE" : P.Fill);
-                lk.Text = need == 0 ? (id == "auto" ? "mặc định" : "") : open ? "đã mở khoá" : $"cần {need} ngày về đúng giờ";
+                var b = Btn(label, () => ((App)Application.Current).Companion?.PlayMeme(clip), BtnKind.Ghost);
+                b.Margin = new Thickness(0, 0, 6, 6);
+                wrap.Children.Add(b);
             }
-            prog.Text = progress();
-        });
-        return Card(new StackPanel { Children = { wrap, prog } }, "Tủ đồ của Milo",
-            "Về đúng giờ (quá giờ dưới 15 phút) nhiều ngày liền để mở khoá. Bấm 1 món để Milo mặc ngay.");
+            body.Children.Add(wrap);
+        }
+        return Card(body, "Tính cách Milo", preview
+            ? "Pha trộn: phần lớn dễ thương, lâu lâu hài một chút. Bấm để xem Milo diễn từng kiểu hài ngay."
+            : "Pha trộn: phần lớn dễ thương, lâu lâu hài một chút. Cũng đổi được bằng chuột phải vào Milo.");
     }
 
     protected Border CornerCard(AppEnvironment env) =>

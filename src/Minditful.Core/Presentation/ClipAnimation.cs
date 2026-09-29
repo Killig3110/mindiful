@@ -73,9 +73,30 @@ public static class ClipAnimation
             [new(0), new(.1, Rot: -8), new(.2, Rot: 8), new(.3, Rot: -8), new(.4), new(1, Ty: 175)]),
     };
 
+    // ---------- clip hài (chuyển động toàn thân) ----------
+    private static readonly Dictionary<Clip, Anim> MemeAnims = new()
+    {
+        [Clip.Slay] = new(.8, true, EaseInOut, .5, 1, [new(0, Rot: -4, Tx: -3), new(.5, Rot: 4, Tx: 3), new(1, Rot: -4, Tx: -3)]),
+        [Clip.SideEye] = new(3, true, EaseInOut, .5, 1, [new(0, Rot: -3), new(.5, Rot: -4, Tx: -2), new(1, Rot: -3)]),
+        [Clip.Confused] = new(2.6, true, EaseInOut, .5, 1, [new(0, Rot: -2), new(.5, Rot: 2), new(1, Rot: -2)]),
+        // Lảo đảo → ngã nằm ngang (xoay ~86° quanh chân) → nằm im → bật dậy
+        [Clip.Faint] = new(3.6, false, EaseInOut, .5, 1,
+        [
+            // ngã về phía giữa màn hình (bên trái) và nhấc lên để thân nằm ngang không bị cắt ở mép dưới
+            new(0), new(.08, Rot: 6), new(.16, Rot: -6), new(.24, Rot: 4), new(.40, Rot: -86, Ty: -44, Tx: -22),
+            new(.44, Rot: -82, Ty: -42, Tx: -22), new(.78, Rot: -84, Ty: -44, Tx: -22), new(.92, Rot: 6, Ty: -10), new(1),
+        ]),
+        [Clip.Vibe] = new(.55, true, EaseOut, .5, 1, [new(0), new(.3, Ty: -12, Rot: 5), new(.5, Sx: 1.05, Sy: .95), new(.8, Ty: -8, Rot: -5), new(1)]),
+        [Clip.Loading] = new(6, false, EaseInOut, .5, 1, [new(0, Sy: .94), new(.85, Sy: .97), new(.93, Ty: -12, Sy: 1.05), new(1)]),
+        [Clip.Cobweb] = new(6, false, EaseInOut, .5, 1,
+            [new(0), new(.66), new(.70, Rot: -8), new(.74, Rot: 8), new(.78, Rot: -8), new(.82, Rot: 8), new(.86, Rot: -4), new(.9, Ty: -10), new(1)]),
+        [Clip.ThisIsFine] = Bob(3.5),
+        [Clip.Zombie] = new(2.4, true, EaseInOut, .5, 1, [new(0, Tx: -6, Rot: -3), new(.5, Tx: 6, Rot: 3), new(1, Tx: -6, Rot: -3)]),
+    };
+
     public static MiloTransform Evaluate(Clip clip, double elapsed)
     {
-        if (!Anims.TryGetValue(clip, out var a)) return clip == Clip.Gone ? MiloTransform.Hidden : new MiloTransform(0, 0, 0, 1, 1, .5, .5);
+        if (!Anims.TryGetValue(clip, out var a) && !MemeAnims.TryGetValue(clip, out a)) return clip == Clip.Gone ? MiloTransform.Hidden : new MiloTransform(0, 0, 0, 1, 1, .5, .5);
         var p = a.Loop ? elapsed % a.Duration / a.Duration : Math.Clamp(elapsed / a.Duration, 0, 1);
         var keys = a.Keys;
         var i = 0;

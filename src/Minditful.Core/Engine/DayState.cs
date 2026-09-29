@@ -66,6 +66,12 @@ public sealed class DayState
     public readonly Dictionary<string, MeetingAssessment> Assessments = [];
     public MoodInsight? MoodInsight;
     public double LastMoodAsk = -1e9;
+    /// <summary>Clip hài đang chen vào (vd. bấm Milo liên tục → ngất) trong khoảng [Start, End) giờ engine.</summary>
+    public (Clip Clip, double Start, double End)? Reaction;
+    public readonly List<double> Pokes = [];
+    public double? AwaySince;
+    /// <summary>Vừa quay lại sau ≥ 30 phút vắng: lần ghé tới Milo phủ mạng nhện.</summary>
+    public bool CobwebPending;
     public readonly List<string> ChatHistory = [];
     /// <summary>Teams presence "Presenting": Milo trốn hẳn, kể cả chóp đuôi.</summary>
     public bool Presenting;

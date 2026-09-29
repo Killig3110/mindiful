@@ -163,7 +163,7 @@ Cả 3 môi trường đều là **cùng một app**:
 
 Dùng để present và để kiểm tra đủ 16 case của prototype. Giờ, lịch, email, task và thao tác của người dùng đều theo **ngày mẫu Thứ Năm 24/9**.
 
-**Cách nhanh nhất để xem đủ mọi case:** trang **Kịch bản trình diễn** → bật *Tự chạy qua các bước*. 24 bước (12 bước theo ngày mẫu, rồi 9 case còn lại gồm trò chuyện, trình chiếu, mood realtime, đồng phục Bosch), có gợi ý câu nói từng bước. Chi tiết: [docs/KICH-BAN-DEMO.md](docs/KICH-BAN-DEMO.md).
+**Cách nhanh nhất để xem đủ mọi case:** trang **Kịch bản trình diễn** → bật *Tự chạy qua các bước*. 25 bước (12 bước theo ngày mẫu, rồi 9 case còn lại gồm trò chuyện, trình chiếu, mood realtime, Milo hài hước, đồng phục Bosch), có gợi ý câu nói từng bước. Chi tiết: [docs/KICH-BAN-DEMO.md](docs/KICH-BAN-DEMO.md).
 
 **Mood realtime:** trang *Bắt đầu* (và *Kịch bản trình diễn*) có thẻ **Mood realtime**:
 - Kéo *Căng thẳng giả lập* 0–60, hoặc bấm *Nghỉ cùng Milo (+3)* / *Xong 1 task (+2)*: điểm tính lại ngay.
@@ -208,7 +208,7 @@ Dùng để present và để kiểm tra đủ 16 case của prototype. Giờ, l
 - *Nhảy việc 12 lần/giờ*: case Phân mảnh.
 - *Giả lập ngày căng*: Milo đổi dáng mệt, có chữ z bay.
 - *Teams: đang trình chiếu*: Milo trốn hẳn, kể cả chóp đuôi và chấm chờ; bấm lại thì hiện lại.
-- Trang **Milo của bạn** → *Tủ đồ*: bấm khăn quàng / kẹp hoa / mũ nồi / đồng phục Bosch để Milo mặc ngay (ngày mẫu có sẵn chuỗi 15 ngày về đúng giờ).
+- **Tủ đồ phối theo ô:** chuột phải Milo → *Thay đồ cho Milo* (hoặc trang **Milo của bạn**). Ngày mẫu có sẵn 15 ngày về đúng giờ, 24 lần nghỉ, 5h20 tập trung và đang mùa Trung thu, nên mở gần hết tủ đồ.
 - Ở thẻ **Tan tầm** (18:00): bấm *Vui / Bình thường / Mệt* để thấy điểm đổi (+3 / 0 / −6), bấm *Giữ 10' nghỉ lúc 15:30* cho chuỗi họp ngày mai.
 
 **1e. Tương tác chung** (cả 3 môi trường):
@@ -356,7 +356,8 @@ Trong các bảng, `…` là viết tắt của `MINDITFUL__Minditful__`.
 | `…Wellbeing__MicroBreakMaxPerDay` | số lần | `6` | Trần số lần nhắc uống nước mỗi ngày |
 | `…Wellbeing__EveningCheck` | `true` · `false` | `true` | Thẻ tan tầm hỏi "Hôm nay thấy sao?" và gợi ý nghỉ giữa chuỗi họp ngày mai |
 | `…Wellbeing__HideWhenPresenting` | `true` · `false` | `true` | Milo trốn hẳn khi Teams báo đang trình chiếu |
-| `…Wellbeing__Wardrobe` | `true` · `false` | `true` | Tủ đồ (phụ kiện khi về đúng giờ nhiều ngày liền) |
+| `…Wellbeing__Wardrobe` | `true` · `false` | `true` | Tủ đồ phối đồ (mở khoá khi về đúng giờ, nghỉ, tập trung, và theo mùa) |
+| `…Wellbeing__Personality` | `Mixed` · `Cute` · `Funny` | `Mixed` | Tính cách Milo: Pha trộn (phần lớn dễ thương, lâu lâu hài), Dễ thương (không meme), Hài hước (gặp dịp là diễn meme). Người dùng đổi bằng chuột phải Milo thì được nhớ, đè lên giá trị này |
 
 **Claude (`Llm`, tuỳ chọn)**
 
@@ -643,9 +644,34 @@ Milo chớp mắt 4.5 giây/lần, khi mệt thì nhắm lâu hơn (§9.4). Chuy
 | Nghỉ giữa chuỗi họp ngày mai | Thẻ Tan tầm, khi mai có ≥ 3 cuộc họp liền | *Giữ 10' nghỉ lúc HH:mm* tạo sự kiện tentative trong lịch ngày mai | `EveningCheck` |
 | Nghỉ ngắn (uống nước, vươn vai) | Mỗi 50 phút ngồi máy liên tục (không tính giờ họp), tối đa 6 lần/ngày | Ló lên 5 giây với 1 bóng thoại, không nút, không tính ngân sách lời nhắc. Rời máy ≥ 5 phút thì đếm lại | `MicroBreakEveryMinutes` (0 = tắt), `MicroBreakMaxPerDay` |
 | Trốn khi trình chiếu | Teams presence = Presenting | Trốn hẳn, kể cả chóp đuôi và chấm chờ; thẻ đang mở thu lại | `HideWhenPresenting` |
-| Tủ đồ của Milo | Về đúng giờ (quá giờ < 15 phút) 3 / 5 / 10 / 15 ngày liền | Mở khoá khăn quàng / kẹp hoa / mũ nồi / **đồng phục Bosch** (phần thưởng cao nhất), sáng hôm sau thẻ Chào sáng báo. Chọn món ở bảng điều khiển → *Milo của bạn* (mặc định: món mới nhất) | `Wardrobe` |
+| Tủ đồ · phối đồ | Về đúng giờ (quá giờ < 15 phút) nhiều ngày liền, nghỉ cùng Milo, tập trung sâu, và theo mùa (Tết, Trung thu, Halloween, Noel) | 14 món chia 5 ô (mũ, kẹp tóc, kính, cổ, tay cầm), phối nhiều món, lưu 4 bộ, ngẫu nhiên. **Đồng phục Bosch** vẫn là phần thưởng cao nhất (15 ngày). Mở ngay trên Milo: chuột phải → *Thay đồ*, link *Tủ đồ* trên dashboard, menu khay, hoặc chat. Chi tiết: [HUONG-DAN-SU-DUNG.md mục 3.5](docs/HUONG-DAN-SU-DUNG.md) | `Wardrobe` |
 
 Test nhanh trên Sandbox: trang **Thử tình huống** → nhóm *Mới thêm* (Giữ giờ tập trung, Báo cáo tuần, Nghỉ ngắn); công tắc *Đang trình chiếu*; *Giờ về = bây giờ + 2 phút* để thấy thẻ Tan tầm có 3 nút cảm xúc. Báo cáo tuần cần dữ liệu tuần trước trên máy (chạy app ít nhất 1 ngày tuần trước).
+
+## Tính cách Milo: dễ thương, hài hước, pha trộn
+
+Ngoài các động tác dễ thương, Milo có 9 động tác hài lấy cảm hứng từ **cử chỉ** của meme quen thuộc, vẽ lại theo Milo (không dùng hình, nhân vật hay âm thanh gốc của meme).
+
+| Động tác hài | Dịp |
+| --- | --- |
+| Slay ✦ | Xong task, hết khối tập trung |
+| Liếc xéo "hmm…" | Thẻ email chờ |
+| Toán bay quanh đầu | Thẻ task kẹt |
+| "Ơ kìa!" → ngất | Bấm Milo 5 lần trong 4 giây |
+| Nhảy vibe "TGIF" | Ghé ngang chiều thứ Sáu (từ 15:00) |
+| "Đang tải tuần mới… 1% → 100%" | Chào sáng thứ Hai |
+| Mạng nhện "…vẫn đợi bạn" | Quay lại máy sau ≥ 30 phút vắng |
+| Nhấp cà phê giữa khói "mọi thứ vẫn ổn…" | Thẻ quá giờ |
+| Đi lừ đừ "NPC mode" | Thẻ họp liên tục |
+
+- **Tính cách** (`Wellbeing.Personality`):
+  - **Pha trộn** (mặc định): phần lớn dễ thương, khoảng 1/3 số dịp trên thì diễn hài.
+  - **Dễ thương:** như bản trước, không meme.
+  - **Hài hước:** dịp nào cũng diễn hài.
+- Bấm Milo 5 lần liền thì luôn có "ơ kìa!" (trừ tính cách Dễ thương), vì chính người dùng đang trêu Milo.
+- Đổi tính cách: chuột phải Milo → *Tính cách Milo*, hoặc bảng điều khiển → *Milo của bạn*. Bảng điều khiển Demo có thêm 9 nút xem thử để trình diễn.
+- Không bao giờ diễn lúc đang họp, trình chiếu, toàn màn hình, khoá máy.
+- Code: `Clip` (9 giá trị cuối), `Personality`, `MiloEngine.Meme()` / `Joke()`, `PlayMeme()`, `MiloRig`, `ClipAnimation`, `MiloLayer.BuildMemeFx`. Test: `PersonalityTests`.
 
 ## Logo và đồng phục Bosch
 
@@ -657,7 +683,7 @@ Test nhanh trên Sandbox: trang **Thử tình huống** → nhóm *Mới thêm* 
 - **Đồng phục Bosch** là món cao nhất trong tủ đồ, mở khoá khi về đúng giờ **15 ngày liền**:
   - Gồm mũ lưỡi trai đỏ có băng 3 màu và thẻ nhân viên: dây xanh vòng qua cổ, móc kẹp, thẻ trắng đầu đỏ có vạch 3 màu.
   - Đi theo mọi dáng của Milo: [docs/brand/milo-dong-phuc-bosch.png](docs/brand/milo-dong-phuc-bosch.png).
-  - Ngày mẫu Demo có sẵn chuỗi 15 ngày, nên Milo mặc sẵn để present. Đổi món ở *Milo của bạn* → *Tủ đồ*.
+  - Ngày mẫu Demo có sẵn chuỗi 15 ngày, nên Milo mặc sẵn để present. Đổi hoặc phối thêm: chuột phải Milo → *Thay đồ cho Milo*.
 - Logo **không dùng biểu tượng chính thức của Bosch** (vòng tròn "armature"), chỉ dùng 3 màu Bosch. Nếu ban tổ chức cho phép dùng logo chính thức, thay `logo.svg` rồi xuất lại `milo.ico` và `logo.png`.
 
 ## Góc neo (§9.1)
@@ -675,6 +701,7 @@ Mỗi môi trường có 1 file `%LOCALAPPDATA%\Minditful\<môi trường>\mindi
 - `day_start`: giờ mở máy đầu ngày (giờ làm linh hoạt).
 - `validation_week`: kiểm chứng điểm, mỗi tuần 2 con số (điểm Milo trung bình tuần, điểm WHO-5). Giữ 12 tuần (`Storage.ValidationWeeks`) vì cần vài tuần mới tính được tương quan.
 - `streak`: 1 dòng duy nhất cho tủ đồ (chuỗi về đúng giờ hiện tại, dài nhất, món vừa mở). Không tự xoá theo tuần vì chỉ là bộ đếm; nút xoá toàn bộ vẫn xoá.
+- `progress`: bộ đếm cộng dồn cho tủ đồ (tổng lần nghỉ, tổng phút tập trung) và món theo mùa đã giữ (`kept:<id>`). Chỉ là con số, không có nội dung; nút xoá toàn bộ vẫn xoá.
 - `mood_sample`: điểm mood mỗi 15 phút.
 - `outcome_event`: log phản hồi từng lời nhắc.
 - `meeting_assessment`: mức nặng cuộc họp. Id sự kiện được **băm**, không lưu tiêu đề.

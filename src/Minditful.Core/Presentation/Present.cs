@@ -17,6 +17,10 @@ public static class Present
         else if (s.Peek) clip = Clip.HoverPeek;
         else clip = Clip.Gone;
         if (clip == Clip.Idle && s.BandIdx >= 2) clip = Clip.IdleTired;
+        // Clip hài chen vào (bấm liên tục, bảng điều khiển Demo) khi Milo đang đứng ngoài, không đè lúc leo lên/xuống
+        if (s.Reaction is { } r && s.T >= r.Start && s.T < r.End && clip != Clip.Gone
+            && (s.Ep is null ? s.Visit is { Phase: not VisitPhase.Out } : s.Ep.Phase is Phase.Show or Phase.Bubble or Phase.Chat))
+            clip = r.Clip;
         return clip;
     }
 
@@ -55,7 +59,11 @@ public static class Present
     public static string? DotPill(MiloEngine e) =>
         e.Presence() == PresenceState.Silent && e.S.Queue.Count > 0 && e.S.Ep is null ? $"{e.S.Queue.Count} lời nhắc đang chờ" : null;
 
-    public static bool MiloClickable(MiloEngine e) => e.S.Ep is { FromDot: false } ep && ep.Phase != Phase.Exit;
+    /// <summary>Bấm được vào Milo: khi đang có thẻ, hoặc khi Milo đang ghé đứng ở góc (bấm để trò chuyện).</summary>
+    public static bool MiloClickable(MiloEngine e) => e.S.Ep is { FromDot: false } ep ? ep.Phase != Phase.Exit : e.S.Visit is not null;
+
+    /// <summary>Dashboard đang mở tủ đồ.</summary>
+    public static bool WardrobeOpen(MiloEngine e) => e.S.Ep is { C: CaseId.Dashboard, Card: true, Wardrobe: true };
 
     public static string ClockState(MiloEngine e) =>
         !e.S.DayStarted ? "trước giờ làm" : e.S.OffDuty ? "đã tan tầm" : e.S.T >= e.Cfg.End ? "ngoài giờ làm" : "trong giờ làm";
@@ -161,7 +169,10 @@ public static class Present
                 if (e.Cfg.IsFlexible) extra.Add($"Hôm nay về lúc {Hm(e.Cfg.End)}");
                 if (e.Snap.Wardrobe is { } wd)
                 {
-                    if (wd.NewItem is { } item) extra.Add($"Bạn về đúng giờ {wd.Streak} ngày liền, Milo được tặng {item}!");
+                    if (wd.NewItem is { } item)
+                        extra.Add(Wardrobe.Items.FirstOrDefault(i => i.Name == item) is { Kind: not UnlockKind.Streak } a
+                            ? $"Nhờ bạn {a.Condition}, Milo được tặng {item}! Mở tủ đồ để phối nha."
+                            : $"Bạn về đúng giờ {wd.Streak} ngày liền, Milo được tặng {item}!");
                     else if (wd.Streak >= 2) extra.Add($"Chuỗi về đúng giờ: {wd.Streak} ngày");
                 }
                 if (extra.Count > 0) b.Add(new ParagraphBlock(string.Join(" · ", extra), Small: true));
@@ -504,7 +515,7 @@ public static class Present
     /// <summary>Bảng chi tiết (bấm "Chi tiết" trên dashboard 4 quả). null khi đang xem 4 quả.</summary>
     public static DetailDashboard? Detail(MiloEngine e)
     {
-        if (e.S.Ep is not { Detail: true } ep || Dashboard(e) is not { } d) return null;
+        if (e.S.Ep is not { Detail: true, Wardrobe: false } ep || Dashboard(e) is not { } d) return null;
         var s = e.S;
         if (ep.Page == DashPage.Today)
         {

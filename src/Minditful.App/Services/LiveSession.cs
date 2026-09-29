@@ -117,6 +117,7 @@ internal sealed class LiveSession : IMiloSession
         Conn.MailMinWaitDays = BehaviorProfile.MailMinWaitDays(_mailWaitConfigured, ov, TestMode);
         Engine = new MiloEngine(cfg, new WorkSnapshot(), null, DateOnly.FromDateTime(now), now.TimeOfDay.TotalSeconds);
         Engine.SetAuto(false);
+        Engine.Cfg.Personality = PersonalitySetting.Load(env, _well);
         Engine.ActionRequested += a => _ = Sink.HandleAsync(a);
         Engine.OutcomeRecorded += (c, o) => History.Append(new OutcomeEvent(Engine.Day, Engine.S.T, c, o, Engine.S.Score));
         if (imported > 0) Engine.LogExternal($"Đã chuyển {imported} bản ghi cũ (history.json, outcomes.tsv) sang SQLite", LogKind.Sig);
@@ -430,12 +431,7 @@ internal sealed class LiveSession : IMiloSession
     {
         get
         {
-            var w = History.Wardrobe(Engine.Day);
-            var next = Core.Engine.Wardrobe.Items.FirstOrDefault(i => i.Streak > w.Best);
-            var owned = Core.Engine.Wardrobe.Unlocked(w.Best).Select(i => i.Name).ToList();
-            return $"Chuỗi về đúng giờ: {w.Streak} ngày (dài nhất {w.Best})"
-                + (owned.Count > 0 ? " · đã có: " + string.Join(", ", owned) : " · chưa có món nào")
-                + (next is null ? "" : $" · món kế tiếp: {next.Name} khi đạt {next.Streak} ngày");
+            return Core.Engine.Wardrobe.Progress(History.Wardrobe(Engine.Day), Engine.Day);
         }
     }
 

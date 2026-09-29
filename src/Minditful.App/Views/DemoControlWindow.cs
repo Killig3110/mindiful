@@ -182,6 +182,23 @@ internal sealed class DemoControlWindow : ControlShell
         if (_tourAuto && !Engine.S.Auto) Engine.SetAuto(true); // tự chạy thì người dùng mẫu tự bấm nút trên thẻ
         _session.RunTourStep(step);
         if (step.Kind == TourKind.Wardrobe) ((App)Application.Current).Companion?.SetAccessory("bosch");
+        if (step.Kind == TourKind.Meme)
+        {
+            // Slay (3,2 giây) → vibe TGIF → "ơ kìa!" ngất; chỉ chạy tiếp nếu vẫn đang ở bước này
+            var at = i;
+            void After(double sec, Minditful.Core.Engine.Clip clip)
+            {
+                var t = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(sec) };
+                t.Tick += (_, _) =>
+                {
+                    t.Stop();
+                    if (_tourIndex == at) ((App)Application.Current).Companion?.PlayMeme(clip);
+                };
+                t.Start();
+            }
+            After(3.6, Minditful.Core.Engine.Clip.Vibe);
+            After(11.8, Minditful.Core.Engine.Clip.Faint);
+        }
         _stepStarted = DateTime.Now;
         _sawBusy = false;
         _quietSince = null;
@@ -203,7 +220,7 @@ internal sealed class DemoControlWindow : ControlShell
             if (Math.Abs(Engine.S.Stress - target) > .5) Engine.SetStressLevel(target);
         }
         bool done;
-        if (!step.ExpectMilo) done = elapsed > 12;
+        if (!step.ExpectMilo) done = elapsed > (step.Kind == TourKind.Meme ? 17 : 12);
         else if (Engine.Busy)
         {
             _sawBusy = true;
@@ -268,6 +285,7 @@ internal sealed class DemoControlWindow : ControlShell
                 TourKind.Case => "cho Milo làm",
                 TourKind.Presenting => "giả vờ trình chiếu",
                 TourKind.Mood => "mood realtime",
+                TourKind.Meme => "Milo hài hước",
                 _ => "tủ đồ",
             };
             var num = Text($"{i + 1}", 13, P.Accent, FontWeights.Bold, false);
@@ -301,7 +319,7 @@ internal sealed class DemoControlWindow : ControlShell
         });
 
         return Page("Kịch bản trình diễn",
-            "24 bước đi qua đủ 20 tình huống của Milo cùng các tính năng mới, khoảng 15 phút. 12 bước đầu theo ngày mẫu Thứ Năm 24/9, các bước sau cho Milo làm từng tình huống còn lại. Kịch bản lời nói đầy đủ: docs/KICH-BAN-DEMO.md.",
+            "25 bước đi qua đủ 20 tình huống của Milo cùng các tính năng mới, khoảng 15 phút. 12 bước đầu theo ngày mẫu Thứ Năm 24/9, các bước sau cho Milo làm từng tình huống còn lại. Kịch bản lời nói đầy đủ: docs/KICH-BAN-DEMO.md.",
             current, MoodCard(), Card(list, "Tất cả bước", "Bấm 1 bước để chạy ngay bước đó."));
     }
 
@@ -397,9 +415,9 @@ internal sealed class DemoControlWindow : ControlShell
 
     // ================= Milo của bạn =================
     private FrameworkElement Milo() => Page("Milo của bạn",
-        "Đổi phụ kiện và chỗ đứng của Milo. Ngày mẫu có sẵn chuỗi 15 ngày về đúng giờ nên mặc thử được cả 4 món, kể cả đồng phục Bosch.",
-        WardrobeCard(AppEnvironment.Demo, () => Engine.Snap.Wardrobe?.Best ?? 0,
-            () => $"Chuỗi về đúng giờ (mẫu): {Engine.Snap.Wardrobe?.Streak ?? 0} ngày."),
+        "Phối đồ và chỗ đứng của Milo. Ngày mẫu (24/9, sát Trung thu) có sẵn 15 ngày về đúng giờ, 24 lần nghỉ, 5h20 tập trung nên mở gần hết tủ đồ, kể cả đồng phục Bosch và lồng đèn Trung thu. Chỉ đồ Tết, Halloween, Noel còn khoá vì chưa tới mùa.",
+        WardrobeCard(AppEnvironment.Demo, () => Engine.Snap.Wardrobe, () => Engine.Day),
+        PersonalityCard(AppEnvironment.Demo, Engine, preview: true),
         CornerCard(AppEnvironment.Demo));
 
 }

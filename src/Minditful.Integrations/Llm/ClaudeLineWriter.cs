@@ -57,7 +57,7 @@ public sealed class ClaudeLineWriter(LlmOptions opt, Func<string?> apiKey) : IMi
         " Trả về đúng 1 object JSON với 2 trường: reply (câu trả lời theo các yêu cầu trên) và actions " +
         "(mảng 0–2 mã tính năng, chỉ lấy từ danh sách \"Tính năng dùng được\" trong tin nhắn). " +
         "Chọn tính năng khi nó thật sự giúp điều người dùng vừa nói: mệt, căng thẳng → breathe hoặc break15; " +
-        "nhiều việc, sợ trễ deadline → planFocus hoặc focus30; bị ngắt quãng → focus30; việc tồn, task kẹt → stuck; hỏi hôm nay thế nào → dashboard. " +
+        "nhiều việc, sợ trễ deadline → planFocus hoặc focus30; bị ngắt quãng → focus30; việc tồn, task kẹt → stuck; hỏi hôm nay thế nào → dashboard; muốn đổi đồ, hỏi Milo mặc gì → wardrobe. " +
         "Người dùng nói 2 vấn đề (vd. vừa mệt vừa nhiều việc) thì chọn 2 tính năng, mỗi vấn đề 1 cái (vd. breathe và planFocus). " +
         "Người dùng chỉ chào, cảm ơn, nói chuyện đời thường, hoặc đang từ chối thì để mảng rỗng. " +
         "Có actions thì reply có thể nhắc nhẹ là nút ở ngay bên dưới, gọi bằng tên hiển thị (vd. Nghỉ 15 phút), không bao giờ viết mã như break15 vào reply.";

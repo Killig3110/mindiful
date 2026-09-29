@@ -56,6 +56,11 @@ public sealed class WellbeingOptions
     public bool HideWhenPresenting { get; set; } = true;
     /// <summary>Tủ đồ: Milo có phụ kiện mới khi bạn về đúng giờ 3/5/10/15 ngày liền (15 ngày: đồng phục Bosch).</summary>
     public bool Wardrobe { get; set; } = true;
+    /// <summary>
+    /// Tính cách mặc định của Milo: Mixed (Pha trộn, lâu lâu hài), Cute (Dễ thương, không meme), Funny (Hài hước).
+    /// Người dùng đổi ở chuột phải Milo / bảng điều khiển thì lựa chọn đó được nhớ, đè lên giá trị này.
+    /// </summary>
+    public string Personality { get; set; } = "Mixed";
 }
 
 public sealed class WorkDayOptions

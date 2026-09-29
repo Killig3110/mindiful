@@ -15,6 +15,8 @@ public enum TourKind
     Mood,
     /// <summary>Tủ đồ: mặc đồng phục Bosch (host đổi phụ kiện).</summary>
     Wardrobe,
+    /// <summary>Milo hài hước: diễn liền 3 động tác (slay → vibe → ơ kìa ngất).</summary>
+    Meme,
 }
 
 /// <param name="Title">Tên bước trên bảng điều khiển.</param>
@@ -100,6 +102,9 @@ public static class DemoTour
             "Đang trình chiếu thì Milo trốn hẳn, không lộ lên màn hình mọi người đang xem.", TourKind.Presenting),
         new("Mood realtime", "Milo đứng ở góc; kéo thanh căng thẳng thì Milo nhạt màu, dáng mệt, có chữ z; bấm Nghỉ / Xong task thì hồi lại",
             "Điểm mood tính lại ngay khi có gì thay đổi. Không popup, Milo chỉ đổi dáng để bạn tự nhận ra.", TourKind.Mood),
+        new("Milo hài hước", "Milo diễn slay, nhảy vibe \"TGIF\", rồi \"ơ kìa!\" giả vờ ngất",
+            "Milo phần lớn dễ thương, lâu lâu hài một chút, lấy cảm hứng từ meme và vẽ lại theo Milo. Không bao giờ diễn lúc họp hay trình chiếu.",
+            TourKind.Meme),
         new("Đồng phục Bosch", "Milo mặc mũ lưỡi trai đỏ và thẻ nhân viên Bosch",
             "Về đúng giờ 15 ngày liền, Milo được tặng đồng phục Bosch. Phần thưởng cho thói quen tốt, không phải cho làm thêm.",
             TourKind.Wardrobe),
@@ -130,6 +135,10 @@ public static class DemoTour
             case TourKind.Presenting:
                 if (e.HardGate() is not null || e.S.Ended) e.RunTo(FreeMoment);
                 e.SetPresenting(true);
+                break;
+            case TourKind.Meme:
+                if (e.HardGate() is not null || e.S.Ended) e.RunTo(FreeMoment);
+                e.PlayMeme(Clip.Slay);
                 break;
             case TourKind.Mood:
             case TourKind.Wardrobe:

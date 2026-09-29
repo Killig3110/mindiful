@@ -260,6 +260,33 @@ public sealed partial class MiloEngine
         }
     }
 
+    /// <summary>
+    /// Clip hài thay cho clip dễ thương khi tính cách cho phép (xem <see cref="Joke"/>).
+    /// Chỉ ở những lúc Milo đã được phép hiện; không bao giờ lúc họp, trình chiếu, toàn màn hình.
+    /// </summary>
+    private Clip Meme(CaseId c, Clip normal)
+    {
+        var meme = c switch
+        {
+            CaseId.TaskDone or CaseId.FocusDone => Clip.Slay,
+            CaseId.EmailWaiting => Clip.SideEye,
+            CaseId.StuckTask => Clip.Confused,
+            CaseId.MorningHello when Day.DayOfWeek == DayOfWeek.Monday => Clip.Loading,
+            CaseId.Overtime => Clip.ThisIsFine,
+            CaseId.MeetingOverload => Clip.Zombie,
+            _ => normal,
+        };
+        return meme != normal && Joke() ? meme : normal;
+    }
+
+    /// <summary>Dịp này có diễn hài không: Hài hước luôn có, Pha trộn thỉnh thoảng, Dễ thương không bao giờ.</summary>
+    private bool Joke() => Cfg.Personality switch
+    {
+        Personality.Funny => true,
+        Personality.Mixed => S.Rnd.Next() < Catalog.MixedJokeChance,
+        _ => false,
+    };
+
     private static Clip StayClip(CaseId c)
     {
         var def = Catalog.Def(c);
@@ -277,12 +304,12 @@ public sealed partial class MiloEngine
         if (IsBubble(c))
         {
             ep.Card = true;
-            SetPhase(Phase.Bubble, c == CaseId.MicroBreak ? 5 : 3.2, c == CaseId.MicroBreak ? Clip.Greet : Clip.Celebrate);
+            SetPhase(Phase.Bubble, c == CaseId.MicroBreak ? 5 : 3.2, c == CaseId.MicroBreak ? Clip.Greet : Meme(c, Clip.Celebrate));
             return;
         }
         ep.Card = true;
         var to = def.Timeout > 0 ? def.Timeout : def.Kind == CaseKind.Care ? Catalog.CareTimeout : 0;
-        SetPhase(Phase.Show, 0, c == CaseId.Dashboard ? Clip.Idle : StayClip(c));
+        SetPhase(Phase.Show, 0, c == CaseId.Dashboard ? Clip.Idle : Meme(c, StayClip(c)));
         ep.PhaseEnd = S.T + (to > 0 ? to : 1e9); // giờ chờ tính bằng giây thật, kể cả khi tua
         ep.AutoPlan = new Queue<(double, string)>(
             (S.Auto || S.Instant) && Script is not null && Script.AutoReplies.TryGetValue(c, out var plan) ? plan : []);
@@ -460,7 +487,8 @@ public sealed partial class MiloEngine
             case CaseId.Dashboard:
                 if (act == "week") { ep.Page = DashPage.Week; ep.CardVer++; Log("Dashboard → Xem cả tuần", LogKind.User); }
                 else if (act == "today") { ep.Page = DashPage.Today; ep.CardVer++; }
-                else if (act == "detail") { ep.Detail = !ep.Detail; ep.CardVer++; Log(ep.Detail ? "Dashboard → Xem chi tiết" : "Dashboard → về 4 quả", LogKind.User); }
+                else if (act == "detail") { ep.Detail = !ep.Detail; ep.Wardrobe = false; ep.CardVer++; Log(ep.Detail ? "Dashboard → Xem chi tiết" : "Dashboard → về 4 quả", LogKind.User); }
+                else if (act == "wardrobe") { ep.Wardrobe = !ep.Wardrobe; ep.Detail = false; ep.CardVer++; Log(ep.Wardrobe ? "Mở tủ đồ → phối đồ cho Milo" : "Đóng tủ đồ → về 4 quả", LogKind.User); }
                 else if (act == "talk") OpenTalk();
                 else if (act == "close") ExitEp(Clip.ClimbOut, "Đóng dashboard → leo xuống");
                 return;
@@ -798,9 +826,10 @@ public sealed partial class MiloEngine
                 ExitEp(Clip.ClimbOutShort);
                 ForceCase(key == "stuck" ? CaseId.StuckTask : CaseId.FocusPlan, fromChat: true);
                 break;
-            case "dashboard":
+            case "dashboard" or "wardrobe":
                 S.Ep = null;
                 StartEp(new QueueItem { C = CaseId.Dashboard, Key = "d" + S.T, Pri = 0, Sev = 0, Enq = S.T }, swap: true);
+                S.Ep!.Wardrobe = key == "wardrobe";
                 break;
         }
     }

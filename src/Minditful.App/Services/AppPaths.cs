@@ -77,11 +77,31 @@ internal static class UiSettings
 
     private static string AccessoryFile(AppEnvironment env) => Path.Combine(AppPaths.For(env), "accessory.txt");
 
-    /// <summary>Tủ đồ: "auto" (món mới nhất), "none" hoặc id món.</summary>
+    /// <summary>Tủ đồ: "auto" (món khó mở nhất đang có), "none" hoặc các id món ngăn bởi dấu phẩy (xem <see cref="Core.Engine.Wardrobe.Resolve"/>).</summary>
     public static string LoadAccessory(AppEnvironment env) =>
         System.IO.File.Exists(AccessoryFile(env)) ? System.IO.File.ReadAllText(AccessoryFile(env)).Trim() : "auto";
 
     public static void SaveAccessory(AppEnvironment env, string choice) => System.IO.File.WriteAllText(AccessoryFile(env), choice);
+
+    private static string OutfitSetsFile(AppEnvironment env) => Path.Combine(AppPaths.For(env), "outfits.txt");
+
+    /// <summary>Bộ đồ đã lưu: mỗi dòng "tên[TAB]id,id,…".</summary>
+    public static IReadOnlyList<(string Name, string Outfit)> LoadOutfitSets(AppEnvironment env)
+    {
+        try
+        {
+            return System.IO.File.Exists(OutfitSetsFile(env))
+                ? System.IO.File.ReadAllLines(OutfitSetsFile(env)).Select(l => l.Split('\t')).Where(p => p.Length == 2).Select(p => (p[0], p[1])).ToList()
+                : [];
+        }
+        catch (IOException)
+        {
+            return [];
+        }
+    }
+
+    public static void SaveOutfitSets(AppEnvironment env, IReadOnlyList<(string Name, string Outfit)> sets) =>
+        System.IO.File.WriteAllLines(OutfitSetsFile(env), sets.Select(s => $"{s.Name}\t{s.Outfit}"));
 
     private static string TestModeFile(AppEnvironment env) => Path.Combine(AppPaths.For(env), "test-mode.txt");
 

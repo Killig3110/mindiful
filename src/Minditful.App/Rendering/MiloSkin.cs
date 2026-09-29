@@ -72,13 +72,100 @@ internal static class MiloSkin
             <path d="M150,50 C170,48 186,52 190,58 C176,60 162,58 152,56 Z" fill="#B80012" stroke="#45231F" stroke-width="3" stroke-linejoin="round"/>
             """),
         ],
+        // Kính tròn: 2 tròng trong suốt đúng vị trí mắt (102,96) và (138,96)
+        ["glasses"] = [("head", """
+            <circle cx="102" cy="96" r="14" fill="#FFFFFF" fill-opacity=".18" stroke="#45231F" stroke-width="3" stroke-linejoin="round"/>
+            <circle cx="138" cy="96" r="14" fill="#FFFFFF" fill-opacity=".18" stroke="#45231F" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M116,94 Q120,90 124,94" fill="none" stroke="#45231F" stroke-width="3" stroke-linecap="round"/>
+            <path d="M88,93 L79,89 M152,93 L161,89" stroke="#45231F" stroke-width="3" stroke-linecap="round"/>
+            """)],
+        // Kính râm
+        ["sunglasses"] = [("head", """
+            <path d="M85,87 H118 V95 Q118,109 102,109 Q86,109 85,95 Z" fill="#2B211A" stroke="#45231F" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M122,87 H155 V95 Q154,109 138,109 Q122,109 122,95 Z" fill="#2B211A" stroke="#45231F" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M118,90 Q120,87 122,90" fill="none" stroke="#45231F" stroke-width="3"/>
+            <path d="M90,92 L99,92 M127,92 L136,92" stroke="#8C7A6B" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M85,89 L77,86 M155,89 L163,86" stroke="#45231F" stroke-width="3" stroke-linecap="round"/>
+            """)],
+        // Nơ cổ xanh ngọc ngay dưới cằm
+        ["bowtie"] = [("torso", """
+            <path d="M120,147 L103,138 Q100,147 103,156 Z" fill="#3E8E9E" stroke="#45231F" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M120,147 L137,138 Q140,147 137,156 Z" fill="#3E8E9E" stroke="#45231F" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M107,143 L112,146 M107,151 L112,148 M133,143 L128,146 M133,151 L128,148" stroke="#2A6A76" stroke-width="2" stroke-linecap="round"/>
+            <rect x="115" y="142" width="10" height="10" rx="3" fill="#2F7A87" stroke="#45231F" stroke-width="3" stroke-linejoin="round"/>
+            """)],
+        // Tai nghe: quai vòng qua đỉnh đầu, 2 chụp tai ở 2 bên má
+        ["headphones"] = [("head", """
+            <path d="M72,90 C66,24 174,24 168,90" fill="none" stroke="#45231F" stroke-width="9" stroke-linecap="round"/>
+            <path d="M72,90 C66,24 174,24 168,90" fill="none" stroke="#5B5FC7" stroke-width="4.5" stroke-linecap="round"/>
+            <rect x="60" y="80" width="18" height="30" rx="8" fill="#5B5FC7" stroke="#45231F" stroke-width="3" stroke-linejoin="round"/>
+            <rect x="162" y="80" width="18" height="30" rx="8" fill="#5B5FC7" stroke="#45231F" stroke-width="3" stroke-linejoin="round"/>
+            <rect x="64" y="86" width="5" height="18" rx="2.5" fill="#8E91E0"/><rect x="171" y="86" width="5" height="18" rx="2.5" fill="#8E91E0"/>
+            """)],
+        // Đồ cầm tay nằm trong nhóm tay phải (armR) để đi theo khi Milo vẫy/chỉ
+        ["coffee"] = [("armR", """
+            <path d="M150,162 q-4,-6 0,-11 M157,162 q-4,-6 0,-11" fill="none" stroke="#C9B6A0" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M163,174 q9,0 8,8 q-1,7 -9,6" fill="none" stroke="#45231F" stroke-width="3"/>
+            <path d="M141,166 H165 L162,193 Q153,197 144,193 Z" fill="#FFFFFF" stroke="#45231F" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M142.5,175 H163.8 L163,183 H143.5 Z" fill="#B85A34"/>
+            <ellipse cx="153" cy="166" rx="12" ry="3.5" fill="#6B3A1E" stroke="#45231F" stroke-width="3" stroke-linejoin="round"/>
+            """)],
+        // Trà sữa trân châu
+        ["bubbletea"] = [("armR", """
+            <path d="M154,164 L161,138" stroke="#45231F" stroke-width="7" stroke-linecap="round"/>
+            <path d="M154,164 L161,138" stroke="#E0526B" stroke-width="4" stroke-linecap="round"/>
+            <path d="M141,164 H166 L162,196 H145 Z" fill="#F3DDBF" stroke="#45231F" stroke-width="3" stroke-linejoin="round"/>
+            <g fill="#3A2A1E"><circle cx="149" cy="190" r="2.6"/><circle cx="155" cy="191" r="2.6"/><circle cx="160" cy="189" r="2.6"/><circle cx="152" cy="185" r="2.6"/><circle cx="158" cy="184" r="2.6"/></g>
+            <path d="M139,165 Q153.5,154 168,165 Z" fill="#FFFFFF" fill-opacity=".85" stroke="#45231F" stroke-width="3" stroke-linejoin="round"/>
+            """)],
+        // Tết: bao lì xì
+        ["lixi"] = [("armR", """
+            <rect x="140" y="163" width="22" height="30" rx="3" fill="#D1242F" stroke="#45231F" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M140,166 L151,176 L162,166" fill="none" stroke="#9E1620" stroke-width="2.5" stroke-linejoin="round"/>
+            <circle cx="151" cy="183" r="5" fill="#F2C94C" stroke="#9E1620" stroke-width="1.5"/>
+            <path d="M143,190 H159" stroke="#F2C94C" stroke-width="2"/>
+            """)],
+        // Trung thu: lồng đèn ông sao cầm trên que
+        ["lantern"] = [("armR", """
+            <path d="M148,188 L170,146" stroke="#45231F" stroke-width="6" stroke-linecap="round"/>
+            <path d="M148,188 L170,146" stroke="#B07A3E" stroke-width="3" stroke-linecap="round"/>
+            <path d="M170,146 L180,142" stroke="#45231F" stroke-width="2"/>
+            <path d="M186.0,113.0 L190.7,125.5 L204.1,126.1 L193.6,134.5 L197.2,147.4 L186.0,140.0 L174.8,147.4 L178.4,134.5 L167.9,126.1 L181.3,125.5 Z" fill="#E8403A" stroke="#45231F" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M186.0,123.0 L188.4,128.8 L194.6,129.2 L189.8,133.2 L191.3,139.3 L186.0,136.0 L180.7,139.3 L182.2,133.2 L177.4,129.2 L183.6,128.8 Z" fill="#F2C94C"/>
+            <path d="M186,151 V166" stroke="#F2C94C" stroke-width="3" stroke-linecap="round"/>
+            """)],
+        // Halloween: mũ phù thuỷ
+        ["witch"] = [("head", """
+            <path d="M96,48 L124,-4 Q131,-12 136,-2 L146,48 Z" fill="#4B3A86" stroke="#45231F" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M99,41 Q121,47 144,41" fill="none" stroke="#E8A33D" stroke-width="6"/>
+            <rect x="116" y="37" width="10" height="9" rx="2" fill="none" stroke="#F2C94C" stroke-width="2.5"/>
+            <ellipse cx="121" cy="50" rx="50" ry="9" fill="#3B2E66" stroke="#45231F" stroke-width="3" stroke-linejoin="round"/>
+            """)],
+        // Noel: mũ Noel chóp rủ sang phải
+        ["santa"] = [("head", """
+            <path d="M86,50 C88,20 146,10 164,32 C174,44 184,60 190,78 L178,80 C172,66 164,56 156,50 Z" fill="#D1242F" stroke="#45231F" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M84,52 Q120,38 160,50" fill="none" stroke="#45231F" stroke-width="16" stroke-linecap="round"/>
+            <path d="M84,52 Q120,38 160,50" fill="none" stroke="#FFFFFF" stroke-width="11" stroke-linecap="round"/>
+            <circle cx="186" cy="82" r="9" fill="#FFFFFF" stroke="#45231F" stroke-width="3" stroke-linejoin="round"/>
+            """)],
     };
 
-    /// <summary>Khung <paramref name="frame"/> của clip <paramref name="rig"/> ở tư thế <paramref name="pose"/>, kèm phụ kiện (id trong <see cref="Wardrobe"/>).</summary>
+    /// <summary>Bỏ id không có hình, giữ thứ tự vẽ. null = không mặc gì.</summary>
+    private static string? Known(string? outfit)
+    {
+        if (string.IsNullOrEmpty(outfit)) return null;
+        var ids = outfit.Split('+', StringSplitOptions.RemoveEmptyEntries).Where(Accessories.ContainsKey).ToList();
+        return ids.Count == 0 ? null : string.Join("+", ids);
+    }
+
+    /// <summary>
+    /// Khung <paramref name="frame"/> của clip <paramref name="rig"/> ở tư thế <paramref name="pose"/>, kèm bộ đồ
+    /// (<paramref name="accessory"/> = các id trong <see cref="Wardrobe"/> nối bằng "+", xem <see cref="Wardrobe.SkinKey"/>).
+    /// </summary>
     public static DrawingImage Frame(Pose pose, Rig rig, int frame, bool blink, double saturation, string? accessory = null)
     {
         if (pose is Pose.Tired or Pose.Breathe or Pose.Greeting) blink = false; // các tư thế này không có mắt mở để chớp
-        if (accessory is not null && !Accessories.ContainsKey(accessory)) accessory = null;
+        accessory = Known(accessory);
         var sat = Math.Round(saturation, 2);
         var key = (pose, rig.Name, frame, blink, sat, accessory);
         if (FrameCache.TryGetValue(key, out var img)) return img;
@@ -97,10 +184,11 @@ internal static class MiloSkin
         var doc = new XDocument(Template(pose));
         var groups = doc.Descendants().Where(e => e.Name.LocalName == "g" && e.Attribute("class") is not null)
             .ToLookup(e => e.Attribute("class")!.Value);
-        if (accessory is not null && Accessories.TryGetValue(accessory, out var parts))
-            foreach (var (group, svg) in parts)
-                if (groups[group].FirstOrDefault() is { } host)
-                    host.Add(XElement.Parse($"<g xmlns=\"http://www.w3.org/2000/svg\" class=\"acc-{accessory}\">{svg}</g>"));
+        foreach (var id in accessory?.Split('+') ?? [])
+            if (Accessories.TryGetValue(id, out var parts))
+                foreach (var (group, svg) in parts)
+                    if (groups[group].FirstOrDefault() is { } host)
+                        host.Add(XElement.Parse($"<g xmlns=\"http://www.w3.org/2000/svg\" class=\"acc-{id}\">{svg}</g>"));
         foreach (var m in MiloRig.Frame(rig, frame, blink))
         {
             if (!MiloRig.Pivots.TryGetValue(m.Part, out var pv)) continue;

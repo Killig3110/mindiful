@@ -10,6 +10,7 @@ using Minditful.App.Rendering;
 using Minditful.App.Services;
 using Minditful.Core.Engine;
 using Minditful.Core.Presentation;
+using Minditful.Integrations;
 using MClip = Minditful.Core.Engine.Clip;
 using static Minditful.App.Rendering.Ui;
 
@@ -55,17 +56,25 @@ public sealed class MiloLayer : Grid
     private Phase? _cardPhase;
     private double _sat = -1;
     private readonly List<(FrameworkElement El, Func<double, (double Op, double Tx, double Ty, double Sx, double Sy)> Anim, double Delay)> _fxAnims = [];
+    private readonly List<(TextBlock El, Func<double, string> Text)> _fxTexts = [];
 
     public double BaseOffset { get; set; } = 44;
 
-    /// <summary>Tủ đồ: "auto" = món mới nhất đã mở khoá, "none" = không mặc, hoặc id 1 món (<see cref="Wardrobe"/>).</summary>
-    internal string AccessoryChoice { get; set; } = "auto";
+    /// <summary>Tủ đồ: "auto", "none", hoặc các id món ngăn bởi dấu phẩy (<see cref="Wardrobe.Resolve"/>).</summary>
+    internal string AccessoryChoice { get; set; } = Wardrobe.Auto;
 
-    private string? Accessory(MiloEngine e)
+    /// <summary>Tủ đồ đổi: CompanionWindow lưu lựa chọn. Bảng tủ đồ trên đầu Milo gọi vào đây.</summary>
+    internal Action<string>? OutfitChanged { get; set; }
+
+    internal AppEnvironment Env { get; set; }
+
+    private string? Accessory(MiloEngine e, MClip clip)
     {
-        if (e.Snap.Wardrobe is not { } w || AccessoryChoice == "none") return null;
-        var unlocked = Wardrobe.Unlocked(w.Best).ToList();
-        return AccessoryChoice == "auto" ? unlocked.LastOrDefault()?.Id : unlocked.FirstOrDefault(i => i.Id == AccessoryChoice)?.Id;
+        var outfit = e.Snap.Wardrobe is null ? [] : Wardrobe.Resolve(AccessoryChoice, Wardrobe.Owned(e.Snap.Wardrobe, e.Day));
+        // "Mọi thứ vẫn ổn…": Milo cần ly để nhấp; tay đang trống thì cầm tạm ly cà phê
+        if (clip == MClip.ThisIsFine && !outfit.Any(id => Wardrobe.Find(id)?.Slots.Contains(Slot.Hand) == true))
+            outfit = Wardrobe.Wear(outfit, "coffee", toggle: false);
+        return Wardrobe.SkinKey(outfit);
     }
 
     /// <summary>Góc neo (§9.1). Góc trái lật Milo theo chiều ngang, góc trên thì Milo tụt xuống từ mép trên.</summary>
@@ -113,6 +122,7 @@ public sealed class MiloLayer : Grid
         _miloHit = new Button { Width = 150, Height = 150, Style = (Style)Application.Current.FindResource("Bare") };
         System.Windows.Automation.AutomationProperties.SetName(_miloHit, "Bấm vào Milo");
         _miloHit.Click += (_, _) => Act(e => e.MiloClick());
+        _miloHit.ContextMenu = QuickMenu();
         Place(_miloHit, 40, 0);
 
         // Chóp đuôi (mục 9.1): quầng thở 5s + đuôi cáo, màu theo mood
@@ -184,6 +194,7 @@ public sealed class MiloLayer : Grid
             _hoverTimer.Stop();
             Act(e => e.TailClick());
         };
+        _tail.ContextMenu = QuickMenu();
         _hoverTimer.Tick += (_, _) =>
         {
             _hoverTimer.Stop();
@@ -306,7 +317,7 @@ public sealed class MiloLayer : Grid
             var tired = e.S.BandIdx >= 2;
             var rig = MiloRig.For(clip, tired);
             var blink = MiloRig.Blink(Now, tired);
-            _milo.Source = MiloSkin.Frame(Present.PoseFor(e, clip), rig, MiloRig.FrameIndex(rig, elapsed), blink, sat, Accessory(e));
+            _milo.Source = MiloSkin.Frame(Present.PoseFor(e, clip), rig, MiloRig.FrameIndex(rig, elapsed), blink, sat, Accessory(e, clip));
         }
 
         // ---- chóp đuôi ----
@@ -368,21 +379,64 @@ public sealed class MiloLayer : Grid
 
         // ---- dashboard ----
         // ---- dashboard: vườn trái cây quanh Milo ----
-        var dashKey = showDash ? $"{ep!.Id}:{ep.CardVer}:{ep.Page}:{ep.Detail}:{_corner}" : null;
+        var dashKey = showDash ? $"{ep!.Id}:{ep.CardVer}:{ep.Page}:{ep.Detail}:{ep.Wardrobe}:{_corner}" : null;
         if (dashKey != _dashKey)
         {
             var wasDetail = _detailHost.Content is not null;
             _dashKey = dashKey;
             var detail = dashKey is null ? null : Present.Detail(e);
-            _dashHost.Content = dashKey is not null && detail is null && Present.Fruits(e) is { } fruits
+            var wardrobe = dashKey is not null && Present.WardrobeOpen(e);
+            _dashHost.Content = dashKey is not null && detail is null && !wardrobe && Present.Fruits(e) is { } fruits
                 ? new FruitDashboardView(fruits, _corner, act => Act(x => x.UserReply(act)))
                 : null;
-            var view = detail is null ? null : new DetailDashboardView(detail, act => Act(x => x.UserReply(act)));
+            FrameworkElement? view = detail is not null ? new DetailDashboardView(detail, act => Act(x => x.UserReply(act)))
+                : wardrobe ? new WardrobeView(Env, () => e.Snap.Wardrobe, () => e.Day, () => AccessoryChoice, choice =>
+                    {
+                        AccessoryChoice = choice;
+                        OutfitChanged?.Invoke(choice);
+                        Render();
+                    }, () => Act(x => x.UserReply("close")))
+                : null;
             _detailHost.Content = view;
             if (view is not null && !wasDetail) Pop(view);
         }
 
         RenderFx(e, clip, elapsed);
+    }
+
+    /// <summary>Chuột phải Milo hoặc chóp đuôi: thay đồ, trò chuyện, dashboard — không cần mở bảng điều khiển.</summary>
+    private ContextMenu QuickMenu()
+    {
+        MenuItem Item(string header, Action<MiloEngine> run)
+        {
+            var m = new MenuItem { Header = header };
+            m.Click += (_, _) => Act(run);
+            return m;
+        }
+        var personality = new MenuItem { Header = "Tính cách Milo" };
+        foreach (var (value, name, hint) in Catalog.Personalities)
+        {
+            var m = new MenuItem { Header = name, ToolTip = hint, IsCheckable = true };
+            m.Click += (_, _) => Act(e => PersonalitySetting.Set(Env, e, value));
+            personality.Items.Add(m);
+        }
+        var menu = new ContextMenu
+        {
+            Items =
+            {
+                Item("Thay đồ cho Milo", e => e.OpenWardrobe()),
+                Item("Trò chuyện với Milo", e => e.OpenTalk()),
+                Item("Mở dashboard", e => { if (e.S.Ep is null) e.TailClick(); }),
+                new Separator(),
+                personality,
+            },
+        };
+        menu.Opened += (_, _) =>
+        {
+            foreach (var (m, value) in personality.Items.OfType<MenuItem>().Zip(Catalog.Personalities.Select(p => p.Value)))
+                m.IsChecked = _engine?.Cfg.Personality == value;
+        };
+        return menu;
     }
 
     private static void FocusChat(FrameworkElement card)
@@ -434,8 +488,10 @@ public sealed class MiloLayer : Grid
             _fxKey = key;
             _fx.Children.Clear();
             _fxAnims.Clear();
+            _fxTexts.Clear();
             BuildFx(clip, paws, e.S.BandIdx == 3 && visible);
         }
+        foreach (var (tb, text) in _fxTexts) tb.Text = text(elapsed);
         foreach (var (el, anim, delay) in _fxAnims)
         {
             var t = elapsed - delay;
@@ -539,6 +595,7 @@ public sealed class MiloLayer : Grid
                 return (1, -520 * p * p, 0, 1, 1);
             });
         }
+        BuildMemeFx(clip);
         if (zz)
         {
             (double R, double B, double S, double D)[] zs = [(70, 174, 20, 0), (56, 184, 15, .8), (44, 194, 12, 1.6)];
@@ -549,6 +606,131 @@ public sealed class MiloLayer : Grid
                     var op = p < .3 ? p / .3 : 1 - (p - .3) / .7;
                     return (op, 14 * p, -30 * p, 1, 1);
                 }, d);
+        }
+    }
+
+    // ================= hiệu ứng clip hài =================
+    /// <summary>Nhãn bo tròn kiểu sticker (vd. "slay", "NPC mode").</summary>
+    private static Border Sticker(string text, string bg, string fg, double size = 15) => new()
+    {
+        Background = Br(bg), CornerRadius = new CornerRadius(12), Padding = new Thickness(10, 4, 10, 5),
+        BorderBrush = Br("#45231F"), BorderThickness = new Thickness(2),
+        Effect = new DropShadowEffect { BlurRadius = 10, ShadowDepth = 3, Direction = 270, Opacity = .25 },
+        Child = new TextBlock { Text = text, FontSize = size, FontWeight = FontWeights.Black, Foreground = Br(fg) },
+    };
+
+    private static TextBlock Glyph(string text, double size, string color) =>
+        new() { Text = text, FontSize = size, FontWeight = FontWeights.Bold, Foreground = Br(color), FontFamily = new FontFamily("Segoe UI Symbol, Segoe UI") };
+
+    /// <summary>Nảy vào: mờ → rõ, .8 → 1.08 → 1.</summary>
+    private static (double, double, double, double, double) PopIn(double t, double end = 1e9)
+    {
+        var p = Seg(t, 0, .35);
+        var sc = p < .7 ? .8 + .28 * (p / .7) : 1.08 - .08 * ((p - .7) / .3);
+        var op = Math.Min(1, p / .5) * (t > end ? 1 - Seg(t, end, end + .3) : 1);
+        return (op, 0, 0, sc, sc);
+    }
+
+    private void BuildMemeFx(MClip clip)
+    {
+        switch (clip)
+        {
+            case MClip.Slay:
+                AddFx(Sticker("slay", "#7261B0", "#FFFFFF", 17), 26, 128, t => PopIn(t), .15);
+                foreach (var (r, b, d) in new[] { (40.0, 96.0, 0.0), (176.0, 108.0, .35), (160.0, 146.0, .7), (92.0, 158.0, 1.05) })
+                    AddFx(Glyph("✦", 18, "#F2C94C"), r, b, t =>
+                    {
+                        var p = t % 1.1 / 1.1;
+                        var s = .3 + Math.Sin(Math.PI * p);
+                        return (Math.Sin(Math.PI * p), 0, 0, s, s);
+                    }, d);
+                break;
+            case MClip.SideEye:
+                AddFx(Sticker("hmm…", "#FFF9F1", "#3A2A1E", 14), 174, 104, t => PopIn(t), .6);
+                break;
+            case MClip.Confused:
+                (string G, double R, double B, double D)[] math =
+                    [("π", 56, 120, 0), ("∑", 90, 140, .5), ("√x", 132, 136, 1), ("x²", 170, 116, 1.5), ("∫", 186, 86, 2), ("?", 112, 152, 2.5), ("≠", 40, 92, 3)];
+                foreach (var (g, r, b, d) in math)
+                    AddFx(Glyph(g, 17, "#5B5FC7"), r, b, t =>
+                    {
+                        var p = t % 3.5 / 3.5;
+                        var op = p < .2 ? p / .2 : p > .7 ? 1 - (p - .7) / .3 : 1;
+                        return (op * .9, 6 * Math.Sin(p * 6.3), -18 * p, 1, 1);
+                    }, d);
+                break;
+            case MClip.Faint:
+                AddFx(Sticker("ơ kìa!", "#FFFFFF", "#D1242F", 16), 70, 158, t => PopIn(t, .9));
+                // Sao quay trên đầu lúc nằm (đầu nằm về phía giữa màn hình)
+                for (var i = 0; i < 3; i++)
+                {
+                    var k = i;
+                    AddFx(Glyph("✦", 15, "#F2C94C"), 214, 98, t =>
+                    {
+                        if (t < 1.5 || t > 3.1) return (0, 0, 0, 1, 1);
+                        var a = t * 5 + k * 2.1;
+                        return (1, 18 * Math.Cos(a), 6 * Math.Sin(a), 1, 1);
+                    });
+                }
+                break;
+            case MClip.Vibe:
+                AddFx(Sticker("TGIF", "#E8772E", "#FFFFFF", 15), 28, 132, t => PopIn(t), .3);
+                foreach (var (g, r, b, d) in new[] { ("♪", 40.0, 90.0, 0.0), ("♫", 180.0, 100.0, .6), ("♪", 160.0, 130.0, 1.2), ("♫", 110.0, 146.0, 1.8) })
+                    AddFx(Glyph(g, 20, "#7261B0"), r, b, t =>
+                    {
+                        var p = t % 2.4 / 2.4;
+                        var op = p < .2 ? p / .2 : 1 - (p - .2) / .8;
+                        return (op, 8 * Math.Sin(p * 9), -40 * p, 1, 1);
+                    }, d);
+                break;
+            case MClip.Loading:
+            {
+                const double w = 120, full = 5.2;
+                static double P(double t) => Math.Clamp(t / full, 0, 1);
+                var label = new TextBlock { FontSize = 12, FontWeight = FontWeights.Bold, Foreground = Br("#3A2A1E") };
+                _fxTexts.Add((label, t => P(t) >= 1 ? "Tuần mới đã sẵn sàng!" : $"Đang tải tuần mới… {Math.Max(1, (int)(P(t) * 100))}%"));
+                AddFx(label, 44, 146, t => (1, 0, 0, 1, 1));
+                AddFx(new Border { Width = w, Height = 12, CornerRadius = new CornerRadius(6), Background = Br("#F3E9DA"), BorderBrush = Br("#45231F"), BorderThickness = new Thickness(2) },
+                    44, 130, t => (1, 0, 0, 1, 1));
+                var fill = new Border { Width = w - 6, Height = 6, CornerRadius = new CornerRadius(3), Background = Br("#7FA65A") };
+                AddFx(fill, 47, 133, t => (1, 0, 0, Math.Max(.01, P(t)), 1));
+                fill.RenderTransformOrigin = LeftSide ? new Point(1, .5) : new Point(0, .5);
+                break;
+            }
+            case MClip.Cobweb:
+                foreach (var (r, b, flip) in new[] { (156.0, 100.0, false), (40.0, 104.0, true) })
+                {
+                    var web = new System.Windows.Shapes.Path
+                    {
+                        Data = Geometry.Parse("M0,0 L40,0 M0,0 L0,40 M0,0 L34,20 M0,0 L20,34 M12,0 Q10,10 0,12 M24,0 Q20,20 0,24 M36,0 Q30,30 0,36"),
+                        Stroke = Br("#9C8672"), StrokeThickness = 1.4, Width = 42, Height = 42, Stretch = Stretch.None,
+                        LayoutTransform = flip ? new ScaleTransform(-1, 1) : Transform.Identity,
+                    };
+                    AddFx(web, r, b, t => (t < 3.9 ? .9 : 1 - Seg(t, 3.9, 4.4), 0, t < 3.9 ? 0 : -20 * Seg(t, 3.9, 4.4), 1, 1));
+                }
+                foreach (var (r, b, d) in new[] { (80.0, 40.0, 3.9), (150.0, 60.0, 4.0), (110.0, 20.0, 4.1), (60.0, 80.0, 4.0) })
+                    AddFx(Dot("#C9B6A0", 7), r, b, t =>
+                    {
+                        var p = Seg(t, 0, .8);
+                        return (1 - p, 20 * p * (r > 100 ? 1 : -1), -24 * p, 1, 1);
+                    }, d);
+                AddFx(Sticker("…vẫn đợi bạn", "#FFF9F1", "#7A6455", 13), 62, 150, t => PopIn(t, 3.7), .4);
+                break;
+            case MClip.ThisIsFine:
+                AddFx(Sticker("mọi thứ vẫn ổn…", "#FFF9F1", "#3A2A1E", 14), 20, 138, t => PopIn(t), .4);
+                foreach (var (r, b, d) in new[] { (30.0, 10.0, 0.0), (170.0, 20.0, .8), (60.0, 40.0, 1.6), (190.0, 60.0, 2.4), (20.0, 70.0, 3.2) })
+                    AddFx(new Ellipse { Width = 26, Height = 22, Fill = new SolidColorBrush(Color.FromArgb(110, 140, 128, 118)) }, r, b, t =>
+                    {
+                        var p = t % 4 / 4;
+                        var op = p < .2 ? p / .2 : 1 - (p - .2) / .8;
+                        var s = .6 + 1.2 * p;
+                        return (op * .8, 6 * Math.Sin(p * 5), -70 * p, s, s);
+                    }, d);
+                break;
+            case MClip.Zombie:
+                AddFx(Sticker("NPC mode", "#5A5A66", "#E8E8F0", 14), 28, 136, t => PopIn(t), .3);
+                AddFx(Glyph("…", 22, "#5A5A66"), 172, 118, t => (Math.Floor(t * 1.5) % 2 == 0 ? 1 : .3, 0, 0, 1, 1), .6);
+                break;
         }
     }
 }

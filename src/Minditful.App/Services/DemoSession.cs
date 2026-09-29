@@ -32,6 +32,7 @@ internal sealed class DemoSession : IMiloSession
         // Demo không đụng tới thế giới thật: hành động của Milo chỉ ghi vào nhật ký (engine đã log sẵn).
         var key = new SecretStore(AppEnvironment.Demo, "claude-api-key");
         LlmOptions = opt.Llm;
+        Engine.Cfg.Personality = PersonalitySetting.Load(AppEnvironment.Demo, opt.Wellbeing);
         Llm = MiloLlm.Create(opt.Llm, key.Read);
         // Câu thoại / chat bằng AI chỉ khi UseInDemo; chấm mood và cuộc họp thì bật được bằng công tắc trên bảng điều khiển
         var features = new LlmFeatures

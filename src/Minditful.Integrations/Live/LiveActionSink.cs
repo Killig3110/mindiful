@@ -23,11 +23,11 @@ public sealed class LiveActionSink(
     /// <summary>Cập nhật chuỗi về đúng giờ cho 1 ngày (lúc "Về thôi" hoặc lúc qua ngày mà chưa bấm).</summary>
     public void RecordStreak(DayRecord r)
     {
-        var (streak, _, item) = history.RecordDay(r.Date, Wardrobe.OnTime(r));
+        var (streak, _, item) = history.RecordDay(r.Date, Wardrobe.OnTime(r), r.AcceptedBreaks, (int)Math.Round(r.FocusMin));
         log(Wardrobe.OnTime(r) ? $"Chuỗi về đúng giờ: {streak} ngày" : "Quá giờ ≥ 15 phút → chuỗi về đúng giờ bắt đầu lại", LogKind.Action);
         if (item is not null)
         {
-            log($"Mở khoá phụ kiện mới cho Milo: {item.Name} ({item.Streak} ngày về đúng giờ)", LogKind.Action);
+            log($"Mở khoá đồ mới cho Milo: {item.Name} (nhờ {item.Condition})", LogKind.Action);
             Unlocked?.Invoke(item);
         }
     }

@@ -416,9 +416,9 @@ internal sealed class ControlCenterWindow : ControlShell
 
         return Page("Milo của bạn", "Phụ kiện, chỗ đứng, những gì Milo làm cho bạn và dữ liệu Milo giữ trên máy.",
             wb.Wardrobe
-                ? WardrobeCard(_session.Env, () => e.Snap.Wardrobe?.Best ?? 0, () => _session.WardrobeText)
+                ? WardrobeCard(_session.Env, () => _session.Engine.Snap.Wardrobe, () => _session.Engine.Day)
                 : Card(Text("Tủ đồ đang tắt (Wellbeing.Wardrobe = false).", 12, P.Ink2), "Tủ đồ của Milo"),
-            CornerCard(_session.Env), StartupCard(), care, data);
+            PersonalityCard(_session.Env, _session.Engine), CornerCard(_session.Env), StartupCard(), care, data);
     }
 
     // ================= Kiểm chứng điểm (WHO-5) =================

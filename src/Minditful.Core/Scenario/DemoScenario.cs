@@ -47,7 +47,7 @@ public static class DemoScenario
             new CalendarEvent { Id = "t4", Subject = "Customer call", Start = T("15:30"), End = T("16:15") },
         ],
         // Chuỗi 15 ngày về đúng giờ: đã mở khoá cả tủ đồ (đồng phục Bosch vừa mở hôm qua)
-        Wardrobe = new WardrobeInfo(15, 15, "đồng phục Bosch"),
+        Wardrobe = new WardrobeInfo(15, 15, "đồng phục Bosch", Breaks: 24, FocusMin: 320),
         LastWeek = new WeekStats(new DateOnly(2026, 9, 14), 5, 68, new DayScore("T5", 81), new DayScore("T3", 42), 11 * 60 + 20, 3, 190, 7, 35,
             18, 8, 5, 3, 2, FeelGood: 2, FeelOk: 2, FeelBad: 1),
         ThisWeek = new WeekStats(new DateOnly(2026, 9, 21), 3, 58, new DayScore("T2", 77), new DayScore("T3", 38), 9 * 60 + 40, 4, 240, 7, 35,
@@ -120,4 +120,7 @@ public static class DemoScenario
     ];
 
     public static MiloEngine CreateEngine() => new(Config(), Snapshot(), Script(), Day);
+
+    /// <summary>Ngày mẫu với hạt ngẫu nhiên khác (để thử những gì có yếu tố may rủi, vd. tính cách Pha trộn).</summary>
+    public static MiloEngine CreateEngine(uint seed) => new(new EngineConfig { Scripted = true, Seed = seed }, Snapshot(), Script(), Day);
 }

@@ -125,6 +125,56 @@ Không cần đợi Milo nhắc, bạn có thể tự mở trò chuyện (cách 
 - Nút gợi ý có chữ dài hơn nút: rê chuột lên để chữ chạy ngang đọc hết.
 - **An toàn:** câu có dấu hiệu khủng hoảng (vd. "muốn chết", "không muốn sống") luôn nhận 1 câu cố định khuyên tìm người thân tin cậy, chuyên gia tâm lý, hoặc gọi 115 nếu đang nguy hiểm. Câu đó không được gửi cho AI.
 
+### 3.5 Tủ đồ: phối đồ cho Milo
+
+**Mở ngay trên desktop, không cần bảng điều khiển** (dùng được cả ở Production):
+- Chuột phải vào Milo hoặc chóp đuôi → **Thay đồ cho Milo**.
+- Trên dashboard 4 quả → link **Tủ đồ**.
+- Menu khay → **Thay đồ cho Milo**.
+- Trong chat gõ "đổi đồ", "Milo mặc gì" → bấm nút **Mở tủ đồ**.
+
+Bảng tủ đồ hiện ngay trên đầu Milo:
+- **5 ô:** Mũ · Kẹp tóc · Kính · Cổ · Tay cầm. Mỗi ô 1 món; bấm món là Milo mặc ngay, bấm lại để cởi.
+- **Đồng phục Bosch** chiếm cả ô Mũ và ô Cổ; mặc mũ hay đồ cổ khác thì cả bộ đồng phục được cởi.
+- Món mờ là chưa mở khoá: rê chuột để xem điều kiện.
+- **Phối nhanh:** *Ngẫu nhiên* · *Tự chọn* (món khó mở nhất đang có) · *Bỏ hết* · **+ Lưu bộ này** (tối đa 4 bộ; bấm 1 bộ để mặc lại, chuột phải để xoá).
+- Dòng cuối: chuỗi về đúng giờ, số lần nghỉ, giờ tập trung, số món đã có và món sắp mở.
+
+| Ô | Món | Mở khoá khi |
+| --- | --- | --- |
+| Mũ | Mũ nồi · **Đồng phục Bosch** (mũ + thẻ đeo cổ) | Về đúng giờ 10 · 15 ngày liền |
+| | Tai nghe | Tập trung sâu tổng 5 giờ |
+| | Mũ phù thuỷ · Mũ Noel | Mùa Halloween (20–31/10) · Noel (10–26/12) |
+| Kẹp tóc | Kẹp hoa | Về đúng giờ 5 ngày liền |
+| Kính | Kính tròn · Kính râm | Có sẵn · Nghỉ cùng Milo 20 lần |
+| Cổ | Khăn quàng · Nơ cổ | Về đúng giờ 3 ngày liền · Tập trung sâu tổng 2 giờ |
+| Tay cầm | Ly cà phê · Ly trà sữa | Có sẵn · Nghỉ cùng Milo 10 lần |
+| | Bao lì xì · Lồng đèn ông sao | Mùa Tết (2 tuần trước tới 10 ngày sau mùng 1) · Trung thu (2 tuần trước tới 3 ngày sau rằm tháng 8) |
+
+- Chỉ thưởng thói quen tốt, không bao giờ thưởng cho làm thêm giờ.
+- Đồ theo mùa: mở khi tới mùa và **giữ luôn** sau mùa.
+- "Về đúng giờ" nghĩa là quá giờ dưới 15 phút.
+
+### 3.6 Tính cách Milo
+
+Milo thường dễ thương, nhưng lâu lâu sẽ hài một chút bằng những động tác lấy cảm hứng từ meme:
+- Slay khi bạn xong task.
+- Liếc xéo "hmm…" khi có email chờ lâu.
+- Toán bay quanh đầu khi có task kẹt.
+- Nhảy vibe "TGIF" chiều thứ Sáu.
+- Thanh "đang tải tuần mới" sáng thứ Hai.
+- Phủ mạng nhện khi bạn vắng hơn 30 phút rồi quay lại.
+- Nhấp cà phê giữa khói "mọi thứ vẫn ổn…" khi bạn quá giờ.
+- Đi lừ đừ "NPC mode" khi họp liền quá nhiều.
+- Bấm Milo 5 lần liền: Milo "ơ kìa!" rồi giả vờ ngất.
+
+Không cần chỉnh gì cả. Nếu muốn, chuột phải Milo → **Tính cách Milo** để chọn:
+- **Pha trộn** (mặc định): phần lớn dễ thương, lâu lâu hài.
+- **Dễ thương:** luôn nhẹ nhàng, không meme.
+- **Hài hước:** gặp dịp là diễn hài.
+
+Dù tính cách nào, Milo cũng không diễn khi bạn đang họp, trình chiếu hay xem toàn màn hình.
+
 ## 4. Bảng điều khiển
 
 Cửa sổ riêng, tông kem như thẻ của Milo. **Đóng cửa sổ này thì Milo vẫn chạy.**
@@ -136,11 +186,11 @@ Cửa sổ riêng, tông kem như thẻ của Milo. **Đóng cửa sổ này th�
 
 | Trang | Để làm gì |
 | --- | --- |
-| **Kịch bản trình diễn** | 24 bước đi qua đủ 20 tình huống + trình chiếu, mood realtime, đồng phục Bosch. Mỗi bước ghi *người xem thấy gì* và *bạn nói gì*. Bấm từng bước hoặc bật *Tự chạy qua các bước*. Kịch bản lời nói: [KICH-BAN-DEMO.md](KICH-BAN-DEMO.md) |
+| **Kịch bản trình diễn** | 25 bước đi qua đủ 20 tình huống + trình chiếu, mood realtime, Milo hài hước, đồng phục Bosch. Mỗi bước ghi *người xem thấy gì* và *bạn nói gì*. Bấm từng bước hoặc bật *Tự chạy qua các bước*. Kịch bản lời nói: [KICH-BAN-DEMO.md](KICH-BAN-DEMO.md) |
 | **Bắt đầu** | Thẻ **Mood realtime**: kéo mức căng thẳng, bấm nghỉ / xong task, gọi Milo đứng ở góc để thấy dáng và màu đổi ngay. Phát / tạm dừng ngày mẫu, *Làm lại từ 08:50*, tốc độ *Chậm 60× · Vừa 120× · Nhanh 300×*. Công tắc **Người dùng mẫu tự bấm nút**: bật thì kịch bản tự trả lời, tắt thì bạn tự bấm trên thẻ. Số liệu hôm nay và mẹo tương tác |
 | **Ngày mẫu** | 17 mốc của ngày Thứ Năm 24/9. Bấm 1 mốc để tua tới ngay trước lúc đó. Mốc đang diễn ra tô cam |
 | **Thử tình huống** | *Cho Milo làm ngay*: 19 thẻ tình huống chia 4 nhóm, bấm là Milo làm luôn. *Giả vờ bạn đang…*: công tắc gõ phím, rời máy, khoá máy, toàn màn hình, Không làm phiền, trình chiếu, ngày căng thẳng; và nút 1 lần (rời cuộc họp, nhảy việc, xong 1 task, mở dashboard) |
-| **Milo của bạn** | Tủ đồ (bấm món để Milo mặc ngay), chọn góc màn hình |
+| **Milo của bạn** | Tủ đồ phối theo ô (bấm món để Milo mặc ngay), tính cách Milo + 9 nút xem thử động tác hài, chọn góc màn hình |
 | **Mood Engine** | Công tắc chấm mood *Luật* / *Luật + AI* / *AI chấm hẳn* và đánh giá cuộc họp *Luật* / *AI*. **3 bộ kiểm chứng**: luật hợp lý, AI hợp lý và ổn định, so sánh luật với AI. *Lưu báo cáo* ra Desktop |
 | **Bộ não Milo** | Nâng cao: trạng thái, điều gì đang khiến Milo im lặng, lời nhắc đang chờ, điểm mood được tính thế nào, nhật ký từng quyết định |
 
@@ -155,7 +205,7 @@ Lúc Milo ẩn, đồng hồ kịch bản tua nhanh. Lúc Milo xuất hiện, th
 | **Thử tình huống** (chỉ Sandbox ở chế độ test) | *Chuẩn bị*: Reset ngày (chào sáng lại), đặt giờ về (*Giờ về = bây giờ + 2 phút*), *Tạo dữ liệu mẫu* trong tenant. *Cho Milo làm ngay* và *Giả vờ bạn đang…* như Demo |
 | **Mood Engine** | Như Demo: công tắc luật ↔ AI và 3 bộ kiểm chứng |
 | **Kiểm chứng điểm** | 5 câu WHO-5 mỗi tuần, bảng so sánh điểm Milo với WHO-5, hệ số tương quan *r*, nút *Xuất CSV ẩn danh* (mục 5.5) |
-| **Milo của bạn** | Tủ đồ, góc màn hình, công tắc **Khởi động cùng Windows**, *Milo chăm sóc bạn thế nào* (tính năng nào đang Bật/Tắt), *Riêng tư & dữ liệu* (Milo tự điều chỉnh theo 7 ngày ra sao, dữ liệu giữ trên máy, nút **Xoá toàn bộ dữ liệu thống kê ngay**) |
+| **Milo của bạn** | Tủ đồ, tính cách Milo, góc màn hình, công tắc **Khởi động cùng Windows**, *Milo chăm sóc bạn thế nào* (tính năng nào đang Bật/Tắt), *Riêng tư & dữ liệu* (Milo tự điều chỉnh theo 7 ngày ra sao, dữ liệu giữ trên máy, nút **Xoá toàn bộ dữ liệu thống kê ngay**) |
 | **Bộ não Milo** | Như Demo |
 
 Production mặc định không tự mở bảng điều khiển (Milo chỉ ở góc màn hình). Mở bằng biểu tượng ở khay.
@@ -228,7 +278,7 @@ Vòng thở: vòng tròn phồng 4 giây (hít vào), giữ 4 giây, xẹp 4 gi�
 | **Nghỉ giữa chuỗi họp ngày mai** | Trên thẻ tan tầm, khi mai có ≥ 3 cuộc họp liền | "Mai 13:30–16:15 có 3 cuộc họp liền" | *Giữ 10' nghỉ lúc …* |
 | **Trốn khi trình chiếu** | Teams báo bạn đang trình chiếu | Trốn hẳn, kể cả chóp đuôi | — |
 | **Trò chuyện** | Bất cứ lúc nào bạn muốn | Khung chat tự do, trả lời bằng AI hoặc theo từ khoá (mục 3.4) | Gõ tự do · *Thở 1 phút* · *Xong* |
-| **Tủ đồ** | Về đúng giờ 3 / 5 / 10 / 15 ngày liền | Khăn quàng / kẹp hoa / mũ nồi / **đồng phục Bosch** (mũ lưỡi trai đỏ băng 3 màu + thẻ nhân viên đeo cổ); sáng hôm sau Milo khoe | Chọn món ở *Milo của bạn* |
+| **Tủ đồ · phối đồ** | Mở khoá bằng thói quen tốt và theo mùa (mục 3.5) | 14 món chia 5 ô, phối nhiều món cùng lúc; sáng hôm sau Milo khoe món mới | Chuột phải Milo → *Thay đồ*, hoặc *Tủ đồ* trên dashboard, menu khay, chat "đổi đồ" |
 
 Muốn tắt tính năng nào (vd. thấy nhắc uống nước phiền): xem README mục **Tham chiếu biến `.env`**, nhóm `Wellbeing`.
 

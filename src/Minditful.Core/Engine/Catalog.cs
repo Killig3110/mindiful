@@ -15,7 +15,12 @@ public enum Clip
 {
     Gone, HangPull, Hello, ClimbIn, PeekIn, JumpIn, StandUp, Stretch, Celebrate, Thanks, Greet, Reminder, Point, Breathe,
     Idle, IdleTired, LookAround, HoverPeek, ClimbOut, ClimbOutShort, ClimbOutFast, RunToCar, DigExhausted,
+    // Clip hài (lấy cảm hứng cử chỉ meme, vẽ lại theo Milo) — theo tính cách Cfg.Personality
+    Slay, SideEye, Confused, Faint, Vibe, Loading, Cobweb, ThisIsFine, Zombie,
 }
+
+/// <summary>Tính cách Milo: Dễ thương = không meme; Hài hước = gặp dịp là diễn meme; Pha trộn = lâu lâu mới hài (mặc định).</summary>
+public enum Personality { Cute, Funny, Mixed }
 
 public enum Pose { Idle, Tired, Breathe, Wave, Point, Care, Greeting, Run }
 
@@ -69,6 +74,7 @@ public static class Catalog
         [Clip.HangPull] = 3.4, [Clip.Hello] = 2.3, [Clip.ClimbIn] = 1.3, [Clip.PeekIn] = 1.8, [Clip.JumpIn] = 1.6,
         [Clip.StandUp] = .5, [Clip.Stretch] = 1.2, [Clip.Celebrate] = 3, [Clip.Thanks] = 1.9, [Clip.ClimbOut] = 4.2,
         [Clip.ClimbOutShort] = 2.6, [Clip.ClimbOutFast] = .7, [Clip.RunToCar] = 2.9, [Clip.DigExhausted] = 1.8, [Clip.LookAround] = 8,
+        [Clip.Slay] = 3.2, [Clip.Faint] = 3.6, [Clip.Vibe] = 8, [Clip.Loading] = 6, [Clip.Cobweb] = 6,
     };
 
     public static readonly IReadOnlyDictionary<Clip, Pose> ClipPose = new Dictionary<Clip, Pose>
@@ -79,7 +85,19 @@ public static class Catalog
         [Clip.Celebrate] = Pose.Greeting, [Clip.ClimbOut] = Pose.Wave, [Clip.ClimbOutShort] = Pose.Idle, [Clip.ClimbOutFast] = Pose.Idle,
         [Clip.RunToCar] = Pose.Run, [Clip.DigExhausted] = Pose.Tired, [Clip.Idle] = Pose.Idle, [Clip.IdleTired] = Pose.Tired,
         [Clip.LookAround] = Pose.Idle, [Clip.HoverPeek] = Pose.Greeting, [Clip.Gone] = Pose.Idle,
+        [Clip.Slay] = Pose.Greeting, [Clip.SideEye] = Pose.Idle, [Clip.Confused] = Pose.Care, [Clip.Faint] = Pose.Idle,
+        [Clip.Vibe] = Pose.Run, [Clip.Loading] = Pose.Idle, [Clip.Cobweb] = Pose.Idle, [Clip.ThisIsFine] = Pose.Idle, [Clip.Zombie] = Pose.Tired,
     };
+
+    public static readonly (Personality Value, string Name, string Hint)[] Personalities =
+    [
+        (Personality.Mixed, "Pha trộn", "Phần lớn dễ thương, lâu lâu hài một chút"),
+        (Personality.Cute, "Dễ thương", "Luôn nhẹ nhàng, không meme"),
+        (Personality.Funny, "Hài hước", "Gặp dịp là diễn meme"),
+    ];
+
+    /// <summary>Tính cách Pha trộn: tỉ lệ 1 dịp hài được diễn meme (còn lại vẫn là clip dễ thương).</summary>
+    public const double MixedJokeChance = 0.35;
 
     public static double ClipLength(Clip c) => ClipSeconds.TryGetValue(c, out var s) ? s : 0;
 
@@ -106,6 +124,15 @@ public static class Catalog
         Clip.JumpIn => "JumpIn từ mép phải",
         Clip.StandUp => "nảy lên",
         Clip.Stretch => "vươn vai",
+        Clip.Slay => "slay",
+        Clip.SideEye => "liếc xéo",
+        Clip.Confused => "toán bay quanh đầu",
+        Clip.Faint => "ơ kìa → ngất",
+        Clip.Vibe => "vibe chiều thứ Sáu",
+        Clip.Loading => "đang tải tuần mới",
+        Clip.Cobweb => "phủ mạng nhện",
+        Clip.ThisIsFine => "mọi thứ vẫn ổn…",
+        Clip.Zombie => "NPC mode",
         _ => k.ToString(),
     };
 }

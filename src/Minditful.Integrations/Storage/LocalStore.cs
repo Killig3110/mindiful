@@ -49,7 +49,7 @@ public sealed record CleanupResult(DateOnly Cutoff, int Days, int Outcomes, int 
 /// </summary>
 public sealed class LocalStore
 {
-    private const int SchemaVersion = 4;
+    private const int SchemaVersion = 5;
     private readonly string _cs;
     private readonly StorageOptions _opt;
     private readonly object _gate = new();
@@ -129,6 +129,8 @@ public sealed class LocalStore
                 CREATE TABLE IF NOT EXISTS streak (
                     id INTEGER PRIMARY KEY CHECK (id = 1), count INTEGER NOT NULL, best INTEGER NOT NULL, base INTEGER NOT NULL,
                     last_day TEXT, unlocked_item TEXT, unlocked_day TEXT);
+                CREATE TABLE IF NOT EXISTS progress (
+                    key TEXT PRIMARY KEY, total INTEGER NOT NULL, base INTEGER NOT NULL, last_day TEXT);
                 CREATE TABLE IF NOT EXISTS validation_week (
                     week TEXT PRIMARY KEY, milo_avg REAL, who5 INTEGER NOT NULL, saved_at TEXT);
                 """;
@@ -264,16 +266,20 @@ public sealed class LocalStore
     /// (vd. bấm "Về thôi" rồi vẫn làm tiếp tới quá giờ). Chỉ lưu 1 dòng số đếm, không lưu ngày nào về lúc mấy giờ.
     /// </summary>
     /// <returns>Chuỗi hiện tại, chuỗi dài nhất và món vừa mở khoá (nếu có).</returns>
-    public (int Streak, int Best, Accessory? Unlocked) RecordDay(DateOnly day, bool onTime)
+    /// <param name="breaks">Số lần nghỉ cùng Milo trong ngày (cộng dồn vào tổng để mở khoá món nghỉ).</param>
+    /// <param name="focusMin">Số phút tập trung sâu trong ngày (cộng dồn vào tổng).</param>
+    public (int Streak, int Best, Accessory? Unlocked) RecordDay(DateOnly day, bool onTime, int breaks = 0, int focusMin = 0)
     {
         lock (_gate)
         {
+            var (breaksBefore, breaksAfter) = AddProgress("breaks", day, breaks);
+            var (focusBefore, focusAfter) = AddProgress("focus", day, focusMin);
             var row = Query("SELECT count, best, base, last_day FROM streak WHERE id = 1",
                 r => (Count: r.GetInt32(0), Best: r.GetInt32(1), Base: r.GetInt32(2), Last: r.IsDBNull(3) ? null : r.GetString(3))).FirstOrDefault();
             var baseCount = row.Last == D(day) ? row.Base : row.Count;
             var count = onTime ? baseCount + 1 : 0;
             var best = Math.Max(row.Best, count);
-            var item = Core.Engine.Wardrobe.NewlyUnlocked(row.Best, best);
+            var item = Core.Engine.Wardrobe.NewlyUnlocked(row.Best, best, breaksBefore, breaksAfter, focusBefore, focusAfter);
             Exec("""
                 INSERT INTO streak (id, count, best, base, last_day, unlocked_item, unlocked_day) VALUES (1, $c, $b, $base, $d, $i, $id)
                 ON CONFLICT(id) DO UPDATE SET count=$c, best=$b, base=$base, last_day=$d,
@@ -283,15 +289,40 @@ public sealed class LocalStore
         }
     }
 
-    /// <summary>Chuỗi hiện tại cho hôm nay. Món mới chỉ báo vào ngày làm việc ngay sau ngày mở khoá.</summary>
+    /// <summary>
+    /// Cộng số của 1 ngày vào tổng. Gọi lại trong cùng ngày thì thay số của ngày đó (không cộng 2 lần).
+    /// </summary>
+    /// <returns>Tổng trước ngày này và tổng sau khi cộng.</returns>
+    private (int Before, int After) AddProgress(string key, DateOnly day, int value)
+    {
+        var row = Query("SELECT total, base, last_day FROM progress WHERE key = $k",
+            r => (Total: r.GetInt32(0), Base: r.GetInt32(1), Last: r.IsDBNull(2) ? null : r.GetString(2)), ("$k", key)).FirstOrDefault();
+        var before = row.Last == D(day) ? row.Base : row.Total;
+        var after = before + Math.Max(0, value);
+        Exec("""
+            INSERT INTO progress (key, total, base, last_day) VALUES ($k, $t, $b, $d)
+            ON CONFLICT(key) DO UPDATE SET total=$t, base=$b, last_day=$d;
+            """, ("$k", key), ("$t", after), ("$b", before), ("$d", D(day)));
+        return (before, after);
+    }
+
+    private int Progress(string key) =>
+        Query("SELECT total FROM progress WHERE key = $k", r => r.GetInt32(0), ("$k", key)).FirstOrDefault();
+
+    /// <summary>Tủ đồ hôm nay: chuỗi, tổng nghỉ, tổng tập trung, món theo mùa đã giữ. Đang trong mùa thì ghi lại món mùa đó để giữ luôn.</summary>
     public WardrobeInfo Wardrobe(DateOnly today)
     {
+        foreach (var s in Core.Engine.Wardrobe.InSeasonToday(today))
+            Exec("INSERT OR IGNORE INTO progress (key, total, base, last_day) VALUES ($k, 1, 0, $d);", ("$k", "kept:" + s.Id), ("$d", D(today)));
+        var kept = Query("SELECT key FROM progress WHERE key LIKE 'kept:%'", r => r.GetString(0)[5..]);
+        var breaks = Progress("breaks");
+        var focus = Progress("focus");
         var row = Query("SELECT count, best, last_day, unlocked_item, unlocked_day FROM streak WHERE id = 1",
             r => (Count: r.GetInt32(0), Best: r.GetInt32(1), Last: r.IsDBNull(2) ? null : r.GetString(2),
                 Item: r.IsDBNull(3) ? null : r.GetString(3), ItemDay: r.IsDBNull(4) ? null : r.GetString(4))).FirstOrDefault();
-        if (row.Last is null) return new WardrobeInfo(0, 0);
+        if (row.Last is null) return new WardrobeInfo(0, 0, Breaks: breaks, FocusMin: focus, Kept: kept);
         var fresh = row.ItemDay is not null && row.ItemDay == row.Last && string.CompareOrdinal(row.Last, D(today)) < 0;
-        return new WardrobeInfo(row.Count, row.Best, fresh ? Core.Engine.Wardrobe.Find(row.Item)?.Name : null);
+        return new WardrobeInfo(row.Count, row.Best, fresh ? Core.Engine.Wardrobe.Find(row.Item)?.Name : null, breaks, focus, kept);
     }
 
     // ================= dọn & xoá =================
@@ -348,7 +379,7 @@ public sealed class LocalStore
     /// <summary>Xoá toàn bộ dữ liệu thống kê của môi trường này (nút trong Bảng điều khiển).</summary>
     public void WipeAll()
     {
-        Exec("DELETE FROM day_record; DELETE FROM outcome_event; DELETE FROM mood_sample; DELETE FROM meeting_assessment; DELETE FROM day_start; DELETE FROM streak; DELETE FROM validation_week;");
+        Exec("DELETE FROM day_record; DELETE FROM outcome_event; DELETE FROM mood_sample; DELETE FROM meeting_assessment; DELETE FROM day_start; DELETE FROM streak; DELETE FROM progress; DELETE FROM validation_week;");
         Exec("VACUUM;");
     }
 

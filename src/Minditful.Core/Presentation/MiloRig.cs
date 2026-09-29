@@ -38,6 +38,16 @@ public static class MiloRig
     public static readonly Rig Dig = new("dig", 9, 8);
     public static readonly Rig Look = new("look", 8, 2);
     public static readonly Rig Peek = new("peek", 3, 10, Loop: false);
+    // Clip hài
+    public static readonly Rig Slay = new("slay", 8, 6);
+    public static readonly Rig SideEye = new("sideeye", 8, 2);
+    public static readonly Rig Confused = new("confused", 8, 3, PingPong: true);
+    public static readonly Rig Faint = new("faint", 11, 3, Loop: false);
+    public static readonly Rig Vibe = new("vibe", 8, 6);
+    public static readonly Rig Loading = new("loading", 10, 1.6, Loop: false);
+    public static readonly Rig Cobweb = new("cobweb", 11, 2, Loop: false);
+    public static readonly Rig Sip = new("sip", 11, 3);
+    public static readonly Rig Zombie = new("zombie", 8, 3, PingPong: true);
 
     public static Rig For(Clip clip, bool tired) => clip switch
     {
@@ -54,6 +64,15 @@ public static class MiloRig
         Clip.LookAround => Look,
         Clip.HoverPeek => Peek,
         Clip.IdleTired => IdleTired,
+        Clip.Slay => Slay,
+        Clip.SideEye => SideEye,
+        Clip.Confused => Confused,
+        Clip.Faint => Faint,
+        Clip.Vibe => Vibe,
+        Clip.Loading => Loading,
+        Clip.Cobweb => Cobweb,
+        Clip.ThisIsFine => Sip,
+        Clip.Zombie => Zombie,
         _ => tired ? IdleTired : Idle,
     };
 
@@ -149,6 +168,95 @@ public static class MiloRig
                 break;
             case "peek":
                 Sym("earL", "earR", 8 - 4 * frame);         // vểnh tai khi ngóc đầu
+                break;
+            // ---------- clip hài ----------
+            case "slay":
+                moves.Add(new("armR", -(150 + 10 * s)));    // tay phải chỉ thẳng lên trời
+                moves.Add(new("armL", 28));                 // tay trái chống hông
+                moves.Add(new("head", 7 + 2 * s));          // hất mặt
+                moves.Add(new("tail", 18 * s));
+                Sym("earL", "earR", 5 * c);
+                break;
+            case "sideeye":
+                moves.Add(new("look", 0, frame < 2 ? -2 : -6)); // liếc dần sang phía thẻ
+                moves.Add(new("eyes", 0, 0, 0, .55));       // nheo mắt
+                moves.Add(new("head", -6));
+                moves.Add(new("earL", -10));
+                moves.Add(new("tail", 3 * s));
+                blink = false;
+                break;
+            case "confused":
+                moves.Add(new("head", 9 * s));              // nghiêng đầu qua lại
+                moves.Add(new("look", 0, 3 * s, -1));
+                moves.Add(new("armR", -(160 + 6 * s)));     // tay phải (vẽ sau đầu nên không bị khuất) gãi đầu
+                moves.Add(new("earL", -8 + 6 * s));
+                moves.Add(new("earR", 4));
+                break;
+            case "faint":
+                // 0–3: giật mình, tay khua; 4+: mắt nhắm, tay buông (thân ngã do ClipAnimation)
+                if (frame < 4)
+                {
+                    Sym("armL", "armR", 60 + 40 * Math.Sin(frame * 2.1));
+                    Sym("earL", "earR", 10);
+                }
+                else
+                {
+                    Sym("armL", "armR", 15);
+                    Sym("earL", "earR", -16);
+                    moves.Add(new("eyes", 0, 0, 0, .12));
+                    blink = false;
+                }
+                break;
+            case "vibe":
+                moves.Add(new("armL", 120 + 30 * s));       // hai tay đánh nhịp so le
+                moves.Add(new("armR", -(40 + 30 * c)));
+                moves.Add(new("legL", 0, 0, -8 * Math.Max(0, s)));
+                moves.Add(new("legR", 0, 0, -8 * Math.Max(0, -s)));
+                moves.Add(new("head", 7 * s));
+                moves.Add(new("tail", 20 * s));
+                Sym("earL", "earR", 6 * c);
+                break;
+            case "loading":
+                // Mới đầu gục đầu, tai cụp, mắt lim dim; tải xong thì tỉnh hẳn
+                moves.Add(new("head", 8 * (1 - p), 0, 4 * (1 - p)));
+                Sym("earL", "earR", -16 * (1 - p));
+                if (p < .8) moves.Add(new("eyes", 0, 0, 0, .35 + .6 * p));
+                if (frame == rig.Frames - 1) moves.Add(new("tail", 14));
+                blink = false;
+                break;
+            case "cobweb":
+                // Đứng im phủ bụi (8 khung), rồi rũ mình (3 khung cuối)
+                if (frame < 8)
+                {
+                    moves.Add(new("eyes", 0, 0, 0, .3));
+                    Sym("earL", "earR", -12);
+                    moves.Add(new("head", 5, 0, 3));
+                    blink = false;
+                }
+                else
+                {
+                    var k = frame % 2 == 0 ? 1 : -1;
+                    moves.Add(new("head", 10 * k));
+                    Sym("armL", "armR", 30 + 20 * k);
+                    moves.Add(new("tail", 25 * k));
+                    Sym("earL", "earR", 12 * k);
+                }
+                break;
+            case "sip":
+                // Nhấp ngụm cà phê mỗi 4 giây, mặt vẫn cười "ổn mà"
+                var up = frame is >= 4 and <= 7;
+                moves.Add(new("armR", up ? 100 : 35));       // cầm ly trước ngực → đưa lên miệng
+                moves.Add(new("head", up ? -5 : 0));
+                moves.Add(new("tail", 3 * s));
+                if (up) moves.Add(new("eyes", 0, 0, 0, .15));
+                break;
+            case "zombie":
+                Sym("armL", "armR", 82 + 4 * s);            // hai tay đưa thẳng ra
+                moves.Add(new("head", 10 + 4 * s, 0, 3));   // đầu ngoẹo
+                Sym("earL", "earR", -18);
+                moves.Add(new("legL", 0, 0, -6 * Math.Max(0, s)));
+                moves.Add(new("legR", 0, 0, -6 * Math.Max(0, -s)));
+                moves.Add(new("tail", 4 * s, 0, 4));
                 break;
         }
         if (blink) moves.Add(new("eyes", 0, 0, 0, 0.12));

@@ -53,7 +53,10 @@ public sealed record WeekStats(
     int FeelGood = 0, int FeelOk = 0, int FeelBad = 0);
 
 /// <summary>Chuỗi ngày về đúng giờ và phụ kiện Milo đã mở khoá (tủ đồ).</summary>
-public sealed record WardrobeInfo(int Streak, int Best, string? NewItem = null);
+/// <param name="Breaks">Tổng số lần nghỉ cùng Milo từ trước tới nay (mở khoá món nghỉ).</param>
+/// <param name="FocusMin">Tổng phút tập trung sâu từ trước tới nay.</param>
+/// <param name="Kept">Món theo mùa đã mở ở mùa trước (giữ luôn).</param>
+public sealed record WardrobeInfo(int Streak, int Best, string? NewItem = null, int Breaks = 0, int FocusMin = 0, IReadOnlyList<string>? Kept = null);
 
 /// <summary>Toàn bộ dữ liệu công việc mà Rule Engine đọc. Demo dùng bản cố định, Prod/Sandbox làm mới định kỳ.</summary>
 public sealed class WorkSnapshot
@@ -176,6 +179,8 @@ public sealed class Episode
     public bool Opened, Held, Confirmed, GoHome, LongBreak;
     /// <summary>Dashboard: đang xem bảng chi tiết thay cho 4 quả.</summary>
     public bool Detail;
+    /// <summary>Dashboard đang mở tủ đồ (phối đồ ngay trên đầu Milo, thay cho 4 quả).</summary>
+    public bool Wardrobe;
     public int Cycles, Cycle;
     public DashPage Page = DashPage.Today;
     public string? Intent;

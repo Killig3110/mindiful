@@ -31,6 +31,7 @@ public static class Talk
         ["planFocus"] = ("Tìm giờ tập trung", "Milo tìm khoảng trống dài nhất trong lịch hôm nay và đề nghị giữ chỗ; khi nhiều việc, sợ không kịp deadline"),
         ["stuck"] = ("Xem task kẹt", "mở task đang kẹt lâu nhất để chặn giờ xử lý; khi nói tới việc tồn, task kẹt, backlog"),
         ["dashboard"] = ("Xem hôm nay", "mở dashboard điểm, họp, email, sprint hôm nay; khi hỏi hôm nay của họ thế nào"),
+        ["wardrobe"] = ("Mở tủ đồ", "mở tủ đồ để phối đồ cho Milo; khi muốn đổi đồ, thay trang phục, hỏi Milo mặc gì"),
     };
 
     /// <summary>Tính năng dùng được lúc này (vd. không có task kẹt thì không đề nghị "Xem task kẹt").</summary>
@@ -43,6 +44,7 @@ public static class Talk
         if (!busy && e.FocusSlot() is not null && !s.Holds.Any(h => h.Kind is "focus" or "focusPlan")) list.Add("planFocus");
         if (e.StuckTasks().Count > 0) list.Add("stuck");
         if (s.Ep?.C != CaseId.Dashboard) list.Add("dashboard");
+        if (s.Ep?.C != CaseId.Dashboard && e.Snap.Wardrobe is not null) list.Add("wardrobe");
         return list;
     }
 
@@ -66,6 +68,7 @@ public static class Talk
         if (Has(t, "task kẹt|việc tồn|backlog|kẹt|tồn đọng")) groups.Add(["stuck", "planFocus"]);
         if (Has(t, "nghỉ|giải lao|đi dạo|uống nước")) groups.Add(["break15", "breathe"]);
         if (Has(t, "hôm nay|điểm|thế nào|sao rồi|mood")) groups.Add(["dashboard"]);
+        if (Has(t, "đổi đồ|thay đồ|mặc gì|tủ đồ|trang phục|outfit|phối đồ|quần áo|mũ|kính")) groups.Insert(0, ["wardrobe"]);
         var ok = Available(e);
         var firsts = groups.Select(g => g.FirstOrDefault(ok.Contains)).Where(a => a is not null).Cast<string>();
         var rest = groups.SelectMany(g => g).Where(ok.Contains);

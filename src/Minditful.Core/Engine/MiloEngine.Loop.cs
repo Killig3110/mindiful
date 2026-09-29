@@ -54,10 +54,13 @@ public sealed partial class MiloEngine
                 break;
             case "away":
                 S.Away = true;
+                S.AwaySince = S.T;
                 Log("Rời khỏi máy (idle)", LogKind.User);
                 break;
             case "back":
                 S.Away = false;
+                if (S.AwaySince is { } since && S.T - since >= 1800 && Joke()) S.CobwebPending = true;
+                S.AwaySince = null;
                 Log("Quay lại máy", LogKind.User);
                 break;
             case "done": CompleteTask(id, null); break;
@@ -135,6 +138,29 @@ public sealed partial class MiloEngine
         StartEp(new QueueItem { C = CaseId.Talk, Key = "t" + S.T, Pri = 0, Sev = 0, Enq = S.T }, swap: swap);
     }
 
+    /// <summary>
+    /// Mở tủ đồ ngay trên đầu Milo (chuột phải Milo, menu khay, link trên dashboard, nút trong chat).
+    /// Không cần bảng điều khiển; không chen ngang lời nhắc đang hiện.
+    /// </summary>
+    public void OpenWardrobe()
+    {
+        if (S.Ep is { C: CaseId.Dashboard } d)
+        {
+            if (!d.Wardrobe) Reply("wardrobe");
+            return;
+        }
+        if (S.Ep is { C: CaseId.Talk, Phase: Phase.Show })
+        {
+            Reply("do", "wardrobe");
+            return;
+        }
+        if (S.Ep is not null || HardGate() is Gate.Off or Gate.Locked or Gate.Presenting) return;
+        var swap = S.Visit is not null;
+        Log("Mở tủ đồ của Milo", LogKind.User);
+        StartEp(new QueueItem { C = CaseId.Dashboard, Key = "d" + S.T, Pri = 0, Sev = 0, Enq = S.T }, swap: swap);
+        S.Ep!.Wardrobe = true;
+    }
+
     private void DotClick()
     {
         SortQueue();
@@ -194,9 +220,10 @@ public sealed partial class MiloEngine
 
     private void TryVisit()
     {
-        if (S.Ep is not null || S.Visit is not null || S.Peek || S.Queue.Count > 0 || S.NextVisit is null) return;
+        if (S.Ep is not null || S.Visit is not null || S.Peek || S.Queue.Count > 0) return;
         if (HardGate() is not null || S.Away || S.Typing) return;
-        if (S.T < S.NextVisit) return;
+        // Vừa quay lại sau khi vắng lâu: ghé ngay để "rũ mạng nhện", không chờ tới lượt ghé
+        if (!S.CobwebPending && (S.NextVisit is null || S.T < S.NextVisit)) return;
         S.Visit = new Visit { Phase = VisitPhase.In, End = S.T + Dt(Catalog.ClipLength(Clip.PeekIn)), Clip = Clip.PeekIn };
         Log("Ghé ngang: ló lên 8 giây rồi đi (không bóng thoại, không tính ngân sách)", LogKind.Sig);
     }
@@ -209,6 +236,19 @@ public sealed partial class MiloEngine
             v.Phase = VisitPhase.Look;
             v.Clip = Clip.LookAround;
             v.End = S.T + Dt(8);
+            if (S.CobwebPending)
+            {
+                S.CobwebPending = false;
+                v.Clip = Clip.Cobweb;
+                v.End = S.T + Dt(Catalog.ClipLength(Clip.Cobweb));
+                Log("Bạn vắng lâu quay lại → Milo phủ mạng nhện rồi rũ bụi", LogKind.Sig);
+            }
+            else if (Day.DayOfWeek == DayOfWeek.Friday && S.T >= Tm.T("15:00") && Joke())
+            {
+                v.Clip = Clip.Vibe;
+                Log("Chiều thứ Sáu → Milo nhảy vibe cuối tuần", LogKind.Sig);
+            }
+            if (S.Reaction is { } r && r.End > v.End) v.End = r.End;
         }
         else if (v.Phase == VisitPhase.Look)
         {
@@ -452,8 +492,43 @@ public sealed partial class MiloEngine
     public void TailClick() => OpenDash();
     public void DotPillClick() => DotClick();
 
+    /// <summary>
+    /// Cho Milo diễn 1 clip hài ngay (bảng điều khiển Demo, hoặc phản ứng như bấm liên tục). Milo đang ẩn thì ló lên trước.
+    /// Không chạy khi đang họp, trình chiếu, toàn màn hình, khoá máy.
+    /// </summary>
+    public void PlayMeme(Clip c)
+    {
+        if (HardGate() is not null) return;
+        var len = Dt(Catalog.ClipLength(c) > 0 ? Catalog.ClipLength(c) : 6);
+        var start = S.T;
+        if (S.Ep is null && S.Visit is null)
+        {
+            S.Peek = false;
+            S.Visit = new Visit { Phase = VisitPhase.In, End = S.T + Dt(Catalog.ClipLength(Clip.PeekIn)), Clip = Clip.PeekIn };
+            start = S.Visit.End;
+        }
+        S.Reaction = (c, start, start + len);
+        if (S.Visit is { Phase: VisitPhase.Look } v && v.End < start + len) v.End = start + len; // đang đứng ngoài: ở lại diễn cho xong
+        Log($"Milo diễn: {Catalog.ClipName(c)}", LogKind.Sig);
+    }
+
     public void MiloClick()
     {
+        // Bấm Milo liên tục 5 lần trong 4 giây → "ơ kìa!" rồi giả vờ ngất
+        // Người dùng chủ động trêu nên luôn có (trừ tính cách Dễ thương)
+        if (Cfg.Personality != Personality.Cute && (S.Ep is not null || S.Visit is not null))
+        {
+            S.Pokes.RemoveAll(t => t < S.T - Math.Max(Dt(4), 0.001));
+            S.Pokes.Add(S.T);
+            if (S.Pokes.Count >= 5)
+            {
+                S.Pokes.Clear();
+                S.Reaction = (Clip.Faint, S.T, S.T + Dt(Catalog.ClipLength(Clip.Faint)));
+                if (S.Visit is { } v && v.End < S.Reaction.Value.End) v.End = S.Reaction.Value.End;
+                Log("Bấm Milo liên tục → \"ơ kìa!\" rồi giả vờ ngất", LogKind.User);
+                return;
+            }
+        }
         if (S.Ep is not { } ep)
         {
             // Milo đang ghé hoặc đứng ở góc: bấm vào là mở trò chuyện

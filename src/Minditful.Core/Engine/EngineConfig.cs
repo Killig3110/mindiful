@@ -2,6 +2,9 @@ namespace Minditful.Core.Engine;
 
 public sealed class EngineConfig
 {
+    /// <summary>Tính cách Milo (dễ thương / hài hước / pha trộn). Engine mặc định Dễ thương; app đặt Pha trộn. Đổi được lúc đang chạy.</summary>
+    public Personality Personality { get; set; } = Personality.Cute;
+
     public double Start { get; set; } = Tm.T("09:00");
     /// <summary>Giờ kết thúc khung làm việc — Sandbox cho đổi lúc đang chạy để test Tan tầm ngay.</summary>
     public double End { get; set; } = Tm.T("18:00");

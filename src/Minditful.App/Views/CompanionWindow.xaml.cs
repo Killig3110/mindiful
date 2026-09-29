@@ -26,6 +26,8 @@ public partial class CompanionWindow : Window
         Layer.Engine = session.Engine;
         Layer.Corner = UiSettings.LoadCorner(session.Env);
         Layer.AccessoryChoice = UiSettings.LoadAccessory(session.Env);
+        Layer.Env = session.Env;
+        Layer.OutfitChanged = choice => UiSettings.SaveAccessory(session.Env, choice);
         Layer.TailDropped += OnTailDropped;
         Layer.Interacted += () => Animate(true);
         SourceInitialized += (_, _) => ApplyWindowStyles();
@@ -144,6 +146,22 @@ public partial class CompanionWindow : Window
     {
         Layer.AccessoryChoice = choice;
         UiSettings.SaveAccessory(_session.Env, choice);
+        Layer.Render();
+    }
+
+    /// <summary>Bảng điều khiển → "Xem thử": Milo diễn 1 clip hài ngay.</summary>
+    public void PlayMeme(Core.Engine.Clip clip)
+    {
+        _session.Engine.PlayMeme(clip);
+        Animate(true);
+        Layer.Render();
+    }
+
+    /// <summary>Menu khay "Thay đồ cho Milo": mở tủ đồ ngay trên đầu Milo.</summary>
+    public void OpenWardrobe()
+    {
+        _session.Engine.OpenWardrobe();
+        Animate(true);
         Layer.Render();
     }
 

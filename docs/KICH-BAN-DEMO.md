@@ -3,7 +3,7 @@
 Dành cho người đứng present Milo, ví dụ ở vòng chấm cuộc thi. Demo **không cần tài khoản, không cần mạng**: Milo sống qua 1 ngày làm việc mẫu (Thứ Năm 24/9) và làm đủ **19 tình huống** trên desktop thật.
 
 - Thời lượng: bản đầy đủ khoảng **15 phút**, bản rút gọn **7 phút** (mục 4).
-- Công cụ chính: bảng điều khiển → trang **Kịch bản trình diễn** (24 bước, có gợi ý câu nói cho từng bước).
+- Công cụ chính: bảng điều khiển → trang **Kịch bản trình diễn** (25 bước, có gợi ý câu nói cho từng bước).
 - Cách dùng app nói chung: [HUONG-DAN-SU-DUNG.md](HUONG-DAN-SU-DUNG.md). Muốn demo với dữ liệu thật: [KICH-BAN-SANDBOX.md](KICH-BAN-SANDBOX.md).
 
 ---
@@ -29,7 +29,7 @@ Dành cho người đứng present Milo, ví dụ ở vòng chấm cuộc thi. D
 
 Mỗi bước, trang hiện sẵn: **Người xem thấy gì** và **Bạn nói gì**.
 
-## 3. Kịch bản đầy đủ · 24 bước, khoảng 16 phút
+## 3. Kịch bản đầy đủ · 25 bước, khoảng 17 phút
 
 ### Mở đầu (30 giây, trước bước 1)
 
@@ -72,15 +72,16 @@ Milo làm từng tình huống ngay, không chờ tới giờ.
 - *Để sau* 2 lần thì mất nút Để sau.
 - Gõ chat "mệt quá" thì Milo rủ thở.
 
-### Phần C · Điểm nhấn (bước 22–24, khoảng 2 phút)
+### Phần C · Điểm nhấn (bước 22–25, khoảng 3 phút)
 
 | # | Bước | Người xem thấy | Bạn nói |
 | --- | --- | --- | --- |
 | 22 | Trốn khi trình chiếu | Milo và chóp đuôi biến mất | "Đang trình chiếu thì Milo trốn hẳn. Và Milo không bao giờ lộ lên màn hình đang chia sẻ." |
 | 23 | **Mood realtime** | Milo đứng ở góc. Kéo thanh *Căng thẳng giả lập* sang phải: điểm tụt, Milo nhạt màu, dáng mệt, có chữ z. Bấm *Nghỉ cùng Milo* / *Xong 1 task*: điểm tăng, Milo tươi lại | "Điểm mood tính lại ngay khi có gì thay đổi. Milo không bật popup, chỉ đổi dáng để bạn tự nhận ra mình đang mệt." |
-| 24 | Đồng phục Bosch | Milo mặc mũ lưỡi trai đỏ và thẻ nhân viên Bosch | "Về đúng giờ 15 ngày liền, Milo được tặng đồng phục Bosch. Phần thưởng dành cho thói quen tốt, không phải cho làm thêm giờ." |
+| 24 | **Milo hài hước** | Milo diễn liền 3 động tác: slay (lấp lánh) → nhảy vibe "TGIF" → "ơ kìa!" rồi giả vờ ngất | "Milo phần lớn dễ thương, nhưng lâu lâu sẽ hài một chút, lấy cảm hứng từ meme và vẽ lại theo Milo. Ai thích Milo lúc nào cũng hiền thì chuột phải chọn tính cách Dễ thương. Milo không bao giờ diễn lúc bạn đang họp hay trình chiếu." |
+| 25 | Đồng phục Bosch | Milo mặc mũ lưỡi trai đỏ và thẻ nhân viên Bosch | "Về đúng giờ 15 ngày liền, Milo được tặng đồng phục Bosch. Phần thưởng dành cho thói quen tốt, không phải cho làm thêm giờ." |
 
-Ở bước 23:
+Ở bước 23 (Mood realtime):
 - Tự chạy: app tự kéo mức căng thẳng 0 → 30 → 60 → 0.
 - Tự làm: dùng thẻ **Mood realtime** ngay dưới bước hiện tại. Nhìn dải trên cùng bảng điều khiển để đọc điểm.
 
