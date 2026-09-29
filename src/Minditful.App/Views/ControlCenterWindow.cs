@@ -21,6 +21,8 @@ internal sealed class ControlCenterWindow : ControlShell
     private readonly bool _sandbox;
 
     protected override MiloEngine Engine => _session.Engine;
+    protected override Minditful.Integrations.Llm.IMiloLlm? Llm => _session.Writer;
+    protected override LlmOptions? LlmOpts => _session.Llm;
     protected override string ClockNote =>
         Engine.Day.ToDateTime(TimeOnly.MinValue).ToString("dddd · dd/MM", new CultureInfo("vi-VN")) + $" · giờ làm {Tm.Hm(Engine.Cfg.Start)}–{Tm.Hm(Engine.Cfg.End)}";
 
@@ -37,6 +39,7 @@ internal sealed class ControlCenterWindow : ControlShell
         AddPage("connect", IcLink, "Kết nối", Connect, "Microsoft 365, Azure Boards, Claude");
         if (_sandbox) AddPage("try", IcTry, "Thử tình huống", Try, "ép Milo làm như Demo");
         AddPage("milo", IcMilo, "Milo của bạn", Milo, "tủ đồ, chăm sóc, dữ liệu");
+        AddPage("engine", IcEngine, "Mood Engine", MoodEnginePage, "luật ↔ AI · kiểm chứng");
         AddPage("check", IcCheck, "Kiểm chứng điểm", Check, "WHO-5 hằng tuần");
         AddPage("brain", IcBrain, "Bộ não Milo", BrainPage, "nâng cao");
         _session.Changed += OnChanged;
@@ -483,5 +486,4 @@ internal sealed class ControlCenterWindow : ControlShell
         return path;
     }
 
-    private static Border Spacer(double h) => new() { Height = h };
 }

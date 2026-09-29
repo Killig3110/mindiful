@@ -134,6 +134,14 @@ public sealed partial class MiloEngine
     private MoodInsight? FreshInsight() =>
         S.MoodInsight is { } m && S.T - m.At <= Cfg.MoodIntervalMinutes * 60 * 2 ? m : null;
 
+    /// <summary>Hỏi AI chấm mood ngay (bảng điều khiển vừa bật chế độ AI hoặc bấm "Hỏi AI ngay").</summary>
+    public void AskMoodNow()
+    {
+        if (Cfg.MoodMode == MoodMode.Rules || MoodWanted is null) return;
+        S.LastMoodAsk = S.T;
+        MoodWanted(BuildMoodRequest());
+    }
+
     private void MaybeAskMood()
     {
         if (Cfg.MoodMode == MoodMode.Rules || MoodWanted is null || S.Instant || !S.DayStarted || S.OffDuty) return;

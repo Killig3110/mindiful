@@ -192,6 +192,23 @@ public sealed class AzureDevOpsOptions
 public sealed class LlmOptions
 {
     public bool Enabled { get; set; } = true;
+    /// <summary>
+    /// "Claude" (mặc định, SDK Anthropic) hoặc "OpenAI" = mọi dịch vụ tương thích OpenAI Chat Completions:
+    /// Ollama chạy trên máy (miễn phí, không giới hạn), Groq, Google Gemini, OpenRouter… Đặt kèm <see cref="BaseUrl"/> và <see cref="Model"/>.
+    /// </summary>
+    public string Provider { get; set; } = "Claude";
+    /// <summary>Chỉ dùng khi Provider = OpenAI, vd. http://localhost:11434/v1 (Ollama), https://api.groq.com/openai/v1.</summary>
+    public string BaseUrl { get; set; } = "";
+    /// <summary>Kiểm chứng AI: nghỉ giữa 2 request để không vượt giới hạn/phút của gói miễn phí.</summary>
+    public int EvalDelayMs { get; set; } = 2500;
+    /// <summary>Demo tua nhanh nên sẽ hỏi AI rất dày; giữ tối thiểu bấy nhiêu giây thật giữa 2 lần chấm mood để tiết kiệm lượt.</summary>
+    public int DemoMoodMinSeconds { get; set; } = 60;
+
+    public bool IsOpenAiCompatible => Provider.Equals("OpenAI", StringComparison.OrdinalIgnoreCase)
+        || Provider.Equals("OpenAICompatible", StringComparison.OrdinalIgnoreCase) || Provider.Equals("Ollama", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>Biến chứa API key: Claude đọc ANTHROPIC_API_KEY, dịch vụ khác đọc LLM_API_KEY (trừ khi tự đặt ApiKeyEnvVar).</summary>
+    public string KeyEnvVar => IsOpenAiCompatible && ApiKeyEnvVar == "ANTHROPIC_API_KEY" ? "LLM_API_KEY" : ApiKeyEnvVar;
     /// <summary>Dùng cả trong Demo (ngày mẫu sẽ không còn giống hệt prototype từng chữ).</summary>
     public bool UseInDemo { get; set; }
     public string Model { get; set; } = "claude-opus-5";

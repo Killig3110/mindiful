@@ -52,7 +52,7 @@ internal sealed class LiveSession : IMiloSession
     public LocalStore History { get; }
     public SandboxSeeder Seeder { get; }
     public WindowsActivityMonitor Monitor { get; }
-    public ClaudeLineWriter Writer { get; }
+    public IMiloLlm Writer { get; }
     public LlmOptions Llm { get; }
 
     public string GraphStatus { get; private set; } = "Chưa đăng nhập";
@@ -75,7 +75,7 @@ internal sealed class LiveSession : IMiloSession
         _secrets = new SecretStore(env);
         _claudeKey = new SecretStore(env, "claude-api-key");
         Llm = opt.Llm;
-        Writer = new ClaudeLineWriter(opt.Llm, () => _claudeKey.Read() ?? Environment.GetEnvironmentVariable(opt.Llm.ApiKeyEnvVar));
+        Writer = MiloLlm.Create(opt.Llm, () => _claudeKey.Read());
         var dir = AppPaths.For(env);
 
         Auth = new MicrosoftAuth(Conn.Graph, dir, Conn.Graph.UseBroker ? ConfigureBroker : null);
@@ -255,9 +255,11 @@ internal sealed class LiveSession : IMiloSession
 
     public string LlmStatus =>
         (!Llm.Enabled ? "Đã tắt (Llm.Enabled = false)."
-            : !Writer.Available ? $"Chưa có API key (nhập bên dưới hoặc đặt {Llm.ApiKeyEnvVar} trong .env)."
-            : $"Đang dùng {Llm.Model} · effort {Llm.Effort}.")
-        + "\n" + LlmBridge.Describe(Engine, Llm, Llm.Enabled && Writer.Available)
+            : !Writer.Available ? (Llm.IsOpenAiCompatible && string.IsNullOrWhiteSpace(Llm.BaseUrl)
+                ? "Chưa đặt Llm.BaseUrl cho nhà cung cấp OpenAI-compatible."
+                : $"Chưa có API key (nhập bên dưới hoặc đặt {Llm.KeyEnvVar} trong .env).")
+            : $"Đang dùng {Writer.Name}.")
+        + "\n" + LlmBridge.Describe(Engine, Writer, Llm, Llm.Enabled && Writer.Available)
         + (Writer.LastError is { } e ? "\nLần gọi gần nhất: " + e : "");
 
     public void SaveClaudeKey(string? key)

@@ -20,6 +20,8 @@ internal sealed class DemoControlWindow : ControlShell
 
     protected override MiloEngine Engine => _session.Engine;
     protected override string ClockNote => "Thứ Năm 24/9 · giờ trong kịch bản";
+    protected override Minditful.Integrations.Llm.IMiloLlm? Llm => _session.Llm;
+    protected override LlmOptions? LlmOpts => _session.LlmOptions;
 
     public DemoControlWindow(DemoSession session)
         : base("Minditful · Demo", "DEMO · NGÀY MẪU", "#7261B0",
@@ -31,6 +33,7 @@ internal sealed class DemoControlWindow : ControlShell
         AddPage("day", IcTimeline, "Ngày mẫu", Day, "nhảy tới từng mốc");
         AddPage("try", IcTry, "Thử tình huống", Try, "cho Milo làm ngay");
         AddPage("milo", IcMilo, "Milo của bạn", Milo, "tủ đồ, góc màn hình");
+        AddPage("engine", IcEngine, "Mood Engine", MoodEnginePage, "luật ↔ AI · kiểm chứng");
         AddPage("brain", IcBrain, "Bộ não Milo", BrainPage, "nâng cao");
         // Nằm bên trái màn hình để không che góc của Milo
         var wa = SystemParameters.WorkArea;
@@ -399,5 +402,4 @@ internal sealed class DemoControlWindow : ControlShell
             () => $"Chuỗi về đúng giờ (mẫu): {Engine.Snap.Wardrobe?.Streak ?? 0} ngày."),
         CornerCard(AppEnvironment.Demo));
 
-    private static Border Spacer(double h) => new() { Height = h };
 }

@@ -20,6 +20,9 @@ internal sealed class DemoSession : IMiloSession
     /// <summary>Tốc độ tua khi Milo ẩn; lúc Milo hiện luôn chạy 1× để xem trọn hoạt ảnh.</summary>
     public int Speed { get; set; } = 120;
     public string LlmStatus { get; }
+    /// <summary>LLM cho công tắc Luật ↔ AI và bộ kiểm chứng (có key hoặc Ollama thì dùng được, kể cả khi UseInDemo = false).</summary>
+    public IMiloLlm Llm { get; }
+    public LlmOptions LlmOptions { get; }
 
     /// <summary>Trạng thái kịch bản vừa đổi (nhảy mốc, bật case…) — bảng điều khiển vẽ lại.</summary>
     public event Action? Changed;
@@ -27,14 +30,21 @@ internal sealed class DemoSession : IMiloSession
     public DemoSession(MinditfulOptions opt)
     {
         // Demo không đụng tới thế giới thật: hành động của Milo chỉ ghi vào nhật ký (engine đã log sẵn).
-        if (opt.Llm.Enabled && opt.Llm.UseInDemo)
+        var key = new SecretStore(AppEnvironment.Demo, "claude-api-key");
+        LlmOptions = opt.Llm;
+        Llm = MiloLlm.Create(opt.Llm, key.Read);
+        // Câu thoại / chat bằng AI chỉ khi UseInDemo; chấm mood và cuộc họp thì bật được bằng công tắc trên bảng điều khiển
+        var features = new LlmFeatures
         {
-            var key = new SecretStore(AppEnvironment.Demo, "claude-api-key");
-            var writer = new ClaudeLineWriter(opt.Llm, () => key.Read() ?? Environment.GetEnvironmentVariable(opt.Llm.ApiKeyEnvVar));
-            LlmBridge.Attach(Engine, writer, Application.Current.Dispatcher, opt.Llm.Features);
-            LlmStatus = "Lớp 2: " + LlmBridge.ApplyModes(Engine, writer, opt.Llm);
-        }
-        else LlmStatus = "Lớp 2 tắt trong Demo (Llm.UseInDemo = false): câu mẫu, mood và đánh giá cuộc họp theo luật — giống prototype.";
+            Lines = opt.Llm.UseInDemo && opt.Llm.Features.Lines, Chat = opt.Llm.UseInDemo && opt.Llm.Features.Chat,
+            Mood = opt.Llm.Features.Mood, Meetings = opt.Llm.Features.Meetings,
+            MoodIntervalMinutes = opt.Llm.Features.MoodIntervalMinutes, IncludeChatInMood = opt.Llm.Features.IncludeChatInMood,
+        };
+        LlmBridge.Attach(Engine, Llm, Application.Current.Dispatcher, features, opt.Llm.DemoMoodMinSeconds);
+        if (opt.Llm.Enabled && opt.Llm.UseInDemo) LlmStatus = "Lớp 2: " + LlmBridge.ApplyModes(Engine, Llm, opt.Llm);
+        else LlmStatus = Llm.Available
+            ? $"Có AI ({Llm.Name}). Ngày mẫu mặc định chấm điểm bằng luật; bật AI ở trang Mood Engine."
+            : "Chưa có AI: câu mẫu, mood và đánh giá cuộc họp theo luật — giống prototype. Có key hoặc Ollama thì bật ở trang Mood Engine.";
     }
 
     public void Pump(double realDt)

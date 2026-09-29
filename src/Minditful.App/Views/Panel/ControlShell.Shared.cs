@@ -7,6 +7,7 @@ using Minditful.App.Services;
 using Minditful.Core.Engine;
 using Minditful.Core.Presentation;
 using Minditful.Integrations;
+using Minditful.Integrations.Llm;
 using static Minditful.App.Rendering.Ui;
 
 namespace Minditful.App.Views.Panel;
@@ -143,4 +144,178 @@ internal abstract partial class ControlShell
             "Dành cho người muốn xem bên trong: Milo đang ở trạng thái nào, vì sao đang im lặng, lời nhắc nào đang chờ, điểm mood được tính ra sao và nhật ký từng quyết định.",
             brain);
     }
+
+    // ================= Mood Engine: công tắc luật ↔ AI + 3 bộ kiểm chứng =================
+    protected const string IcEngine = "";
+
+    /// <summary>LLM của phiên (Claude hoặc OpenAI-compatible) và cấu hình; null thì trang Mood Engine chỉ có phần luật.</summary>
+    protected virtual IMiloLlm? Llm => null;
+    protected virtual LlmOptions? LlmOpts => null;
+
+    private SuiteReport? _rulesReport, _aiReport, _compareReport;
+    private CancellationTokenSource? _evalCts;
+
+    protected FrameworkElement MoodEnginePage()
+    {
+        var e = Engine;
+        var llm = Llm;
+        var opts = LlmOpts;
+        var ready = llm is { Available: true } && opts is { Enabled: true };
+
+        // ---- công tắc ----
+        var status = Status(() => llm is null ? ("idle", "Chưa cấu hình AI.")
+            : !(opts?.Enabled ?? false) ? ("idle", "AI đang tắt (Llm.Enabled = false).")
+            : llm.Available ? ("ok", $"Sẵn sàng: {llm.Name} · đã gửi {LlmBridge.Requests} request từ lúc mở app")
+            : ("warn", $"Chưa dùng được {llm.Name}: " + (llm.LastError ?? "thiếu API key hoặc BaseUrl. Xem README mục Chọn AI để test.")));
+        var hint = Text("", 12, P.Bad);
+        void Pick(MoodMode? mood, MeetingMode? meeting)
+        {
+            if (llm is null || opts is null) return;
+            var want = (mood ?? e.Cfg.MoodMode, meeting ?? e.Cfg.MeetingMode);
+            if (!ready && (want.Item1 != MoodMode.Rules || want.Item2 != MeetingMode.Rules))
+            {
+                hint.Text = "Chưa có AI nên vẫn chấm bằng luật. Thêm API key (hoặc chạy Ollama) rồi mở lại app.";
+                return;
+            }
+            hint.Text = "";
+            LlmBridge.SetModes(e, llm, opts, want.Item1, want.Item2);
+            RefreshMilo();
+        }
+        var mood = Segmented([("Luật", nameof(MoodMode.Rules)), ("Luật + AI (±10 điểm)", nameof(MoodMode.Hybrid)), ("AI chấm hẳn", nameof(MoodMode.Llm))],
+            () => e.Cfg.MoodMode.ToString(), v => Pick(Enum.Parse<MoodMode>(v), null));
+        var meeting = Segmented([("Luật", nameof(MeetingMode.Rules)), ("AI", nameof(MeetingMode.Llm))],
+            () => e.Cfg.MeetingMode.ToString(), v => Pick(null, Enum.Parse<MeetingMode>(v)));
+        var now = Text("", 12.5, P.Ink);
+        Tick(() =>
+        {
+            var s = e.S;
+            now.Text = e.Cfg.MoodMode switch
+            {
+                MoodMode.Rules => $"Đang chấm bằng luật: {s.Score} điểm ({e.CurrentBand.Label}).",
+                _ when s.MoodInsight is { } mi => $"Luật {s.RuleScore} · AI {(e.Cfg.MoodMode == MoodMode.Llm ? mi.Score : mi.Adjust)}"
+                    + (e.Cfg.MoodMode == MoodMode.Hybrid ? " điểm chỉnh" : "") + $" → điểm dùng {s.Score} ({e.CurrentBand.Label}). AI nói: “{mi.Insight}”",
+                _ => $"Đang chờ AI trả lời… tạm dùng luật: {s.Score} điểm.",
+            };
+        });
+        var switchCard = Card(new StackPanel
+        {
+            Children =
+            {
+                status, Spacer(10),
+                Label("Chấm điểm mood"), Spacer(4), mood,
+                Label("Đánh giá mức nặng cuộc họp"), Spacer(4), meeting,
+                Row(Btn("Hỏi AI chấm ngay", () =>
+                {
+                    if (e.Cfg.MoodMode == MoodMode.Rules) { hint.Text = "Chọn \"Luật + AI\" hoặc \"AI chấm hẳn\" trước."; return; }
+                    e.AskMoodNow();
+                }, BtnKind.Ghost)),
+                hint, now,
+                Text("Luật + AI: luật làm nền, AI chỉnh tối đa ±10 điểm và viết 1 câu nhận xét. AI chấm hẳn: AI cho điểm, luật dùng khi AI chưa trả lời. AI chỉ nhận con số, không nhận tiêu đề hay nội dung công việc.", 11.5, P.Muted),
+            },
+        }, "Luật hay AI?", "Đổi ngay lúc đang chạy. Điểm và dáng Milo cập nhật ở dải trên cùng.");
+
+        // ---- 3 bộ kiểm chứng ----
+        var repeats = 3;
+        var results = new StackPanel();
+        var progress = Text("", 12, P.Ink2);
+        void Show()
+        {
+            results.Children.Clear();
+            foreach (var rep in new[] { _rulesReport, _aiReport, _compareReport }.Where(r => r is not null)) results.Children.Add(ReportView(rep!));
+        }
+        var runAi = Btn($"2 + 3 · Kiểm chứng AI và so sánh (≈{MoodEvaluation.RequestsNeeded(repeats)} request)", () => { }, BtnKind.Primary);
+        var stop = Btn("Dừng", () => _evalCts?.Cancel(), BtnKind.Ghost);
+        stop.Visibility = Visibility.Collapsed;
+        runAi.Click += async (_, _) =>
+        {
+            if (!ready || llm is null || opts is null)
+            {
+                progress.Text = "Cần AI để chạy bộ 2 và 3. Thêm API key hoặc chạy Ollama (README mục Chọn AI để test).";
+                return;
+            }
+            _evalCts = new CancellationTokenSource();
+            runAi.IsEnabled = false;
+            stop.Visibility = Visibility.Visible;
+            try
+            {
+                var run = await MoodEvaluation.RunLlmAsync(llm.Name, async (facts, ct) =>
+                {
+                    LlmBridge.Count();
+                    var m = await llm.AssessMoodAsync(new MoodRequest(0, facts, []), ct);
+                    return m?.Score;
+                }, repeats, opts.EvalDelayMs, new Progress<string>(p => progress.Text = "Đang hỏi AI: " + p), _evalCts.Token);
+                _aiReport = MoodEvaluation.LlmSuite(run);
+                _compareReport = MoodEvaluation.Compare(run);
+                progress.Text = $"Xong {run.Requests} request." + (llm.LastError is { } err ? " Lỗi gần nhất: " + err : "");
+                Show();
+            }
+            catch (OperationCanceledException) { progress.Text = "Đã dừng."; }
+            finally
+            {
+                runAi.IsEnabled = true;
+                stop.Visibility = Visibility.Collapsed;
+            }
+        };
+        var rep2 = Segmented([("Hỏi mỗi ngày 2 lần", "2"), ("3 lần", "3")], () => repeats.ToString(), v =>
+        {
+            repeats = int.Parse(v);
+            ((System.Windows.Controls.TextBlock)((System.Windows.Controls.StackPanel)runAi.Content).Children[1]).Text = $"2 + 3 · Kiểm chứng AI và so sánh (≈{MoodEvaluation.RequestsNeeded(repeats)} request)";
+        });
+        var saved = Text("", 11.5, P.Ink2);
+        var suiteCard = Card(new StackPanel
+        {
+            Children =
+            {
+                Text($"Hỏi cả luật lẫn AI về {MoodEvaluation.Scenarios.Length} ngày làm việc mẫu (nhẹ, bình thường, họp nhiều, họp liền, ngồi liền, quá giờ, tuần 55 giờ, nhảy việc, nghỉ đủ, kiệt sức). Chỉ gửi con số.", 12.5, P.Ink),
+                Spacer(8),
+                Row(Btn("1 · Chứng minh luật hợp lý", () =>
+                {
+                    _rulesReport = MoodEvaluation.RunRules();
+                    Show();
+                }, BtnKind.Soft)),
+                Row(rep2),
+                Row(runAi, stop),
+                progress,
+                Row(Btn("Lưu báo cáo (Markdown)", () =>
+                {
+                    var reps = new[] { _rulesReport, _aiReport, _compareReport }.Where(r => r is not null).Select(r => r!).ToArray();
+                    if (reps.Length == 0) { saved.Text = "Chạy ít nhất 1 bộ trước."; return; }
+                    var path = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), $"milo-kiem-chung-mood-{DateTime.Now:yyyyMMdd-HHmm}.md");
+                    System.IO.File.WriteAllText(path, MoodEvaluation.ToMarkdown(DateTime.Now, reps));
+                    saved.Text = "Đã lưu " + path;
+                }, BtnKind.Ghost)),
+                saved,
+                Text("Bộ 1 chạy ngay, không cần mạng. Bộ 2 kiểm AI trả lời đúng dạng, hỏi lại vẫn ra gần như nhau (lệch ≤ 10 điểm) và xếp đúng thứ tự ngày nặng / nhẹ. Bộ 3 so điểm AI với luật: lệch trung bình, tương quan, cùng mức mood. Chi tiết: docs/CO-SO-KHOA-HOC.md.", 11.5, P.Muted),
+            },
+        }, "3 bộ kiểm chứng", "Chứng minh luật hợp lý · AI hợp lý và ổn định · so sánh luật với AI.");
+
+        return Page("Mood Engine", "Chọn cách chấm điểm mood (luật hoặc AI) và chạy bộ kiểm chứng để thấy điểm có đáng tin không.",
+            switchCard, suiteCard, results);
+    }
+
+    private static Border ReportView(SuiteReport rep)
+    {
+        var sp = new StackPanel();
+        var head = Text((rep.Passed ? "✓ ĐẠT · " : "✗ CHƯA ĐẠT · ") + rep.Summary, 13, rep.Passed ? P.Good : P.Bad, FontWeights.Bold);
+        head.Margin = new Thickness(0, 0, 0, 8);
+        sp.Children.Add(head);
+        foreach (var c in rep.Checks)
+        {
+            var mark = Text(c.Passed ? "✓" : "✗", 13, c.Passed ? P.Good : P.Bad, FontWeights.Bold, false);
+            var name = Text(c.Name, 12.5, P.Ink, FontWeights.SemiBold);
+            var detail = Text(c.Detail, 11.5, P.Ink2);
+            var row = Columns((mark, Px(22)), (new StackPanel { Children = { name, detail } }, Star));
+            row.Margin = new Thickness(0, 0, 0, 6);
+            sp.Children.Add(row);
+        }
+        if (rep.Notes.Count > 0)
+        {
+            var notes = Text(string.Join("\n", rep.Notes), 11.5, P.Muted);
+            notes.Margin = new Thickness(22, 4, 0, 0);
+            sp.Children.Add(notes);
+        }
+        return Card(sp, rep.Title);
+    }
+
+    protected static Border Spacer(double h) => new() { Height = h };
 }
