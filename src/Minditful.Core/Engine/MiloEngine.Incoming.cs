@@ -15,13 +15,14 @@ public sealed partial class MiloEngine
         items.AddRange(snap.TomorrowCalendar.Where(e => !e.ByMe || Cfg.AlertOwnItems)
             .Select(e => new IncomingItem("meeting", "e:" + e.Id, e.Subject, e.Organizer ?? "", e.WebLink ?? e.JoinUrl, "mai " + Tm.Hm(e.Start))));
         items.AddRange(snap.Tasks.Select(t => new IncomingItem("task", "t:" + t.Id, t.Title, "#" + t.Id, t.Url)));
-        if (!S.IncomingSeeded)
+        var fresh = new List<IncomingItem>();
+        foreach (var (kind, ok) in new[] { ("mail", snap.MailAvailable), ("meeting", snap.CalendarAvailable), ("task", snap.BoardsAvailable) })
         {
-            foreach (var i in items) S.SeenIncoming.Add(i.Id);
-            S.IncomingSeeded = true;
-            return;
+            if (!ok) continue;
+            var ofKind = items.Where(i => i.Kind == kind);
+            if (S.IncomingSeeded.Add(kind)) foreach (var i in ofKind) S.SeenIncoming.Add(i.Id); // lần đọc được đầu tiên: chỉ ghi nhận
+            else fresh.AddRange(ofKind.Where(i => S.SeenIncoming.Add(i.Id)));
         }
-        var fresh = items.Where(i => S.SeenIncoming.Add(i.Id)).ToList();
         if (fresh.Count > 0 && Cfg.IncomingAlerts) AddIncoming(fresh);
     }
 

@@ -53,7 +53,7 @@ git clone https://github.com/Killig3110/mindiful.git
 cd mindiful
 dotnet restore          # tải package NuGet (lần đầu ~1–2 phút)
 dotnet build            # phải ra: Build succeeded · 0 Warning(s) · 0 Error(s)
-dotnet test             # phải ra: Passed! - Failed: 0, Passed: 247
+dotnet test             # phải ra: Passed! - Failed: 0, Passed: 265
 ```
 
 Cấu trúc thư mục sau khi clone:
@@ -159,7 +159,7 @@ dotnet test
 
 ### 0. Chuẩn bị
 
-Làm xong mục **[Cài đặt từ đầu](#cài-đặt-từ-đầu)** ở trên: `dotnet test` ra `Passed! … 247`, và `.env` đã điền cho môi trường cần test.
+Làm xong mục **[Cài đặt từ đầu](#cài-đặt-từ-đầu)** ở trên: `dotnet test` ra `Passed! … 265`, và `.env` đã điền cho môi trường cần test.
 
 Đang chạy mà muốn đổi: menu khay → **Chuyển môi trường** (hoặc bảng điều khiển → *⇄ Chuyển môi trường*): app mở Milo ở môi trường mới với `--env` rồi tự đóng bản cũ, dữ liệu hôm nay được lưu trước. Mở thẳng một môi trường: `--env Scenario` (= Demo), `--env Sandbox`, `--env Prod`. Nếu đã tick "Nhớ lựa chọn", **giữ Shift** khi mở app để hiện lại màn hình chọn.
 
@@ -521,7 +521,7 @@ src/Minditful.App             WPF: Launcher · CompanionWindow (overlay Milo tr�
                               MiloLayer (Milo, chóp đuôi, Milo ngủ, thì thầm, thẻ, dashboard, chấm chờ, hiệu ứng) · BrainPanel
                               FruitDashboardView (4 quả) · DetailDashboardView · WardrobeView (tủ đồ) · MiloSkin (+ đồ phối)
                               WindowsActivityMonitor (khoá máy, idle, gõ phím, toàn màn hình, chuyển app) · AutoStart · LlmBridge
-tests/Minditful.Core.Tests    247 test. Ngày mẫu khớp mục 13 (08:58 chào sáng … 18:31 về thôi, 54 điểm), im lặng suốt họp, render mọi khung;
+tests/Minditful.Core.Tests    265 test. Ngày mẫu khớp mục 13 (08:58 chào sáng … 18:31 về thôi, 54 điểm), im lặng suốt họp, render mọi khung;
                               AllCasesTests: 17 case gốc tự bật đúng luật + mọi nút + chat · kịch bản trình diễn · tính năng mở rộng ·
                               trò chuyện + nút tính năng · có mới · loại cuộc họp · tủ đồ · tính cách · ngủ khi tập trung · mood (20.000 bộ số) ·
                               AI tương thích OpenAI (máy chủ giả, xoay key) · DotEnvTests: biến README/.env.sample khớp appsettings. Danh sách: docs/KIEN-TRUC.md mục 13

@@ -119,14 +119,19 @@ public sealed class GraphClient(MicrosoftAuth auth, HttpClient http)
 
     public async Task<string?> FirstAttachmentNameAsync(string eventId, CancellationToken ct = default)
     {
-        var root = await GetAsync($"/me/events/{eventId}/attachments?$select=name", ct);
+        var root = await GetAsync($"/me/events/{Uri.EscapeDataString(eventId)}/attachments?$select=name", ct);
         return root["value"]?.AsArray().FirstOrDefault()?["name"]?.GetValue<string>();
     }
 
-    /// <summary>Trả về đường dẫn file tạm (fileAttachment) hoặc URL (referenceAttachment) để mở.</summary>
+    private static readonly HashSet<string> Executable = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".exe", ".com", ".bat", ".cmd", ".ps1", ".psm1", ".vbs", ".vbe", ".js", ".jse", ".wsf", ".wsh", ".hta", ".msi", ".msp", ".scr", ".lnk", ".url", ".jar", ".reg", ".cpl", ".pif", ".appref-ms",
+    };
+
+    /// <summary>Trả về đường dẫn file tạm (fileAttachment) hoặc URL (referenceAttachment) để mở. File chạy được thì trả về null.</summary>
     public async Task<string?> DownloadFirstAttachmentAsync(string eventId, CancellationToken ct = default)
     {
-        var root = await GetAsync($"/me/events/{eventId}/attachments", ct);
+        var root = await GetAsync($"/me/events/{Uri.EscapeDataString(eventId)}/attachments", ct);
         var a = root["value"]?.AsArray().FirstOrDefault();
         if (a is null) return null;
         var type = a["@odata.type"]?.GetValue<string>() ?? "";
@@ -135,7 +140,11 @@ public sealed class GraphClient(MicrosoftAuth auth, HttpClient http)
         if (bytes is null) return null;
         var dir = Path.Combine(Path.GetTempPath(), "Minditful");
         Directory.CreateDirectory(dir);
-        var file = Path.Combine(dir, a["name"]?.GetValue<string>() ?? "attachment");
+        // Chỉ lấy tên file (tên kiểu "..\\..\\x" không được ghi ra ngoài thư mục tạm); không mở file chạy được
+        var name = Path.GetFileName(a["name"]?.GetValue<string>() ?? "");
+        if (name.Length == 0) name = "attachment";
+        if (Executable.Contains(Path.GetExtension(name))) return null;
+        var file = Path.Combine(dir, name);
         await File.WriteAllBytesAsync(file, Convert.FromBase64String(bytes), ct);
         return file;
     }

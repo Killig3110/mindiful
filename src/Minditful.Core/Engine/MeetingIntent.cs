@@ -68,7 +68,8 @@ public static class MeetingIntents
     };
 
     /// <summary>Chữ thường, bỏ dấu tiếng Việt (đ → d) để khớp cả gõ có dấu lẫn không dấu.</summary>
-    private static string Plain(string? s)
+    /// <summary>Chữ thường, bỏ dấu tiếng Việt (đ → d), để so từ khoá với cả người gõ không dấu.</summary>
+    internal static string Plain(string? s)
     {
         if (string.IsNullOrEmpty(s)) return "";
         var d = s.ToLowerInvariant().Replace('đ', 'd').Normalize(NormalizationForm.FormD);

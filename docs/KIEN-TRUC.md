@@ -67,7 +67,7 @@ flowchart LR
 
 | Project | Chứa gì | Vì sao tách |
 | --- | --- | --- |
-| **Minditful.Core** | Toàn bộ "bộ não": luật, hàng đợi, điều phối, episode, mood, cá nhân hoá, nội dung thẻ, keyframes hoạt ảnh, ngày mẫu | Không phụ thuộc Windows, UI hay mạng → **test được trên mọi OS** (247 test), và 3 môi trường dùng chung đúng một bộ não |
+| **Minditful.Core** | Toàn bộ "bộ não": luật, hàng đợi, điều phối, episode, mood, cá nhân hoá, nội dung thẻ, keyframes hoạt ảnh, ngày mẫu | Không phụ thuộc Windows, UI hay mạng → **test được trên mọi OS** (265 test), và 3 môi trường dùng chung đúng một bộ não |
 | **Minditful.Integrations** | Nói chuyện với thế giới ngoài: Entra/MSAL, Graph, Azure DevOps, AI (Claude / tương thích OpenAI), SQLite, cấu hình, `.env` | Tách I/O khỏi logic; đổi nhà cung cấp mà không đụng bộ não |
 | **Minditful.App** | WPF: cửa sổ, overlay, vẽ Milo, khay hệ thống, tín hiệu Windows, vòng lặp thời gian của từng môi trường | Phần duy nhất cần Windows |
 
@@ -354,7 +354,7 @@ Mỗi phase có `PhaseEnd`; `Tick` gọi `AdvanceEp()` khi tới hạn. `CardVer
 | Chat | Nhận diện từ khoá local: *bận* → Để sau · *mệt* → vòng thở · *thôi/không* → Không cần · *cảm ơn* → +1. Không khớp → hỏi AI (nếu bật, kèm 6 lượt trước và tên nút chính) hoặc câu mặc định |
 | Trò chuyện (`CaseId.Talk`) | Case người dùng tự mở (`OpenTalk`: nút *Trò chuyện* trên dashboard, bấm Milo lúc đang ghé, menu khay). Không đoán ý định để đóng thẻ; mọi câu hỏi AI với số liệu cả ngày (`Talk.Facts`), AI lỗi → `Talk.Reply` theo từ khoá. Nút *Thở 1 phút* (5 nhịp), *Xong*/Esc; 120 giây không gõ → leo xuống. Không chen ngang lời nhắc khác, bị chặn khi trình chiếu |
 | Tính năng đề nghị trong chat | `Talk.Actions` (allowlist: breathe, break15, focus30, planFocus, stuck, dashboard), lọc theo `Talk.Available` (đang họp/tập trung, `FocusSlot`, `StuckTasks`). AI trả JSON `{reply, actions}`; `ParseChat` bỏ mã ngoài `ChatRequest.Offer`, đổi mã lỡ viết trong câu thành tên hiển thị. Không AI → `Talk.Suggest` theo từ khoá. Hiện ở câu mới nhất (`ChatBlock.Suggested`, act `do`); bấm → `DoAction` kiểm tra lại rồi chạy (thở, nghỉ 15', khoá 30' + `StartFocus`, `ForceCase(FocusPlan/StuckTask, fromChat)`, mở dashboard) |
-| Câu khủng hoảng | `Talk.IsCrisis` khớp ("muốn chết", "không muốn sống"…) ở mọi ô chat → câu cố định `Talk.CrisisReply`, **không gửi AI** |
+| Câu khủng hoảng | `Talk.IsCrisis` khớp ("muốn chết", "không muốn sống"…, có dấu hoặc không dấu) ở mọi ô chat → câu cố định `Talk.CrisisReply`, **không gửi AI**: không vào `ChatHistory` (chấm mood) và không đi kèm làm lịch sử ở lượt chat sau |
 
 ### 5.9 Mood Engine (§11) và 2 hướng tính
 
@@ -879,12 +879,13 @@ Ví dụ `Week` + `KeepPreviousPeriod = true` (mặc định): hôm nay thứ N�
 | Dữ liệu | Rời khỏi máy? | Tới đâu |
 | --- | --- | --- |
 | Tiêu đề/nội dung email, cuộc họp, task | **Không** | Chỉ đọc từ Graph/Azure DevOps để hiển thị trên máy; không ghi xuống đĩa; không gửi AI. Tiêu đề + agenda cuộc họp chỉ dùng để đoán loại ngay trên máy |
+| Link trong lời mời họp / email | Mở bằng trình duyệt / Teams khi người dùng bấm | Chỉ https/http/msteams (`LiveActionSink.IsSafeLink`); tệp đính kèm chỉ lấy tên file, không mở file chạy được (.exe, .bat, .lnk…) |
 | Số liệu (phút họp, số task, điểm…) và nhãn (loại cuộc họp) | Chỉ khi bật AI | Dịch vụ AI đã cấu hình (Claude / Groq / Ollama trên máy) |
 | Câu người dùng gõ cho Milo | Chỉ khi bật AI chat (và `IncludeChatInMood` cho mood); câu khủng hoảng không bao giờ gửi | Dịch vụ AI đã cấu hình |
 | Phím bấm, tiêu đề cửa sổ | **Không bao giờ đọc** | — (chỉ thời điểm có thao tác và tên tiến trình) |
 | Sự kiện "Nghỉ cùng Milo", "Tập trung: #id", DND | Có (do người dùng bấm) | Outlook/Teams của chính người dùng |
 
-Bí mật (token, PAT, API key) mã hoá DPAPI theo tài khoản Windows. Milo ẩn khi share màn hình (Production luôn ẩn; Sandbox có công tắc). Không có server riêng: app nói chuyện trực tiếp với Microsoft, Azure DevOps và (tuỳ chọn) dịch vụ AI.
+Bí mật (token, PAT, API key) mã hoá DPAPI theo tài khoản Windows. Milo ẩn khi share màn hình (Production luôn ẩn; Sandbox có công tắc), kể cả tooltip của dashboard và menu chuột phải (cửa sổ riêng, được gắn cùng cờ lúc mở). Không có server riêng: app nói chuyện trực tiếp với Microsoft, Azure DevOps và (tuỳ chọn) dịch vụ AI.
 
 ---
 
@@ -950,7 +951,7 @@ Lỗi AADSTS được dịch sang tiếng Việt (admin consent, sai tenant, red
 
 ## 13. Kiểm thử
 
-`dotnet test` chạy 247 test trên Core + Integrations (không cần Windows, không gọi mạng):
+`dotnet test` chạy 265 test trên Core + Integrations (không cần Windows, không gọi mạng):
 
 | File | Kiểm tra |
 | --- | --- |
@@ -965,7 +966,7 @@ Lỗi AADSTS được dịch sang tiếng Việt (admin consent, sai tenant, red
 | `DotEnvTests` | Đọc `.env`, biến thật được ưu tiên, `.env.sample` đủ khoá; mọi biến trong `.env.sample` và README đều có trong appsettings.json |
 | `WorkHoursTests`, `ChatGoHomeTests` | Giờ làm linh hoạt 8→17 / 9→18 / 10→19; chat "về thôi", "đồng ý" ở thẻ tan tầm |
 | `MeetingIntentTests` | Đoán loại cuộc họp từ tiêu đề / agenda (có dấu, không dấu, tiếng Anh; tiêu đề ưu tiên hơn agenda), người tổ chức daily không phải trình bày, ra quyết định / làm việc nhóm nặng hơn, AI nhận nhãn nhưng không nhận tiêu đề, thẻ Sắp họp có gợi ý theo loại |
-| `IncomingTests` | Không báo thứ có sẵn lúc mở app, email mới hiện kèm người gửi + mở link, gộp nhiều thứ 1 thẻ (và gộp khi thẻ đang hiện), không báo họp tự tạo, đang họp thì chờ, tắt được, bỏ qua thì thu không nhắc lại, Demo giả lập email → họp → task |
+| `IncomingTests` | Không báo thứ có sẵn lúc mở app (kể cả nguồn chỉ đọc được sau khi đăng nhập / có mạng lại), email mới hiện kèm người gửi + mở link, gộp nhiều thứ 1 thẻ (và gộp khi thẻ đang hiện), không báo họp tự tạo, đang họp thì chờ, tắt được, bỏ qua thì thu không nhắc lại, Demo giả lập email → họp → task |
 | `FocusSleepTests` | Milo ngủ trên chóp đuôi lúc tập trung (kèm giờ kết thúc), tỉnh khi hết giờ, họp/trình chiếu vẫn chỉ chóp đuôi mờ |
 | `PersonalityTests` | Dễ thương giữ nguyên, Hài hước luôn diễn, Pha trộn thỉnh thoảng (40 hạt ngẫu nhiên), chào sáng thứ Hai, bấm 5 lần → ngất, xem thử, không diễn lúc trình chiếu, mạng nhện sau khi vắng, vibe chiều thứ Sáu |
 | `WardrobeTests` | Mỗi ô 1 món, bộ nhiều ô, đọc lựa chọn cũ, mở khoá bằng thói quen (không bao giờ bằng quá giờ), mùa Tết/Trung thu/Halloween/Noel, phối ngẫu nhiên không trùng ô, bộ đếm cộng 1 lần/ngày và giữ món mùa, mở tủ đồ trên Milo, chat "đổi đồ" |
@@ -976,6 +977,7 @@ Lỗi AADSTS được dịch sang tiếng Việt (admin consent, sai tenant, red
 | `OpenAiCompatibleTests` | AI tương thích OpenAI với máy chủ giả: đúng định dạng Chat Completions, đọc JSON có ```json / số dạng chuỗi, gửi key dạng Bearer, báo lỗi 429, sai dạng thì về luật |
 | `SilentAndDotTests` | Đang im lặng thì chóp đuôi mờ (trình chiếu thì ẩn hẳn); thẻ mở từ chấm chờ không kéo Milo ra đè lên thẻ |
 | `DemoTourTests` | Kịch bản trình diễn phủ đủ mọi `CaseId`; chạy từng bước thì Milo giao đúng case; trình chiếu ẩn Milo; mood realtime giữ Milo đứng ngoài và đổi dáng ngay |
+| `LinkSafetyTests` | Link trong lời mời họp / email chỉ mở nếu là https/http/msteams; file, đường dẫn máy, `javascript:` bị chặn |
 | `SandboxModeTests` | Chế độ test ↔ như Production: ngưỡng rút gọn / chuẩn đổi lúc đang chạy, không bật lại tính năng đã tắt |
 
 Phần WPF và gọi API thật được kiểm bằng tay theo README mục "Hướng dẫn test 3 môi trường" và checklist ở KET-NOI-SANDBOX.md.

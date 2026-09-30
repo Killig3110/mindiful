@@ -110,6 +110,24 @@ public partial class CompanionWindow : Window
         // Share màn hình không thấy Milo hay chấm chờ (mục 3)
         ApplyCapture();
         if (_session is LiveSession live) live.CaptureChanged += () => Dispatcher.BeginInvoke(ApplyCapture);
+        // Tooltip (điểm mood, ghi chú cuộc họp trên dashboard) và menu chuột phải là cửa sổ riêng:
+        // mỗi lần mở cũng phải ẩn khỏi ảnh chia sẻ như Milo, nếu không sẽ lộ khi share màn hình
+        _protectPopups = () => _session.ContentProtection;
+        if (!_popupHandlersRegistered)
+        {
+            _popupHandlersRegistered = true;
+            EventManager.RegisterClassHandler(typeof(System.Windows.Controls.ToolTip), System.Windows.Controls.ToolTip.OpenedEvent, new RoutedEventHandler(ProtectPopup));
+            EventManager.RegisterClassHandler(typeof(System.Windows.Controls.ContextMenu), System.Windows.Controls.ContextMenu.OpenedEvent, new RoutedEventHandler(ProtectPopup));
+        }
+    }
+
+    private static bool _popupHandlersRegistered;
+    private static Func<bool> _protectPopups = () => false;
+
+    private static void ProtectPopup(object sender, RoutedEventArgs e)
+    {
+        if (sender is Visual v && PresentationSource.FromVisual(v) is HwndSource src)
+            Native.SetWindowDisplayAffinity(src.Handle, _protectPopups() ? Native.WDA_EXCLUDEFROMCAPTURE : Native.WDA_NONE);
     }
 
     /// <summary>Ẩn / hiện Milo trong ảnh chia sẻ màn hình (Sandbox đổi được lúc đang chạy).</summary>

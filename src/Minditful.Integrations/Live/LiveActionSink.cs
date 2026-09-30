@@ -12,6 +12,19 @@ public sealed class LiveActionSink(
     /// <summary>Milo đang giữ DND cho khối tập trung (để presence watcher không hiểu nhầm là người dùng tự bật).</summary>
     public bool OwnsDnd { get; private set; }
 
+    /// <summary>
+    /// Link đến từ dữ liệu người khác gửi (lời mời họp, email) chỉ được mở nếu là trang web hoặc Teams,
+    /// không bao giờ là file / chương trình trên máy (ShellExecute sẽ chạy bất cứ thứ gì nó được đưa).
+    /// </summary>
+    public static bool IsSafeLink(string? url) =>
+        Uri.TryCreate(url, UriKind.Absolute, out var u) && u.Scheme is "https" or "http" or "msteams";
+
+    private void OpenLink(string? url, string what)
+    {
+        if (IsSafeLink(url)) open(url!);
+        else log($"Không mở {what}: link không phải trang web hoặc Teams", LogKind.Error);
+    }
+
     private DateTime At(double t, int dayOffset = 0) => day().AddDays(dayOffset).ToDateTime(TimeOnly.MinValue).AddSeconds(t);
 
     /// <summary>Tủ đồ: vừa mở khoá phụ kiện mới (host báo lên overlay).</summary>
@@ -39,14 +52,17 @@ public sealed class LiveActionSink(
             switch (action)
             {
                 case MiloAction.JoinMeeting { Event: var ev }:
-                    if ((ev.JoinUrl ?? ev.WebLink) is { } url) open(url);
+                    if ((ev.JoinUrl ?? ev.WebLink) is { } url) OpenLink(url, "cuộc họp");
                     else log("Sự kiện không có joinUrl → mở Teams bằng tay giúp Milo nhé", LogKind.Action);
                     break;
 
                 case MiloAction.OpenAttachment { Event: var ev }:
                     if (!GraphReady) break;
-                    var target = await graph!.DownloadFirstAttachmentAsync(ev.Id) ?? ev.WebLink;
-                    if (target is not null) open(target);
+                    // File tải về nằm trong %TEMP%\Minditful (do app tự ghi); không tải được thì chỉ mở link web của sự kiện
+                    var target = await graph!.DownloadFirstAttachmentAsync(ev.Id);
+                    if (target is not null && Path.IsPathFullyQualified(target) && target.StartsWith(Path.GetTempPath(), StringComparison.OrdinalIgnoreCase)) open(target);
+                    else if (target is not null) OpenLink(target, "tệp đính kèm");
+                    else if (ev.WebLink is not null) OpenLink(ev.WebLink, "sự kiện");
                     break;
 
                 case MiloAction.HoldBreak { Start: var s, End: var e, Subject: var subject, DayOffset: var off }:
@@ -70,8 +86,10 @@ public sealed class LiveActionSink(
                 case MiloAction.StartFocus { TaskId: var id, Start: var s, End: var e, CalendarHeld: var held }:
                     if (!held && GraphReady && auth.Has("Calendars.ReadWrite"))
                     {
-                        await graph!.CreateEventAsync("Tập trung: #" + id, At(s), At(e), "busy");
-                        log($"Đã chặn lịch \"Tập trung: #{id}\" tới {Tm.Hm(e)}", LogKind.Action);
+                        // Khoá tập trung cho 1 task: "Tập trung: #4821"; tập trung chung (nút trong chat) không có số task
+                        var title = id.All(char.IsAsciiDigit) && id.Length > 0 ? "Tập trung: #" + id : "Tập trung · Milo giữ chỗ";
+                        await graph!.CreateEventAsync(title, At(s), At(e), "busy");
+                        log($"Đã chặn lịch \"{title}\" tới {Tm.Hm(e)}", LogKind.Action);
                     }
                     if (UseGraphPresence && auth.Has("Presence.ReadWrite"))
                     {
@@ -98,11 +116,11 @@ public sealed class LiveActionSink(
                     break;
 
                 case MiloAction.OpenMail { Mail: var m }:
-                    if (m.WebLink is { } link) open(link);
+                    if (m.WebLink is { } link) OpenLink(link, "email");
                     break;
 
                 case MiloAction.OpenLink { Url: var link2 }:
-                    open(link2);
+                    OpenLink(link2, "link");
                     break;
 
                 case MiloAction.DayClosed { Record: var r }:

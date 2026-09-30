@@ -187,8 +187,12 @@ internal sealed class LiveSession : IMiloSession
         if (today != Engine.Day)
         {
             // Qua ngày mà chưa "Về thôi": lưu im lặng (mục 6.4 · Tắt máy ngang)
-            if (Engine.S.DayStarted && !Engine.S.OffDuty) SaveToday();
-            if (Engine.S.DayStarted && _well.Wardrobe) Sink.RecordStreak(Engine.BuildDayRecord());
+            // Đã "Về thôi" thì ngày đó đã được lưu + tính chuỗi lúc bấm (DayClosed); dùng máy buổi tối không được tính lại thành quá giờ
+            if (Engine.S.DayStarted && !Engine.S.OffDuty)
+            {
+                SaveToday();
+                if (_well.Wardrobe) Sink.RecordStreak(Engine.BuildDayRecord());
+            }
             Engine.StartNewDay(today, now.TimeOfDay.TotalSeconds, Engine.Snap);
             ApplyTuning();
             if (!Monitor.Locked) RestoreOrMarkDayStart();

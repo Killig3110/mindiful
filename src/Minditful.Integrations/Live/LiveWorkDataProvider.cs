@@ -31,6 +31,7 @@ public sealed class LiveWorkDataProvider(
     private List<MailItem> _recent = [];
     private int _unread;
     private bool _mailOk;
+    private bool _calOk;
     private List<WorkTask> _tasks = [];
     private List<CompletedTask> _completed = [];
     private SprintInfo? _sprint;
@@ -71,7 +72,7 @@ public sealed class LiveWorkDataProvider(
                             });
                         }
                     }
-                    (_calendar, _tomorrow, _tomorrowCal, _calNote) = (calendar, tomorrow, tomorrowCal, null);
+                    (_calendar, _tomorrow, _tomorrowCal, _calNote, _calOk) = (calendar, tomorrow, tomorrowCal, null, true);
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
@@ -100,7 +101,7 @@ public sealed class LiveWorkDataProvider(
         }
         else
         {
-            (_calendar, _tomorrow, _tomorrowCal, _mails, _mailOk, _recent) = ([], null, [], [], false, []);
+            (_calendar, _tomorrow, _tomorrowCal, _mails, _mailOk, _recent, _calOk) = ([], null, [], [], false, [], false);
             _calNote = "Chưa đăng nhập Microsoft → chưa có lịch và email";
             _mailNote = null;
         }
@@ -161,6 +162,7 @@ public sealed class LiveWorkDataProvider(
             ThisWeek = history.WeekStats(today),
             LastWeek = history.WeekStats(today.AddDays(-7)) ?? (LastWeekFallback?.From == LocalStore.WeekStart(today.AddDays(-7)) ? LastWeekFallback : null),
             MailAvailable = _mailOk,
+            CalendarAvailable = _calOk,
             CanWriteCalendar = graph is null || auth.GrantedScopes.Count == 0 || auth.Has("Calendars.ReadWrite"),
             BoardsAvailable = _boardsOk,
             StatusNote = notes.Count > 0 ? string.Join(" · ", notes) : null,

@@ -83,8 +83,9 @@ public sealed partial class MiloEngine
         foreach (var x in S.Tasks) x.Done = done.Contains(x.Id);
         DetectIncoming(snap);
 
-        // Lần đầu chỉ ghi nhận, không ăn mừng những task đã Done trước khi mở app.
-        if (!S.DoneSeeded)
+        // Lần đầu đọc được Boards chỉ ghi nhận, không ăn mừng những task đã Done trước khi mở app.
+        if (!snap.BoardsAvailable) { }
+        else if (!S.DoneSeeded)
         {
             foreach (var c in snap.CompletedToday) S.AnnouncedDone.Add(c.Id);
             S.DoneSeeded = true;

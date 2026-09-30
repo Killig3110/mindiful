@@ -17,7 +17,13 @@ public static class Talk
         "(tự tử|tự sát|muốn chết|không muốn sống|chán sống|kết liễu|tự làm hại|làm hại bản thân|kill myself|suicid)",
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
-    public static bool IsCrisis(string text) => Crisis.IsMatch(text);
+    // Gõ không dấu. Bỏ các cụm dễ nhầm khi mất dấu (vd. "tu tu" cũng là "từ từ")
+    private static readonly Regex CrisisPlain = new(
+        @"(\btu sat\b|muon chet|khong muon song|chan song|ket lieu (ban than|cuoc doi|doi minh)|tu lam hai|lam hai ban than)",
+        RegexOptions.CultureInvariant);
+
+    public static bool IsCrisis(string text) =>
+        Crisis.IsMatch(text.Normalize(System.Text.NormalizationForm.FormC)) || CrisisPlain.IsMatch(MeetingIntents.Plain(text));
 
     /// <summary>
     /// Tính năng Milo có thể đề nghị ngay trong chat (AI hoặc từ khoá chọn, người dùng bấm mới chạy).

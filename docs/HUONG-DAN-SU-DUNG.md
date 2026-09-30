@@ -135,7 +135,7 @@ Không cần đợi Milo nhắc, bạn có thể tự mở trò chuyện (cách 
   - Có AI thì AI chọn nút, chỉ trong danh sách trên. Không có AI thì chọn theo từ khoá.
   - Chỉ hiện nút dùng được lúc đó: đang họp thì không có *Tập trung 30 phút*; lịch không còn khoảng trống ≥ 60 phút thì không có *Tìm giờ tập trung*; không có task kẹt thì không có *Xem task kẹt*.
 - Nút gợi ý có chữ dài hơn nút: rê chuột lên để chữ chạy ngang đọc hết.
-- **An toàn:** câu có dấu hiệu khủng hoảng (vd. "muốn chết", "không muốn sống") luôn nhận 1 câu cố định khuyên tìm người thân tin cậy, chuyên gia tâm lý, hoặc gọi 115 nếu đang nguy hiểm. Câu đó không được gửi cho AI.
+- **An toàn:** câu có dấu hiệu khủng hoảng (vd. "muốn chết", "không muốn sống", gõ có dấu hay không dấu đều nhận ra) luôn nhận 1 câu cố định khuyên tìm người thân tin cậy, chuyên gia tâm lý, hoặc gọi 115 nếu đang nguy hiểm. Câu đó không được gửi cho AI.
 
 ### 3.5 Tủ đồ: phối đồ cho Milo
 

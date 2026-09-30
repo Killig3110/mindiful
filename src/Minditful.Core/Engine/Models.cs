@@ -93,6 +93,8 @@ public sealed class WorkSnapshot
     /// <summary>Tính năng tắt vì thiếu quyền/mất mạng, hiện 1 dòng nhỏ trong dashboard (mục 14).</summary>
     public string? StatusNote { get; init; }
     public bool MailAvailable { get; init; } = true;
+    /// <summary>Đã đọc được lịch ít nhất 1 lần (chưa đăng nhập / lỗi ngay từ đầu = false).</summary>
+    public bool CalendarAvailable { get; init; } = true;
     public bool BoardsAvailable { get; init; } = true;
     /// <summary>Có Calendars.ReadWrite. Không có thì "Giữ chỗ" chỉ là lời hẹn nhắc, không ghi vào lịch (§14).</summary>
     public bool CanWriteCalendar { get; init; } = true;

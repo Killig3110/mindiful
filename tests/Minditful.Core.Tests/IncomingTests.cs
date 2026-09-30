@@ -52,6 +52,28 @@ public class IncomingTests
     }
 
     [Fact]
+    public void A_source_that_was_not_readable_at_startup_does_not_flood_when_it_comes_online()
+    {
+        // Lần đọc đầu lúc chưa đăng nhập / mất mạng: chưa có mail, lịch, Boards
+        var e = Start(new WorkSnapshot { MailAvailable = false, CalendarAvailable = false, BoardsAvailable = false });
+        var existing = new WorkSnapshot
+        {
+            RecentMail = [Mail("old", "Minh", "Báo cáo tuần")],
+            Calendar = [new CalendarEvent { Id = "ev1", Subject = "Daily", Start = T("14:00"), End = T("14:15"), Organizer = "Lan" }],
+            Tasks = [new WorkTask { Id = "4821", Title = "Sửa lỗi", Days = 1 }],
+            CompletedToday = [new CompletedTask("4700", "Xong từ sáng")],
+        };
+        e.ApplySnapshot(existing); // đăng nhập xong: đây là mốc, không phải "mới"
+        e.Advance(30, false);
+        Assert.DoesNotContain(e.S.Queue, q => q.C is CaseId.Incoming or CaseId.TaskDone);
+        Assert.Null(e.S.Ep);
+
+        e.ApplySnapshot(new WorkSnapshot { RecentMail = [.. existing.RecentMail, Mail("m2", "Chị Linh", "Nhờ review")], Calendar = existing.Calendar, Tasks = existing.Tasks, CompletedToday = existing.CompletedToday });
+        Until(e, () => e.S.Ep is { C: CaseId.Incoming, Phase: Phase.Show }, 60);
+        Assert.Single(e.S.Ep!.Data.Incoming!);
+    }
+
+    [Fact]
     public void A_new_email_pops_up_with_sender_subject_and_opens_on_click()
     {
         var e = Start();

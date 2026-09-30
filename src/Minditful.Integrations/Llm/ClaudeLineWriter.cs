@@ -276,7 +276,8 @@ public sealed class ClaudeLineWriter(LlmOptions opt, Func<string?> apiKey) : IMi
         }
         catch (Exception ex) when (ex is JsonException or KeyNotFoundException or InvalidOperationException)
         {
-            text = raw;
+            // Chữ thường thì dùng được; JSON sai trường (vd. {"answer": …}) thì không hiện nguyên khối JSON cho người dùng
+            text = StripFences(raw).StartsWith('{') || StripFences(raw).StartsWith('[') ? null : raw;
         }
         // Model lỡ viết mã tính năng vào câu (vd. "dùng break15") → đổi thành tên hiển thị
         foreach (var (key, a) in Talk.Actions)

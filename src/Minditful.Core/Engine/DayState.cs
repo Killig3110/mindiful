@@ -74,7 +74,9 @@ public sealed class DayState
     public bool CobwebPending;
     /// <summary>Thẻ "Có mới": id đã thấy (m:/e:/t:). Lần đọc đầu chỉ ghi nhận, không báo những thứ có sẵn.</summary>
     public readonly HashSet<string> SeenIncoming = [];
-    public bool IncomingSeeded;
+    /// <summary>Nguồn (mail / meeting / task) đã có lần đọc đầu tiên làm mốc. Nguồn chưa đọc được (chưa đăng nhập, mất mạng) chưa làm mốc,
+    /// để khi đọc được lần đầu không báo mọi thứ có sẵn là "mới".</summary>
+    public readonly HashSet<string> IncomingSeeded = [];
     public int DemoIncoming;
     public readonly List<string> ChatHistory = [];
     /// <summary>Teams presence "Presenting": Milo trốn hẳn, kể cả chóp đuôi.</summary>

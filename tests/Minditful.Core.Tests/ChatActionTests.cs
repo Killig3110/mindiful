@@ -131,6 +131,7 @@ public class ChatActionTests
         Assert.Equal("Mình thử Thở 1 phút nhé, nút ở ngay bên dưới.", leaked.Text);
         var plain = ClaudeLineWriter.ParseChat("Nghe mệt thật, mình thở chậm 1 phút nha.", r)!;
         Assert.Empty(plain.Actions);
+        Assert.Null(ClaudeLineWriter.ParseChat("{\"answer\":\"Nghe mệt thật, mình thở chậm 1 phút nha.\"}", r)); // JSON sai trường: không hiện nguyên khối JSON
         Assert.Contains("breathe: Thở 1 phút", ClaudeLineWriter.ChatUser(r));
     }
 }

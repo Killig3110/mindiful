@@ -755,10 +755,10 @@ public sealed partial class MiloEngine
         var ep = S.Ep!;
         text = (text ?? "").Trim();
         if (text.Length == 0) return;
-        S.ChatHistory.Add(text);
-        var history = ep.Chat.TakeLast(6).ToList();
+        // Lượt khủng hoảng trước đó cũng không gửi kèm cho AI làm lịch sử
+        var history = ep.Chat.Where(l => l.Milo != Talk.CrisisReply).TakeLast(6).ToList();
         var def = Catalog.Def(ep.C);
-        // Câu có dấu hiệu khủng hoảng: luôn trả lời bằng câu cố định đã duyệt, không giao cho LLM
+        // Câu có dấu hiệu khủng hoảng: luôn trả lời bằng câu cố định đã duyệt, không giao cho LLM (kể cả qua chấm mood)
         if (Talk.IsCrisis(text))
         {
             ep.Chat.Add(new ChatLine(text, Talk.CrisisReply));
@@ -767,6 +767,7 @@ public sealed partial class MiloEngine
             ep.CardVer++;
             return;
         }
+        S.ChatHistory.Add(text);
         if (ep.C == CaseId.Talk)
         {
             // Trò chuyện tự do: không đoán ý định để đóng thẻ, mọi câu đều được trả lời

@@ -79,6 +79,9 @@ public class TalkTests
     [Theory]
     [InlineData("dạo này mình muốn chết quá")]
     [InlineData("không muốn sống nữa")]
+    [InlineData("dao nay minh muon chet qua")]
+    [InlineData("khong muon song nua")]
+    [InlineData("chắc mình tu sat mất")]
     public void Crisis_words_get_the_fixed_safe_reply_and_are_not_sent_to_ai(string text)
     {
         var e = Open();
@@ -87,7 +90,26 @@ public class TalkTests
         e.UserReply("chat", text);
         Assert.Equal(Talk.CrisisReply, e.S.Ep!.Chat[^1].Milo);
         Assert.Equal(0, asked);
+        Assert.DoesNotContain(text, e.S.ChatHistory); // không lọt sang AI qua chấm mood (IncludeChatInMood)
     }
+
+    [Fact]
+    public void A_later_message_does_not_carry_the_crisis_turn_to_ai_as_history()
+    {
+        var e = Open();
+        var requests = new List<ChatRequest>();
+        e.ChatWanted += (_, _, r) => requests.Add(r);
+        e.UserReply("chat", "không muốn sống nữa");
+        e.UserReply("chat", "cuối tuần nên làm gì cho đỡ stress?");
+        var r = Assert.Single(requests);
+        Assert.DoesNotContain(r.History, l => l.You.Contains("muốn sống"));
+    }
+
+    [Theory]
+    [InlineData("tu tu roi tinh")]
+    [InlineData("từ từ rồi tính")]
+    [InlineData("hom nay chan qua")]
+    public void Everyday_phrases_without_diacritics_are_not_crisis(string text) => Assert.False(Talk.IsCrisis(text));
 
     [Fact]
     public void Talk_opens_from_dashboard_and_from_clicking_a_visiting_milo_and_closes_with_esc()
