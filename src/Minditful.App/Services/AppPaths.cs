@@ -21,7 +21,7 @@ internal static class AppPaths
     public static string RememberedEnvFile => Path.Combine(Root, "last-environment.txt");
 }
 
-/// <summary>Bí mật lưu local (PAT Azure DevOps, API key Claude), mã hoá bằng DPAPI theo tài khoản Windows (spec: "PAT lưu local").</summary>
+/// <summary>Bí mật lưu local (PAT Azure DevOps, API key AI), mã hoá bằng DPAPI theo tài khoản Windows (spec: "PAT lưu local").</summary>
 internal sealed class SecretStore(AppEnvironment env, string name = "ado-pat")
 {
     private string File => Path.Combine(AppPaths.For(env), name + ".bin");

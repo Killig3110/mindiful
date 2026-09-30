@@ -548,5 +548,6 @@ Dashboard (9.6) có thêm nút **Chi tiết**: một bảng nhỏ cỡ 1 thẻ n
 Câu hỏi mở thêm:
 
 - [ ] **Nhịp nghỉ ngắn:** 50 phút có hợp với nhóm không? (Đã bỏ quy tắc 20-20-20 vì nghiên cứu 2023 không thấy tác dụng rõ — xem CO-SO-KHOA-HOC.md.)
-- [ ] **Tủ đồ:** mốc 3/5/10/15 ngày và 4 món có đủ tạo động lực không? Designer có muốn vẽ thêm món theo mùa?
+- [ ] **Tủ đồ:** 14 món (mốc 3/5/10/15 ngày về đúng giờ, 10/20 lần nghỉ, 2/5 giờ tập trung, 4 món theo mùa) có đủ tạo động lực không? Designer có muốn vẽ lại món nào không?
+- [ ] **Tính cách:** tỉ lệ hài ~1/3 ở chế độ Pha trộn có hợp với môi trường Bosch không?
 

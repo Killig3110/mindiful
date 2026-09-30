@@ -36,7 +36,7 @@ internal sealed class ControlCenterWindow : ControlShell
         _sandbox = session.Env == AppEnvironment.Sandbox;
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
         AddPage("home", IcHome, "Tổng quan", Home);
-        AddPage("connect", IcLink, "Kết nối", Connect, "Microsoft 365, Azure Boards, Claude");
+        AddPage("connect", IcLink, "Kết nối", Connect, "Microsoft 365, Azure Boards, AI");
         if (_sandbox) AddPage("try", IcTry, "Thử tình huống", Try, "ép Milo làm như Demo");
         AddPage("milo", IcMilo, "Milo của bạn", Milo, "tủ đồ, chăm sóc, dữ liệu");
         AddPage("engine", IcEngine, "Mood Engine", MoodEnginePage, "luật ↔ AI · kiểm chứng");
@@ -122,7 +122,7 @@ internal sealed class ControlCenterWindow : ControlShell
     private (string, string) ClaudeState()
     {
         var first = _session.LlmStatus.Split('\n')[0];
-        return first.StartsWith("Đang dùng", StringComparison.Ordinal) ? ("ok", first + " Milo viết lời thoại và chấm mood bằng Claude.")
+        return first.StartsWith("Đang dùng", StringComparison.Ordinal) ? ("ok", first + " Milo viết lời thoại và chấm mood bằng AI.")
             : ("idle", first + " Không bắt buộc: không có key Milo dùng câu mẫu và luật.");
     }
 
@@ -237,7 +237,7 @@ internal sealed class ControlCenterWindow : ControlShell
                     key.Clear();
                 }, BtnKind.Primary)),
                 llm,
-                Text("Claude chỉ nhận tên tình huống và số liệu, không bao giờ nhận tiêu đề hay nội dung email, cuộc họp, task.", 11.5, P.Muted),
+                Text("AI chỉ nhận tên tình huống, số liệu và nhãn, không bao giờ nhận tiêu đề hay nội dung email, cuộc họp, task.", 11.5, P.Muted),
             },
         }, "AI (tuỳ chọn)", "Claude hoặc AI tương thích OpenAI (Ollama trên máy, Groq, Gemini…): viết lời thoại, trả lời chat, chấm mood, đánh giá cuộc họp. Chọn nhà cung cấp trong .env (README mục Chọn AI để test); bật/tắt chấm mood bằng AI ở trang Mood Engine.");
 

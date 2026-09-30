@@ -216,8 +216,8 @@ internal sealed class LiveSession : IMiloSession
 
     private string MoodSource => Engine.Cfg.MoodMode switch
     {
-        MoodMode.Hybrid when Engine.S.MoodInsight is not null => "Luật + Claude",
-        MoodMode.Llm when Engine.S.MoodInsight is not null => "Claude",
+        MoodMode.Hybrid when Engine.S.MoodInsight is not null => "Luật + AI",
+        MoodMode.Llm when Engine.S.MoodInsight is not null => "AI",
         _ => "Luật",
     };
 

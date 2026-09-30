@@ -123,8 +123,8 @@ public sealed class BrainPanel : Border
         _moodSource.Text = e.Cfg.MoodMode switch
         {
             MoodMode.Rules => "Tính bằng luật: 92 điểm trừ các khoản dưới đây, cộng thưởng khi bạn nghỉ, tập trung, xong task.",
-            _ when s.MoodInsight is { } mi => $"Nguồn: {(e.Cfg.MoodMode == MoodMode.Hybrid ? $"luật {s.RuleScore} + Claude {mi.Adjust:+#;-#;0}" : $"Claude (luật {s.RuleScore})")} · {mi.Label}\n“{mi.Insight}”",
-            _ => $"Nguồn: luật {s.RuleScore} (đang chờ Claude đánh giá)",
+            _ when s.MoodInsight is { } mi => $"Nguồn: {(e.Cfg.MoodMode == MoodMode.Hybrid ? $"luật {s.RuleScore} + AI {mi.Adjust:+#;-#;0}" : $"AI (luật {s.RuleScore})")} · {mi.Label}\n“{mi.Insight}”",
+            _ => $"Nguồn: luật {s.RuleScore} (đang chờ AI đánh giá)",
         };
         _pen.Children.Clear();
         foreach (var (k, v) in s.Pen)

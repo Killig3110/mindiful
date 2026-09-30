@@ -11,7 +11,7 @@ Tài liệu này dành cho người **chưa biết gì về app**, đọc xong p
 | [README](../README.md) | Cách chạy, cấu hình, hướng dẫn test và kịch bản present |
 | [HUONG-DAN-SU-DUNG.md](HUONG-DAN-SU-DUNG.md) | Hướng dẫn cho người dùng: thao tác với Milo, bảng điều khiển, từng tính năng |
 | [CO-SO-KHOA-HOC.md](CO-SO-KHOA-HOC.md) | Nguồn nghiên cứu của điểm mood, chứng minh bằng test, kiểm chứng bằng WHO-5 |
-| [KICH-BAN-DEMO.md](KICH-BAN-DEMO.md) · [KICH-BAN-SANDBOX.md](KICH-BAN-SANDBOX.md) | Kịch bản present Demo (đủ 19 case) và Sandbox chạy như Production |
+| [KICH-BAN-DEMO.md](KICH-BAN-DEMO.md) · [KICH-BAN-SANDBOX.md](KICH-BAN-SANDBOX.md) | Kịch bản present Demo (28 bước, đủ 22 tình huống) và Sandbox (realtime, như Production) |
 
 Mục lục: [1. Milo là gì](#1-milo-là-gì) · [2. Bức tranh tổng thể](#2-bức-tranh-tổng-thể) · [3. Ba môi trường](#3-ba-môi-trường) · [4. Vòng đời app](#4-vòng-đời-app) · [5. Bộ não](#5-bộ-não-minditfulcore) · [6. UI/UX](#6-uiux) · [7. Mô hình dữ liệu](#7-mô-hình-dữ-liệu) · [8. Tích hợp nền tảng](#8-tích-hợp-nền-tảng) · [9. Lưu trữ & xoá dữ liệu](#9-lưu-trữ--xoá-dữ-liệu) · [10. Riêng tư & bảo mật](#10-riêng-tư--bảo-mật) · [11. Lỗi & hạ cấp](#11-xử-lý-lỗi--hạ-cấp) · [12. Cấu hình](#12-cấu-hình) · [13. Kiểm thử](#13-kiểm-thử) · [14. Mở rộng](#14-mở-rộng-app) · [15. Thuật ngữ](#15-thuật-ngữ)
 
@@ -21,7 +21,7 @@ Mục lục: [1. Milo là gì](#1-milo-là-gì) · [2. Bức tranh tổng thể]
 
 Milo là một chú cáo sống ở **góc màn hình Windows** của kỹ sư. Phần lớn thời gian Milo **ẩn**, chỉ chừa một chóp đuôi nhỏ. Milo theo dõi nhịp làm việc (lịch họp, email, task, việc gõ phím, khoá máy…) và **chỉ xuất hiện đúng lúc**: nhắc họp, rủ nghỉ khi họp liền 3 tiếng, đề xuất khoá giờ tập trung cho task bị kẹt, rủ về khi quá giờ… Milo **không bao giờ chen vào cuộc họp** và tối đa **1 lời nhắc chủ động mỗi 15 phút**.
 
-Mỗi lần xuất hiện là một **episode** gồm 3 nhịp: **Vào** (hoạt ảnh leo lên) → **Ở lại** (thẻ nhắc + nút bấm) → **Ra** (leo xuống). Có 16 loại episode (gọi là **case**), chia 4 nhóm: xã giao, hỗ trợ công việc, chăm sóc, người dùng tự mở.
+Mỗi lần xuất hiện là một **episode** gồm 3 nhịp: **Vào** (hoạt ảnh leo lên) → **Ở lại** (thẻ nhắc + nút bấm) → **Ra** (leo xuống). Có 22 loại episode (gọi là **case**: 17 của prototype + 5 mở rộng), chia 4 nhóm: xã giao, hỗ trợ công việc, chăm sóc, người dùng tự mở.
 
 Ngoài ra Milo có **điểm mood** 0–100 trong ngày (Mood Engine) thể hiện bằng màu sắc, dáng đứng và **dashboard trái cây** quanh Milo (nho = mood, cam = cuộc họp, anh đào = email chờ, táo cắn dở = sprint; trang tuần có chùm nho 7 ngày).
 
@@ -46,7 +46,7 @@ flowchart LR
         Graph["GraphClient"]
         Ado["AzureBoardsClient"]
         Live["LiveWorkDataProvider · LiveActionSink · SandboxSeeder · PresenceWatcher"]
-        Llm["ClaudeLineWriter (Anthropic SDK)"]
+        Llm["IMiloLlm: ClaudeLineWriter (Anthropic SDK) · OpenAiCompatibleWriter (Groq, Ollama…)"]
         Store["LocalStore (SQLite)"]
         Opt["MinditfulOptions · DotEnv"]
     end
@@ -61,20 +61,20 @@ flowchart LR
     Graph -->|HTTPS| MS[("Microsoft Graph")]
     Auth -->|HTTPS| Entra[("Microsoft Entra ID")]
     Ado -->|HTTPS| DevOps[("Azure DevOps")]
-    Llm -->|HTTPS| Claude[("Claude API")]
+    Llm -->|HTTPS| AI[("Claude API / Groq / Ollama")]
     Store --> Disk[("minditful.db")]
 ```
 
 | Project | Chứa gì | Vì sao tách |
 | --- | --- | --- |
-| **Minditful.Core** | Toàn bộ "bộ não": luật, hàng đợi, điều phối, episode, mood, cá nhân hoá, nội dung thẻ, keyframes hoạt ảnh, ngày mẫu | Không phụ thuộc Windows, UI hay mạng → **test được trên mọi OS** (160 test), và 3 môi trường dùng chung đúng một bộ não |
-| **Minditful.Integrations** | Nói chuyện với thế giới ngoài: Entra/MSAL, Graph, Azure DevOps, Claude, SQLite, cấu hình, `.env` | Tách I/O khỏi logic; đổi nhà cung cấp mà không đụng bộ não |
+| **Minditful.Core** | Toàn bộ "bộ não": luật, hàng đợi, điều phối, episode, mood, cá nhân hoá, nội dung thẻ, keyframes hoạt ảnh, ngày mẫu | Không phụ thuộc Windows, UI hay mạng → **test được trên mọi OS** (247 test), và 3 môi trường dùng chung đúng một bộ não |
+| **Minditful.Integrations** | Nói chuyện với thế giới ngoài: Entra/MSAL, Graph, Azure DevOps, AI (Claude / tương thích OpenAI), SQLite, cấu hình, `.env` | Tách I/O khỏi logic; đổi nhà cung cấp mà không đụng bộ não |
 | **Minditful.App** | WPF: cửa sổ, overlay, vẽ Milo, khay hệ thống, tín hiệu Windows, vòng lặp thời gian của từng môi trường | Phần duy nhất cần Windows |
 
 ### 2.2 Nguyên tắc thiết kế
 
 1. **Một bộ não, nhiều nguồn dữ liệu.** `MiloEngine` không biết mình đang chạy Demo hay Prod. Nó chỉ nhận *thời gian*, *tín hiệu* (khoá máy, gõ phím, đang họp…) và *ảnh chụp dữ liệu* (`WorkSnapshot`).
-2. **Engine đồng bộ, thế giới bất đồng bộ.** Engine chạy theo từng giây mô phỏng, không bao giờ `await`. Mọi thứ cần gọi ra ngoài (tạo lịch, bật DND, hỏi Claude) được engine **phát sự kiện**, host xử lý bất đồng bộ rồi **trả kết quả lại** qua method (`SetLine`, `SetMoodInsight`…).
+2. **Engine đồng bộ, thế giới bất đồng bộ.** Engine chạy theo từng giây mô phỏng, không bao giờ `await`. Mọi thứ cần gọi ra ngoài (tạo lịch, bật DND, hỏi AI) được engine **phát sự kiện**, host xử lý bất đồng bộ rồi **trả kết quả lại** qua method (`SetLine`, `SetMoodInsight`…).
 3. **Hạ cấp thay vì báo lỗi.** Thiếu quyền, mất mạng, không có API key → tắt đúng phần đó, phần còn lại chạy tiếp; không bật popup lỗi (§14).
 4. **Riêng tư mặc định.** LLM chỉ nhận số liệu; dữ liệu local không có tiêu đề; tự xoá theo tuần.
 
@@ -177,7 +177,7 @@ flowchart TB
     end
     subgraph LiveOnly["Chỉ LiveSession"]
         Tick["_tick 250 ms: sang ngày mới? · Monitor.Poll mỗi 1s · AdvanceTo(giờ thật) · lưu SQLite mỗi 15'"]
-        Refresh["_refresh 30 s: Provider.LoadAsync(force=false) — nguồn nào tới hạn mới đọc"]
+        Refresh["_refresh 10 s: Provider.LoadAsync(force=false) — nguồn nào tới hạn mới đọc"]
         Presence["_presence 30 s: GET /me/presence"]
     end
     Pump -->|Demo| Adv["engine.Advance(dt × (Busy ? 1 : Speed))"]
@@ -268,7 +268,7 @@ stateDiagram-v2
 
 Khi cổng **Đang họp** tắt: chờ 2 phút ổn định (`Settle`), trong 10 phút sau đó Milo vào bằng **JumpIn** (nhảy vòng cung). Nếu episode đang hiện mà cổng bật → thụt nhanh, episode quay lại hàng đợi (trừ Sắp họp/Dashboard bị bỏ).
 
-### 5.5 Rule Engine — 16 case
+### 5.5 Rule Engine — 17 case gốc (5 case mở rộng ở 5.8 và 5.12)
 
 `EvalRules()` chạy mỗi phút, mỗi case đủ điều kiện được `Enqueue` (1 chỗ/case, luôn mang số liệu mới nhất). Case có điều kiện mà **không còn đúng** thì bị xoá khỏi hàng đợi.
 
@@ -374,22 +374,27 @@ Công thức nằm riêng trong `MoodModel` (hàm thuần, nhận `MoodInputs`) 
 | Phân mảnh | 2 × lần chuyển việc vượt ngưỡng/giờ | 12 |
 | Workload | task đang làm / trung bình > 1,5 → 6; > 2 → 10 | 10 |
 | Task kẹt / Email chờ | 2/task kẹt · 1/email vượt 2 | 6 / 4 |
+| Quá giờ cả tuần | 0,05 × phút quá giờ vượt 8 giờ/tuần | 10 |
+| Tự đánh giá | Bấm "Mệt" ở thẻ Tan tầm | 6 |
+| Căng thẳng giả lập | Nút *Ngày căng thẳng* (chỉ Demo) | 30 |
 
-Thưởng: +3 mỗi lần đồng ý nghỉ (≤12), +2 mỗi task xong (≤6), +4 mỗi khối tập trung (≤8).
+Thưởng: +3 mỗi lần đồng ý nghỉ (≤12), +2 mỗi task xong (≤6), +4 mỗi khối tập trung (≤8), +3 nếu bấm "Vui", thưởng thêm từ nút giả lập nghỉ trong Demo (≤3).
 
 **Mức** (có trễ 3 điểm để không nhảy qua lại): ≥80 *Mọng* · 60–79 *Cân bằng* · 40–59 *Mệt dần* (bão hoà 0,75) · <40 *Kiệt sức* (0,55 + chữ z).
 
 | `Llm.Features.Mood` | Điểm hiển thị | Office Vibe |
 | --- | --- | --- |
 | `Rules` (mặc định) | Điểm luật | Theo công thức §11 |
-| `Hybrid` | Điểm luật + `adjust` của Claude (chặn ±10) | Claude đặt lại Tập trung/Năng lượng/Căng thẳng |
-| `Llm` | `score` của Claude; quá 2 chu kỳ không có nhận xét mới → điểm luật | Claude |
+| `Hybrid` | Điểm luật + `adjust` của AI (chặn ±10) | AI đặt lại Tập trung/Năng lượng/Căng thẳng |
+| `Llm` | `score` của AI; quá 2 chu kỳ không có nhận xét mới → điểm luật | AI |
 
-Claude được hỏi mỗi `MoodIntervalMinutes` (30') qua sự kiện `MoodWanted`.
+AI được hỏi mỗi `MoodIntervalMinutes` (30') qua sự kiện `MoodWanted`.
 
 ### 5.10 Đánh giá cuộc họp
 
-Mỗi khi có cuộc họp mới (lúc khởi tạo, `ApplySnapshot`, sang ngày), `AssessMeetings()` luôn tạo **đánh giá theo luật** (`MeetingRules.Assess`): mức nặng 1–5 từ độ dài (≤30' → 1 … >90' → 4) +1 nếu ≥ 6 người, +1 nếu trình bày, +1 nếu là cuộc thứ 3+ trong chuỗi, +1 nếu ngoài giờ/đè trưa; loại họp; số phút nên nghỉ sau. Nếu `Features.Meetings = Llm` thì phát `MeetingWanted` để Claude đánh giá lại, kết quả thay thế bản luật.
+Mỗi khi có cuộc họp mới (lúc khởi tạo, `ApplySnapshot`, sang ngày), `AssessMeetings()` luôn tạo **đánh giá theo luật** (`MeetingRules.Assess`): mức nặng 1–5 từ độ dài (≤30' → 1 … >90' → 4) +1 nếu ≥ 6 người, +1 nếu bạn trình bày **hoặc** là cuộc ra quyết định / làm việc nhóm (chỉ cộng 1 lần), −1 nếu chỉ ngồi nghe (hoặc nghe người khác trình bày), +1 nếu là cuộc thứ 3+ trong chuỗi, +1 nếu ngoài giờ/đè trưa; loại họp; số phút nên nghỉ sau (ra quyết định / làm việc nhóm ≥ 5').
+
+Loại cuộc họp (`MeetingIntents.Classify`) đoán **trên máy** từ tiêu đề rồi agenda (`bodyPreview`), bỏ dấu tiếng Việt, tiêu đề ưu tiên: Trình bày · Ra quyết định · Ngồi nghe · Làm việc nhóm · 1:1 · Không rõ. Người tổ chức daily không bị tính là trình bày (`YouPresent`). Thẻ Sắp họp thêm 1 gợi ý theo loại (`MeetingIntents.Tip`). Nếu `Features.Meetings = Llm` thì phát `MeetingWanted` để AI đánh giá lại (chỉ nhận **nhãn** loại, không nhận chữ gốc), kết quả thay thế bản luật.
 
 ### 5.11 Cá nhân hoá (§14)
 
@@ -403,7 +408,7 @@ Mỗi khi có cuộc họp mới (lúc khởi tạo, `ApplySnapshot`, sang ngày
 
 ### 5.12 Tính năng mở rộng (mục `Wellbeing`)
 
-Thêm sau prototype, cùng khung Rule Engine → hàng đợi → điều phối, nên vẫn chịu cổng im lặng và ngân sách như 16 case gốc. 3 case mới đứng cuối enum `CaseId` để không đổi thứ tự phá hoà của case gốc.
+Thêm sau prototype, cùng khung Rule Engine → hàng đợi → điều phối, nên vẫn chịu cổng im lặng và ngân sách như 17 case gốc. 5 case mới (`FocusPlan`, `WeekReport`, `MicroBreak`, `Talk`, `Incoming`) đứng cuối enum `CaseId` để không đổi thứ tự phá hoà của case gốc. Ở Demo, `FocusPlan`/`WeekReport`/`MicroBreak` không tự bật (`EngineConfig` mặc định tắt) để ngày mẫu giữ đúng mốc; `EveningCheck` bật.
 
 | Case / cơ chế | Loại | Điều kiện (`EvalRules`) | Kết quả |
 | --- | --- | --- | --- |
@@ -411,13 +416,18 @@ Thêm sau prototype, cùng khung Rule Engine → hàng đợi → điều phối
 | `WeekReport` · Báo cáo tuần | Xã giao, P4 | `Cfg.WeekReport`, thứ Hai, `Snap.LastWeek` có dữ liệu, sau Chào sáng | Thẻ tổng kết + `Present.WeekTip()`. *Xem chùm nho* đổi thẳng episode sang Dashboard trang Tuần |
 | `MicroBreak` · Nghỉ ngắn (uống nước, vươn vai) | Hỗ trợ, P5, miễn ngân sách | `Cfg.MicroBreakEveryMin > 0`, `NmRun` (phút ngồi máy liên tục, không họp) ≥ N, cách lần trước ≥ N, chưa quá số lần/ngày | Bóng thoại 5 giây như Task xong, không nút |
 | `Gate.Presenting` | Cổng | `SetPresenting(true)` từ Teams presence "Presenting" | Như các cổng khác, nhưng `Presence()` = Off nên ẩn cả chóp đuôi và chấm chờ |
-| "Hôm nay thấy sao?" | Nút trên thẻ Tan tầm | `Cfg.EveningCheck` | `Reply("feel", good/ok/bad)` → `S.Feeling`; Mood Engine: Mệt −6, Vui +3; `DayRecord.Feeling`; gửi cho Claude trong `BuildMoodRequest` |
+| "Hôm nay thấy sao?" | Nút trên thẻ Tan tầm | `Cfg.EveningCheck` | `Reply("feel", good/ok/bad)` → `S.Feeling`; Mood Engine: Mệt −6, Vui +3; `DayRecord.Feeling`; gửi cho AI trong `BuildMoodRequest` |
 | Nghỉ ngày mai | Nút trên thẻ Tan tầm | `TomorrowChain()` ≥ 3 cuộc liền trong `Snap.TomorrowCalendar` | `HoldBreak(DayOffset: 1)` sau cuộc thứ 2 |
 | Có mới (realtime) | Engine + Integrations | `MiloEngine.DetectIncoming` trong `ApplySnapshot`: so id (m:/e:/t:) với lần đọc trước (`S.SeenIncoming`; lần đầu chỉ ghi nhận). Nguồn: `WorkSnapshot.RecentMail` (email gửi thẳng cho bạn trong 24 giờ), `Calendar` + `TomorrowCalendar` (bỏ họp `ByMe` trừ `Cfg.AlertOwnItems`), `Tasks` | `AddIncoming` gộp vào thẻ đang chờ / đang hiện / đã bị bỏ qua. `CaseId.Incoming` P3, miễn ngân sách, tôn trọng cổng im lặng, 20 giây không bấm thì thu (không park). *Mở* → `MiloAction.OpenLink`. Sandbox đọc nhanh (`BehaviorProfile.ApplyPolling`: mail 20", lịch/Boards 30", `_refresh` 10"). Demo: `SimulateIncoming` (email → họp → task) |
 | Hiện Milo khi chia sẻ (Sandbox) | App | `LiveSession.ShowOnShare` / `SetShowOnShare` (nhớ ở `show-on-share.txt`) | `ContentProtection` = cấu hình && !ShowOnShare; `CompanionWindow.ApplyCapture` đổi `SetWindowDisplayAffinity` ngay lúc chạy (sự kiện `CaptureChanged`); presence Teams *Presenting* không gọi `SetPresenting(true)` khi bật |
 | Milo ngủ khi tập trung | App | `Present.Sleeping` (Silent + cổng Focus), `Present.SleepText` | `MiloLayer._sleeper`: tư thế Breathe + `MiloRig.Sleep` cỡ 70px trên chóp đuôi, lật theo góc neo, mặc bộ đồ đang chọn; `BuildSleepFx` chữ z; tooltip chóp đuôi |
 | Tính cách Milo | Engine + App | `Cfg.Personality` (Mixed mặc định / Cute / Funny, `PersonalitySetting` nhớ theo môi trường) | `MiloEngine.Meme()` thay clip ở thẻ (TaskDone/FocusDone → Slay, EmailWaiting → SideEye, StuckTask → Confused, MorningHello thứ Hai → Loading, Overtime → ThisIsFine, MeetingOverload → Zombie) và ghé ngang (chiều thứ Sáu → Vibe, quay lại sau ≥ 30' vắng → Cobweb) khi `Joke()`: Funny luôn có, Mixed xác suất `Catalog.MixedJokeChance` (0,35), Cute không bao giờ. Bấm Milo 5 lần/4 giây → `S.Reaction` Faint (trừ Cute). `PlayMeme()` cho nút xem thử Demo. Hình: `MiloRig` + `ClipAnimation` + `MiloLayer.BuildMemeFx`; không bao giờ lúc có cổng im lặng |
 | Tủ đồ · phối đồ | App + SQLite | `LiveActionSink.RecordStreak` lúc `DayClosed` hoặc lúc qua ngày (kèm số lần nghỉ, phút tập trung của ngày) | `LocalStore.RecordDay` cập nhật `streak` + `progress` → món mới → `Snap.Wardrobe` (chuỗi, tổng nghỉ, tổng tập trung, món mùa đã giữ) → `Wardrobe.Owned`. Bộ đồ = danh sách id, mỗi ô (`Slot`: Neck, Hand, Eyes, Hair, Hat) 1 món, món nhiều ô (`bosch`) chiếm mọi ô của nó (`Wardrobe.Wear`). `Wardrobe.SkinKey` → `MiloSkin` chèn từng món vào nhóm `head`/`torso`/`armR` của SVG để đi theo cử động. Mở tủ đồ: `MiloEngine.OpenWardrobe` (dashboard với `Episode.Wardrobe`), `WardrobeView` trên đầu Milo và trong bảng điều khiển |
+| Tính cách | Engine | `Cfg.Personality` (Cute / Funny / Mixed; `PersonalitySetting` lưu `personality.txt`) | `Meme()`/`Joke()` chọn clip hài (`Clip.Slay`…`Zombie`) theo dịp: sáng thứ Hai `Loading`, chiều thứ Sáu `Vibe`, vắng lâu `Cobweb`, bấm 5 lần `Faint`… Mixed diễn ~35 % (`MixedJokeChance`), Cute không bao giờ. `PlayMeme` cho nút xem thử. Không diễn khi có cổng im lặng |
+| Milo ngủ khi tập trung | Present + App | Đang trong khối tập trung (`FocusUntil`) | `Present.Sleeping` → `MiloLayer` vẽ Milo nhỏ ngủ trên chóp đuôi + chữ z (`BuildSleepFx`), chú thích giờ kết thúc (`SleepText`) |
+| Loại cuộc họp | Engine | `MeetingIntents.Classify` (5.10) | Mức nặng, số phút nghỉ, gợi ý thẻ Sắp họp |
+| Khởi động cùng Windows | App | Menu khay / trang *Milo của bạn* (Sandbox/Prod) | `AutoStart`: giá trị `Minditful.Milo` trong `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`, kèm `--env` |
+| Chuyển môi trường | App | Menu khay *Chuyển môi trường* / nút ⇄ trên bảng điều khiển | `App.SwitchEnvironment`: lưu lựa chọn, mở lại exe với `--env <môi trường>`, thoát bản cũ (mỗi môi trường 1 bộ phiên đăng nhập và dữ liệu riêng) |
 
 ## 6. UI/UX
 
@@ -426,12 +436,12 @@ Thêm sau prototype, cùng khung Rule Engine → hàng đợi → điều phối
 | Cửa sổ | Khi nào | Đặc điểm |
 | --- | --- | --- |
 | **LauncherWindow** | Chưa chọn môi trường | 3 thẻ, trạng thái cấu hình từng môi trường, "Nhớ lựa chọn" |
-| **CompanionWindow** | Luôn có (3 môi trường) | 480×620, **trong suốt hoàn toàn**, Topmost, không có trong Alt+Tab (`WS_EX_TOOLWINDOW`), không chiếm focus; neo góc màn hình đang chọn, ngay trên taskbar. Chỗ không có Milo thì chuột **đi xuyên** xuống desktop (pixel alpha = 0). Sandbox/Prod: `SetWindowDisplayAffinity(WDA_EXCLUDEFROMCAPTURE)` → **không lộ khi share màn hình** |
-| **DemoControlWindow** | Demo | Khung `ControlShell`. Trang: *Kịch bản trình diễn* (`DemoTour.Steps`: 28 bước phủ đủ 22 case, `MemeReel` (9 động tác), `OutfitReel` (6 bộ đồ); host xếp lịch từng bước trong `DemoControlWindow.ScheduleStep`, tự chạy khi Milo xong việc), *Bắt đầu* (Mood realtime: `SetStressLevel`, `SimulateBreak`, `CallMilo(hold)`; phát/tạm dừng, tốc độ, công tắc tự trả lời, số liệu hôm nay, mẹo), *Ngày mẫu* (17 mốc, bấm để tua), *Thử tình huống* (19 case chia 4 nhóm + công tắc "Giả vờ bạn đang…"), *Milo của bạn* (tủ đồ, góc neo), *Bộ não Milo* |
-| **ControlCenterWindow** | Sandbox/Prod | Khung `ControlShell`. Trang *Kiểm chứng điểm* (WHO-5 hằng tuần, tương quan Pearson với điểm Milo, xuất CSV ẩn danh; bảng SQLite `validation_week`). Trang: *Tổng quan* (3 thẻ kết nối chấm xanh/vàng/đỏ, Milo đang thấy gì), *Kết nối* (Microsoft, PAT, API key Claude), *Thử tình huống* (chỉ Sandbox: reset ngày, giờ về, dữ liệu mẫu, chạy case, giả lập tín hiệu), *Milo của bạn* (tủ đồ, góc neo, tính năng chăm sóc, cá nhân hoá, dữ liệu trên máy), *Bộ não Milo* |
-| **`ControlShell`** (`Views/Panel`) | — | Khung chung tông sáng (`P`: kem #F7F0E6, thẻ #FFFDF9, cam #E8772E). Thanh bên + dải "Milo đang làm gì" bằng lời thường (`Describe()`), đồng hồ, điểm mood. Mỗi trang dựng 1 lần; số liệu cập nhật 400 ms/lần qua `Tick()` chỉ cho trang đang mở |
+| **CompanionWindow** | Luôn có (3 môi trường) | 480×620, **trong suốt hoàn toàn**, Topmost, không có trong Alt+Tab (`WS_EX_TOOLWINDOW`), không chiếm focus; neo góc màn hình đang chọn, ngay trên taskbar. Chỗ không có Milo thì chuột **đi xuyên** xuống desktop (pixel alpha = 0). Sandbox/Prod: `SetWindowDisplayAffinity(WDA_EXCLUDEFROMCAPTURE)` → **không lộ khi share màn hình** (Sandbox: công tắc *Hiện Milo khi chia sẻ màn hình* đổi sang `WDA_NONE` lúc đang chạy, `LiveSession.CaptureChanged`) |
+| **DemoControlWindow** | Demo | Khung `ControlShell`. Trang: *Kịch bản trình diễn* (`DemoTour.Steps`: 28 bước phủ đủ 22 case, `MemeReel` (9 động tác), `OutfitReel` (6 bộ đồ); host xếp lịch từng bước trong `DemoControlWindow.ScheduleStep`, tự chạy khi Milo xong việc), *Bắt đầu* (Mood realtime: `SetStressLevel`, `SimulateBreak`, `CallMilo(hold)`; phát/tạm dừng, tốc độ, công tắc tự trả lời, số liệu hôm nay, mẹo), *Ngày mẫu* (17 mốc, bấm để tua), *Thử tình huống* (22 case chia 4 nhóm + công tắc "Giả vờ bạn đang…"), *Milo của bạn* (tủ đồ, tính cách + 9 nút xem thử, góc neo), *Mood Engine* (luật ↔ AI, 3 bộ kiểm chứng), *Bộ não Milo* |
+| **ControlCenterWindow** | Sandbox/Prod | Khung `ControlShell`. Trang *Kiểm chứng điểm* (WHO-5 hằng tuần, tương quan Pearson với điểm Milo, xuất CSV ẩn danh; bảng SQLite `validation_week`). Trang: *Tổng quan* (Sandbox: thẻ chế độ test/như Production + công tắc *Hiện Milo khi chia sẻ màn hình*; 3 thẻ kết nối chấm xanh/vàng/đỏ, Milo đang thấy gì), *Kết nối* (Microsoft, PAT, API key AI), *Thử tình huống* (chỉ Sandbox chế độ test: reset ngày, giờ về, dữ liệu mẫu, chạy case, giả lập tín hiệu), *Milo của bạn* (tủ đồ, tính cách, góc neo, khởi động cùng Windows, tính năng chăm sóc, cá nhân hoá, dữ liệu trên máy), *Mood Engine*, *Bộ não Milo* |
+| **`ControlShell`** (`Views/Panel`) | — | Khung chung tông sáng (`P`: kem #F7F0E6, thẻ #FFFDF9, cam #E8772E). Thanh bên (nhãn môi trường + nút ⇄ *Chuyển môi trường*) + dải "Milo đang làm gì" bằng lời thường (`Describe()`), đồng hồ, điểm mood. Mỗi trang dựng 1 lần; số liệu cập nhật 400 ms/lần qua `Tick()` chỉ cho trang đang mở |
 | **Nhận diện** (`Rendering/Brand.cs`, `Assets/Brand`) | Mọi cửa sổ + khay | Logo Milo đội mũ Bosch (`milo.ico` cho exe/cửa sổ/khay, `logo.png` cho giao diện); dải 3 màu Bosch đặc `Brand.Stripe()` (đỏ · xanh dương · xanh lá) trên đầu bảng điều khiển và màn hình chọn môi trường |
-| **Khay hệ thống** | Luôn có | Icon chóp đuôi vẽ bằng code; menu theo môi trường |
+| **Khay hệ thống** | Luôn có | Icon chóp đuôi vẽ bằng code; menu theo môi trường: Mở dashboard · Trò chuyện · Thay đồ · Bảng điều khiển · (Demo) Phát/tạm dừng, Làm lại ngày mẫu · (Sandbox) Chế độ test, Hiện Milo khi chia sẻ · (Sandbox/Prod) Khởi động cùng Windows, Đăng nhập, Làm mới · Chuyển môi trường · Thoát. Chuột phải Milo: menu nhanh (Thay đồ, Trò chuyện, Mở dashboard, Tính cách) |
 
 ### 6.2 Bố cục góc Milo (`MiloLayer`)
 
@@ -443,9 +453,11 @@ Giữ đúng toạ độ prototype (tính từ góc neo, đơn vị px; "đáy" 
 | Chóp đuôi | 96, 0 | 46×40 | Quầng thở 5s, màu theo mood, chấm số/đếm ngược; **kéo để đổi góc** |
 | Thì thầm | 150, 68 | — | Khi ló đầu |
 | Thẻ | 26, 162 (bấm chấm chờ: 26, 16) | 280–310 rộng | Hiệu ứng pop 0,35s |
-| Dashboard trái cây | 0, 0 (khung 340×360) | 4 bong bóng 84px (chùm nho tuần 100px) | Vòng cung bán kính 160 quanh đầu Milo; bung ra từ Milo, lần lượt 90 ms rồi nhấp nhô nhẹ; viền pastel theo quả; thanh tiêu đề nhỏ (Hôm nay/Tuần này · Chi tiết · ×) |
+| Dashboard trái cây | 0, 0 (khung 340×360) | 4 bong bóng 84px (chùm nho tuần 100px) | Vòng cung bán kính 160 quanh đầu Milo; bung ra từ Milo, lần lượt 90 ms rồi nhấp nhô nhẹ; viền pastel theo quả; thanh tiêu đề nhỏ (Hôm nay/Tuần này · Chi tiết · Tủ đồ · Trò chuyện · ×) |
 | Bảng chi tiết (`DetailDashboardView`) | 16, 150 | 290 rộng, cao tối đa 400 (cuộn mảnh) | Thay 4 quả khi bấm *Chi tiết* (`Episode.Detail`). Hôm nay: điểm + lời Milo, dòng thời gian giờ làm, Office Vibe, 3 cuộc họp sắp tới, chip số liệu. Tuần: 7 quả nho, thống kê, bạn trả lời Milo thế nào, bạn tự thấy, mẹo |
 | Chấm chờ | 22, 10 | — | "N lời nhắc đang chờ" khi Im lặng |
+| Tủ đồ (`WardrobeView`) | trên đầu Milo | 320 rộng, ô 40px | Mở bằng `OpenWardrobe` (dashboard với `Episode.Wardrobe`); chọn theo ô, lưu bộ phối |
+| Milo ngủ | 86, 20 | Milo 70px | Nằm trên chóp đuôi lúc tập trung, chữ z bay |
 
 Góc trái: lật ngang Milo và đổi neo sang trái. Góc trên: lật dọc (Milo thò xuống từ mép trên), mọi thứ neo theo mép trên.
 
@@ -474,7 +486,7 @@ sequenceDiagram
 
 `Present.Card(engine)` trả về `CardModel` gồm các **khối** (`TopBlock` nhãn màu, `TitleBlock`, `ParagraphBlock`, `LineBlock` dòng email/task, `PeopleBlock` avatar + vai trò, `ScheduleBlock` lịch mini, `ProgressBlock` thanh sprint, `TilesBlock` 3 ô tổng kết, `ButtonsBlock`, `ChatBlock`…). `CardRenderer` (WPF) vẽ khối → giao diện; Core không biết WPF. Biến thể: `Card`, `Breathe` (vòng thở), `Say` (bóng thoại), `Chip` (nhãn gọn khi đang gõ).
 
-**Câu chính** của thẻ lấy từ `Lines.Text`: câu Claude viết sẵn (nếu có) hoặc template (3–5 biến thể/case, xoay vòng). Nhãn, số liệu, nút **luôn** từ template.
+**Câu chính** của thẻ lấy từ `Lines.Text`: câu AI viết sẵn (nếu có) hoặc template (3–5 biến thể/case, xoay vòng). Nhãn, số liệu, nút **luôn** từ template.
 
 ### 6.5 Hoạt ảnh
 
@@ -484,6 +496,8 @@ Hai lớp chồng lên nhau:
 2. **Từng bộ phận** — `MiloRig` sinh chuỗi khung (vd. leo 11 khung · 8 fps, chạy 9 · 10 fps): xoay `armL/armR`, `legL/legR`, `tail`, `head`, `earL/earR` quanh khớp, chớp mắt 4,5s/lần. `MiloSkin` chèn `transform` vào nhóm SVG tương ứng, dựng bằng SharpVectors, **cache** theo (tư thế, clip, khung, chớp mắt, độ bão hoà); dựng sẵn lúc máy rảnh.
 
 Độ bão hoà theo mood được tính sẵn bằng ma trận `saturate()` của CSS (WPF không có hiệu ứng này).
+
+Clip hài (`Slay`, `SideEye`, `Confused`, `Faint`, `Vibe`, `Loading`, `Cobweb`, `ThisIsFine`, `Zombie`) có rig riêng (≤ 11 khung, `MiloRig.MemeAnims`) và hiệu ứng chữ/hình quanh Milo (`MiloLayer.BuildMemeFx`). Milo ngủ dùng rig `Sleep` 8 khung ping-pong. `DayState.Reaction` cho phép phát 1 clip hài đè lên dáng hiện tại (`Present.VisualClip`).
 
 ---
 
@@ -505,6 +519,9 @@ classDiagram
         YesterdayScore
         ThisWeek, LastWeek : WeekStats
         MailAvailable, BoardsAvailable, CanWriteCalendar
+        RecentMail : MailItem[]
+        TomorrowCalendar : CalendarEvent[]
+        Wardrobe : WardrobeInfo
         StatusNote
     }
     class CalendarEvent {
@@ -515,6 +532,8 @@ classDiagram
         Attachment
         People
         IsOnline, JoinUrl, WebLink
+        Organizer, ByMe
+        Intent : MeetingIntent
     }
     class MailItem {
         Id
@@ -523,6 +542,7 @@ classDiagram
         Days
         WebLink
         Handled
+        FromName
     }
     class WorkTask {
         Id
@@ -568,7 +588,7 @@ classDiagram
 
 - `WorkSnapshot` là **ảnh chụp bất biến** dữ liệu ngoài; Live làm mới định kỳ bằng `ApplySnapshot` (giữ cờ email đã xử lý, task đã xong).
 - `DayState` là **toàn bộ trạng thái 1 ngày** (tương ứng biến `S` của prototype); sang ngày mới thì tạo lại.
-- `MiloAction` là **hành động ra ngoài**: `JoinMeeting`, `OpenAttachment`, `HoldBreak`, `StartFocus`, `EndFocus`, `OpenMail`, `DayClosed`.
+- `MiloAction` là **hành động ra ngoài**: `JoinMeeting`, `OpenAttachment`, `HoldBreak`, `HoldFocus`, `StartFocus`, `EndFocus`, `OpenMail`, `OpenLink`, `DayClosed`. Tất cả chỉ phát ra **sau khi người dùng bấm nút** (hoặc tới giờ của khối người dùng đã đồng ý giữ).
 
 ### 7.2 Trên đĩa (SQLite `minditful.db`)
 
@@ -586,7 +606,7 @@ erDiagram
         INTEGER vibe_energy
         INTEGER vibe_stress
         INTEGER in_progress
-        TEXT mood_source "Luật / Luật + Claude / Claude"
+        TEXT mood_source "Luật / Luật + AI / AI"
         TEXT saved_at
         INTEGER feeling "0 chưa trả lời, 1 Mệt, 2 Bình thường, 3 Vui"
     }
@@ -602,7 +622,7 @@ erDiagram
         INTEGER best
         INTEGER base "chuỗi trước ngày last_day"
         TEXT last_day
-        TEXT unlocked_item "scarf / flower / beret"
+        TEXT unlocked_item "id món vừa mở (scarf, bubbletea…)"
         TEXT unlocked_day
     }
     mood_sample {
@@ -685,12 +705,12 @@ Mọi request có header `Prefer: outlook.timezone="<giờ Windows>"` và tự t
 | Method · Endpoint | Quyền | Khi nào / tần suất | Dùng cho |
 | --- | --- | --- | --- |
 | `GET /me?$select=id,mail,userPrincipalName,displayName` | User.Read | Lần đầu | Biết "mình" trong danh sách người tham dự, id cho presence |
-| `GET /me/calendarView` (hôm nay → mai) | Calendars.Read | 2 phút + khi mở khoá/đăng nhập | Lịch, chuỗi họp, vai trò, "mai 9:00 có Daily" |
+| `GET /me/calendarView` (hôm nay → mai, có `organizer`, `bodyPreview`) | Calendars.Read | 2 phút (Sandbox 30") + khi mở khoá/đăng nhập | Lịch, chuỗi họp, vai trò, loại cuộc họp (đoán trên máy), lời mời mới → *Có mới*, "mai 9:00 có Daily" |
 | `GET /me/events/{id}/attachments?$select=name` | Calendars.Read | Khi cuộc họp bạn tổ chức có đính kèm (cache) | Nút "Mở slide" |
 | `GET /me/events/{id}/attachments` | Calendars.Read | Bấm "Mở slide" | Tải file về `%TEMP%\Minditful` rồi mở |
 | `POST /me/events` (category `Milo`) | Calendars.ReadWrite | Bấm Giữ chỗ / Khoá tập trung / Khoá trưa | "Nghỉ cùng Milo" (tentative), "Tập trung: #id" (busy) |
 | `GET /me/mailFolders/inbox?$select=unreadItemCount` | Mail.Read | 5 phút | Bản tin sáng |
-| `GET /me/mailFolders/inbox/messages` (10 ngày) | Mail.Read | 5 phút | Email chờ: bạn ở ô To, có "?" hoặc cờ, chưa trả lời |
+| `GET /me/mailFolders/inbox/messages` (10 ngày) | Mail.Read | 5 phút (Sandbox 20") | Email chờ: bạn ở ô To, có "?" hoặc cờ, chưa trả lời · `RecentMail` (gửi thẳng cho bạn trong 24 giờ) → *Có mới* |
 | `GET /me/mailFolders/sentitems/messages` (10 ngày) | Mail.Read | 5 phút | Biết email nào đã trả lời (theo `conversationId`) |
 | `GET /me/presence` | Presence.Read | 30 giây | Cổng Đang họp, Không làm phiền |
 | `POST /users/{id}/presence/setUserPreferredPresence` | Presence.ReadWrite | Bắt đầu khối tập trung | Teams DND tới hết khối |
@@ -705,7 +725,7 @@ Xác thực: PAT (header `Basic base64(":"+PAT)`) hoặc Entra (Bearer). PAT sai
 
 | Method · Endpoint | Tần suất | Dùng cho |
 | --- | --- | --- |
-| `POST {org}/{project}/_apis/wit/wiql` — Assigned to @Me, State ∈ ActiveStates | 3 phút | Task đang làm, task kẹt (ngày làm việc từ `ActivatedDate`) |
+| `POST {org}/{project}/_apis/wit/wiql` — Assigned to @Me, State ∈ ActiveStates | 3 phút (Sandbox 30") | Task đang làm, task kẹt (ngày làm việc từ `ActivatedDate`) |
 | `POST …/wiql` — State ∈ DoneStates, `StateChangeDate >= @Today` | 3 phút | Task xong → Milo nhảy tưng |
 | `GET {org}/_apis/wit/workitems?ids=…&errorPolicy=omit` | kèm 2 query trên | Tiêu đề, trạng thái, ngày, story point (không truyền danh sách field để tránh TF51535) |
 | `GET {org}/{project}/{team}/_apis/work/teamsettings/iterations?$timeframe=current` | 3 phút | Sprint hiện tại, ngày còn lại |
@@ -720,6 +740,12 @@ Xác thực: PAT (header `Basic base64(":"+PAT)`) hoặc Entra (Bearer). PAT sai
 
 Cả 2 dùng chung lời nhắc (`ClaudeLineWriter.Voice` + `LineRules` / `ChatRules` / `TalkRules` / `MoodRules` / `MeetingRulesPrompt`) và cách đọc JSON. Lời nhắc chấm mood có khung JD-R, mốc từ nghiên cứu, thang 4 mức khớp nhãn, ví dụ hiệu chỉnh và yêu cầu nhất quán. Mọi câu người dùng gõ được đánh dấu là dữ liệu, không phải chỉ thị. Chọn bằng `Llm.Provider`. `LlmBridge` đếm request và giãn nhịp chấm mood trong Demo (`DemoMoodMinSeconds`). Trang *Mood Engine* đổi `Cfg.MoodMode` / `MeetingMode` lúc chạy (`LlmBridge.SetModes`) và chạy `MoodEvaluation` (3 bộ kiểm chứng).
 
+Engine chỉ biết 4 sự kiện (`LineWanted`, `ChatWanted`, `MoodWanted`, `MeetingWanted`); `LlmBridge` gọi `IMiloLlm` rồi trả kết quả bằng `SetLine` / `SetChatReply` / `SetMoodInsight` / `SetMeetingInsight`. `MiloLlm.Create` chọn bản theo `Llm.Provider`.
+
+**Xoay nhiều key** (`OpenAiCompatibleWriter`): `LLM_API_KEY` có thể chứa nhiều key ngăn bằng dấu phẩy / chấm phẩy / khoảng trắng, không giới hạn số lượng. Mỗi request thử lần lượt từ key kế tiếp; key bị 429 được cho nghỉ theo `Retry-After`, key bị 401/403 nghỉ 1 giờ. `KeyStatus` (còn lượt / tổng) hiện ở trang *Mood Engine*. Chấm điểm dùng temperature 0, chat 0,7; model gpt-oss được gửi `reasoning_effort: low`.
+
+Bảng dưới áp dụng cho cả 2 bản; riêng phần gọi Claude:
+
 #### Claude API
 
 Qua **Anthropic C# SDK** (`client.Beta.Messages.Create`), model mặc định `claude-opus-5`, `effort: low`, không retry, header beta `server-side-fallback-2026-07-01` + `fallbacks: "default"` (khi model từ chối thì server tự chuyển model).
@@ -732,21 +758,21 @@ Qua **Anthropic C# SDK** (`client.Beta.Messages.Create`), model mặc định `c
 | Mood | Mỗi 30' (`MoodWanted`) | Số liệu cả ngày (+ câu chat nếu bật) | JSON: score, adjust, focus, energy, stress, label, insight | 20s | Điểm luật |
 | Cuộc họp | Cuộc họp mới (`MeetingWanted`) | Độ dài, giờ, số người, vai trò, vị trí trong chuỗi, trống sau đó, **nhãn loại** (`MeetingIntents`, đoán trên máy từ tiêu đề + agenda; chữ gốc không gửi) | JSON: load, kind, recovery_min, note | 20s | Đánh giá luật (cũng dùng nhãn) |
 
-Mood và cuộc họp dùng **structured output** (`output_config.format = json_schema`). API key đọc từ DPAPI (`claude-api-key.bin`) hoặc `ANTHROPIC_API_KEY`.
+Với Claude, mood, cuộc họp và chat dùng **structured output** (`output_config.format = json_schema`); bản tương thích OpenAI dùng `response_format: json_object`. API key đọc từ DPAPI (`claude-api-key.bin`), `ANTHROPIC_API_KEY` (Claude) hoặc `LLM_API_KEY` (tương thích OpenAI).
 
 ```mermaid
 sequenceDiagram
     participant E as MiloEngine
     participant B as LlmBridge
-    participant W as ClaudeLineWriter
-    participant API as Claude API
+    participant W as IMiloLlm
+    participant API as Claude / Groq / Ollama
     E->>B: LineWanted(item, {case, số liệu, câu mẫu})
     B->>W: WriteLineAsync (không chặn engine)
-    W->>API: POST /v1/messages (≤ 2,5s)
+    W->>API: POST /v1/messages hoặc /chat/completions (≤ 2,5s)
     API-->>W: "Mình đứng dậy duỗi vai 5 phút nha?"
     W-->>B: câu đã kiểm tra
     B->>E: SetLine(item, câu) (trên UI thread)
-    Note over E: Khi case được giao, thẻ dùng câu này.<br/>Nếu Claude chưa kịp hoặc không trả lời thì dùng template
+    Note over E: Khi case được giao, thẻ dùng câu này.<br/>Nếu AI chưa kịp hoặc không trả lời thì dùng template
 ```
 
 ### 8.5 Windows
@@ -757,11 +783,13 @@ sequenceDiagram
 | `GetLastInputInfo` | Idle → rời máy, đang gõ |
 | `SHQueryUserNotificationState`, `GetForegroundWindow`, `GetWindowRect`, `MonitorFromWindow` | Toàn màn hình |
 | `SetWinEventHook(EVENT_SYSTEM_FOREGROUND)` | Đếm chuyển app (chỉ tên tiến trình, không đọc tiêu đề cửa sổ hay phím) |
-| `SetWindowDisplayAffinity(WDA_EXCLUDEFROMCAPTURE)` | Ẩn Milo khi share màn hình |
+| `SetWindowDisplayAffinity(WDA_EXCLUDEFROMCAPTURE / WDA_NONE)` | Ẩn Milo khi share màn hình; Sandbox bật/tắt lúc chạy |
 | `SetWindowLongPtr(WS_EX_TOOLWINDOW)` | Không hiện trong Alt+Tab |
 | `ProtectedData` (DPAPI, CurrentUser) | Mã hoá PAT, API key; MSAL cache |
 | `System.Windows.Forms.NotifyIcon`, `Screen` | Khay hệ thống, vùng làm việc từng màn hình |
-| `Process.Start(UseShellExecute)` | Mở link Teams, Outlook, file đính kèm |
+| `Process.Start(UseShellExecute)` | Mở link Teams, Outlook, Azure Boards, file đính kèm |
+| `Registry` `HKCU\…\CurrentVersion\Run` | Khởi động cùng Windows (`AutoStart`) |
+| `Process.Start(Environment.ProcessPath, "--env …")` + `Shutdown` | Chuyển môi trường |
 
 ### 8.6 Ví dụ trọn vẹn: "Task kẹt → Khoá 90 phút"
 
@@ -806,8 +834,11 @@ Thư mục gốc: `%LOCALAPPDATA%\Minditful\` (mỗi môi trường một thư m
 | `<Env>\minditful.db` (+ `-wal`, `-shm`) | Thống kê: mục 7.2 | Chỉ số liệu, id đã băm | **Tự xoá theo tuần/tháng** (9.2) · nút "Xoá toàn bộ dữ liệu thống kê ngay" |
 | `<Env>\msal.cache` | Token Microsoft | DPAPI (MSAL) | Bảng điều khiển → Đăng xuất |
 | `<Env>\ado-pat.bin` | PAT Azure DevOps | DPAPI (CurrentUser) | Nút "Xoá PAT" |
-| `<Env>\claude-api-key.bin` | API key Claude | DPAPI | Lưu key rỗng / xoá file |
+| `<Env>\claude-api-key.bin` | API key AI nhập trong bảng điều khiển (tên file giữ từ bản đầu) | DPAPI | Lưu key rỗng / xoá file |
 | `<Env>\corner.txt` | Góc neo của Milo | — | Không chứa dữ liệu cá nhân |
+| `<Env>\accessory.txt` · `outfits.txt` | Bộ đồ đang mặc · các bộ đã phối | — | Chỉ id món đồ |
+| `<Env>\personality.txt` | Tính cách Milo | — | — |
+| `Sandbox\test-mode.txt` · `Sandbox\show-on-share.txt` | Chế độ Sandbox · Hiện Milo khi chia sẻ | — | — |
 | `last-environment.txt` | Môi trường đã "nhớ" | — | Bỏ tick "Nhớ lựa chọn" |
 | `crash.log` | Lỗi không lường trước | — | Xoá tay |
 | `%TEMP%\Minditful\*` | File đính kèm vừa mở bằng "Mở slide" | — | **Xoá khi thoát app** |
@@ -847,13 +878,13 @@ Ví dụ `Week` + `KeepPreviousPeriod = true` (mặc định): hôm nay thứ N�
 
 | Dữ liệu | Rời khỏi máy? | Tới đâu |
 | --- | --- | --- |
-| Tiêu đề/nội dung email, cuộc họp, task | **Không** | Chỉ đọc từ Graph/Azure DevOps để hiển thị trên máy; không ghi xuống đĩa; không gửi Claude |
-| Số liệu (phút họp, số task, điểm…) | Chỉ khi bật Claude | Claude API |
-| Câu người dùng gõ cho Milo | Chỉ khi bật Claude chat (và `IncludeChatInMood` cho mood) | Claude API |
+| Tiêu đề/nội dung email, cuộc họp, task | **Không** | Chỉ đọc từ Graph/Azure DevOps để hiển thị trên máy; không ghi xuống đĩa; không gửi AI. Tiêu đề + agenda cuộc họp chỉ dùng để đoán loại ngay trên máy |
+| Số liệu (phút họp, số task, điểm…) và nhãn (loại cuộc họp) | Chỉ khi bật AI | Dịch vụ AI đã cấu hình (Claude / Groq / Ollama trên máy) |
+| Câu người dùng gõ cho Milo | Chỉ khi bật AI chat (và `IncludeChatInMood` cho mood); câu khủng hoảng không bao giờ gửi | Dịch vụ AI đã cấu hình |
 | Phím bấm, tiêu đề cửa sổ | **Không bao giờ đọc** | — (chỉ thời điểm có thao tác và tên tiến trình) |
 | Sự kiện "Nghỉ cùng Milo", "Tập trung: #id", DND | Có (do người dùng bấm) | Outlook/Teams của chính người dùng |
 
-Bí mật (token, PAT, API key) mã hoá DPAPI theo tài khoản Windows. Milo ẩn khi share màn hình (Sandbox/Prod). Không có server riêng: app nói chuyện trực tiếp với Microsoft, Azure DevOps và (tuỳ chọn) Anthropic.
+Bí mật (token, PAT, API key) mã hoá DPAPI theo tài khoản Windows. Milo ẩn khi share màn hình (Production luôn ẩn; Sandbox có công tắc). Không có server riêng: app nói chuyện trực tiếp với Microsoft, Azure DevOps và (tuỳ chọn) dịch vụ AI.
 
 ---
 
@@ -863,12 +894,13 @@ Bí mật (token, PAT, API key) mã hoá DPAPI theo tài khoản Windows. Milo �
 | --- | --- |
 | Chưa đăng nhập / token hết hạn | Chạy tiếp với dữ liệu cũ; dashboard + Bảng điều khiển ghi "cần đăng nhập lại"; không bật trình duyệt giữa giờ |
 | Thiếu `Calendars.ReadWrite` | Nút "Giữ chỗ trong lịch" → **"Nhắc tôi lúc đó"**, không có nút "Khoá 30' trong lịch" |
-| Thiếu `Mail.Read` | Tắt Email chờ, bản tin sáng bỏ dòng email |
+| Thiếu `Mail.Read` | Tắt Email chờ và *Có mới* cho email, bản tin sáng bỏ dòng email |
 | Thiếu `Presence.ReadWrite` | Vẫn chặn lịch, nhắc người dùng tự bật DND |
 | Presence `Offline`/lỗi | Cổng Đang họp đoán theo lịch; sau 10' ghi log "Teams chưa đăng nhập" |
 | Chưa có PAT / PAT sai | "Chưa kết nối Azure Boards"; tắt Task kẹt/Task xong/workload/sprint |
 | Graph 429/5xx | Chờ `Retry-After`, thử lại tối đa 3 lần |
-| Không có API key Claude / Claude lỗi / quá giờ | Luật + câu mẫu; ghi lý do vào nhật ký |
+| Không có AI / AI lỗi / quá giờ | Luật + câu mẫu (chat theo từ khoá); ghi lý do vào nhật ký |
+| AI hết lượt (429) | Chuyển sang key kế tiếp; hết mọi key → luật + câu mẫu tới khi có key nghỉ xong |
 | Lỗi không lường trước trên UI thread | Ghi `crash.log`, app chạy tiếp (Milo không được làm sập máy người dùng) |
 
 Lỗi AADSTS được dịch sang tiếng Việt (admin consent, sai tenant, redirect URI, public client).
@@ -877,7 +909,7 @@ Lỗi AADSTS được dịch sang tiếng Việt (admin consent, sai tenant, red
 
 ## 12. Cấu hình
 
-`src/Minditful.App/appsettings.json` (mục `Minditful`), ghi đè bằng `.env` với tiền tố `MINDITFUL__Minditful__…` (`__` = `:`). Bảng đầy đủ tên biến `.env`, giá trị hợp lệ và công thức hay dùng nằm ở README mục *Tham chiếu biến `.env`*. `Wellbeing` chỉ áp dụng cho Sandbox/Production; Demo tắt sẵn (`EngineConfig` mặc định) để ngày mẫu giữ đúng mốc.
+`src/Minditful.App/appsettings.json` (mục `Minditful`), ghi đè bằng `.env` với tiền tố `MINDITFUL__Minditful__…` (`__` = `:`). Bảng đầy đủ tên biến `.env`, giá trị hợp lệ và công thức hay dùng nằm ở README mục *Tham chiếu biến `.env`*. `Wellbeing` chỉ áp dụng cho Sandbox/Production. Demo dùng `EngineConfig` mặc định: Giữ giờ tập trung, Báo cáo tuần, Nghỉ ngắn tắt (để ngày mẫu giữ đúng mốc, xem bằng *Thử tình huống*); "Hôm nay thấy sao?", tủ đồ, *Có mới* giả lập bật; tính cách Pha trộn.
 
 | Khoá | Mặc định | Ý nghĩa |
 | --- | --- | --- |
@@ -895,8 +927,11 @@ Lỗi AADSTS được dịch sang tiếng Việt (admin consent, sai tenant, red
 | `Wellbeing.EveningCheck` | true | "Hôm nay thấy sao?" + nghỉ giữa chuỗi họp ngày mai |
 | `Wellbeing.HideWhenPresenting` | true | Cổng `Presenting` từ Teams presence |
 | `Wellbeing.Wardrobe` | true | Tủ đồ |
-| `Llm.Enabled` | true | Công tắc tổng Claude |
-| `Llm.Model` / `Effort` | claude-opus-5 / low | |
+| `Llm.Enabled` | true | Công tắc tổng AI |
+| `Llm.Provider` / `BaseUrl` | Claude / trống | `OpenAI` = dịch vụ tương thích OpenAI tại `BaseUrl` (Groq, Ollama…) |
+| `Llm.Model` / `Effort` | claude-opus-5 / low | Groq: `qwen/qwen3.8-27b` |
+| `Llm.UseInDemo` | false | Demo dùng AI cho câu thoại và chat |
+| `Llm.EvalDelayMs` · `DemoMoodMinSeconds` | xem appsettings | Giãn nhịp khi chạy 3 bộ kiểm chứng · khi chấm mood trong Demo |
 | `Llm.Features.Lines/Chat` | true | Câu thoại / chat |
 | `Llm.Features.Mood` | Rules | Rules / Hybrid / Llm |
 | `Llm.Features.Meetings` | Rules | Rules / Llm |
@@ -915,15 +950,17 @@ Lỗi AADSTS được dịch sang tiếng Việt (admin consent, sai tenant, red
 
 ## 13. Kiểm thử
 
-`dotnet test` chạy 160 test trên Core + Integrations (không cần Windows, không gọi mạng):
+`dotnet test` chạy 247 test trên Core + Integrations (không cần Windows, không gọi mạng):
 
 | File | Kiểm tra |
 | --- | --- |
 | `DemoDayTests` | Ngày mẫu ra đúng các mốc §13 (08:58 … 18:31, 54 điểm); im lặng suốt họp; nhảy mốc cho kết quả giống nhau |
-| `AllCasesTests` | 16 case tự bật đúng luật; mọi nút của mọi thẻ; chấm chờ; chen ngang; cổng ngắt; chat |
+| `AllCasesTests` | 17 case gốc tự bật đúng luật; mọi nút của mọi thẻ; chấm chờ; chen ngang; cổng ngắt; chat |
+| `TalkTests` | Khung Trò chuyện: mở từ dashboard/Milo/khay, câu mở đầu theo số liệu, trả lời theo từ khoá khi không có AI, câu khủng hoảng, 120 giây không gõ thì thu |
+| `ChatActionTests` | AI đề nghị nút tính năng: chỉ mã trong danh sách cho phép và đang dùng được, đổi mã lỡ viết trong câu thành tên, bấm nút chạy đúng hành động |
 | `PresentationTests` | Dựng mọi thẻ/dashboard ở mọi giây của ngày mẫu không lỗi |
 | `LimitationsTests` | Câu thoại xoay vòng; LLM không nhận tiêu đề; khung clip; cá nhân hoá 7 ngày; ngưỡng Sandbox; hạ cấp quyền |
-| `InsightTests` | Đánh giá cuộc họp luật/Claude; mood Hybrid ±10, Llm, hết hạn; công tắc cấu hình |
+| `InsightTests` | Đánh giá cuộc họp luật/AI; mood Hybrid ±10, Llm, hết hạn; công tắc cấu hình |
 | `StorageTests` | SQLite: lưu, thống kê tuần, tự xoá tuần/tháng, không lưu tiêu đề, xoá toàn bộ, chuyển dữ liệu cũ |
 | `DotEnvTests` | Đọc `.env`, biến thật được ưu tiên, `.env.sample` đủ khoá; mọi biến trong `.env.sample` và README đều có trong appsettings.json |
 | `WorkHoursTests`, `ChatGoHomeTests` | Giờ làm linh hoạt 8→17 / 9→18 / 10→19; chat "về thôi", "đồng ý" ở thẻ tan tầm |
@@ -953,7 +990,9 @@ Phần WPF và gọi API thật được kiểm bằng tay theo README mục "H�
 | Đổi ngưỡng | `EngineConfig` (chuẩn) hoặc `Sandbox.BehaviorOverrides` |
 | Thêm nguồn dữ liệu (vd. Jira) | Client mới trong Integrations → đổ vào `WorkSnapshot` trong `LiveWorkDataProvider` |
 | Thêm hành động ra ngoài | Thêm record vào `MiloAction` → xử lý trong `LiveActionSink` |
-| Đổi LLM | `ClaudeLineWriter` là điểm duy nhất gọi LLM; engine chỉ biết `LineWanted/ChatWanted/MoodWanted/MeetingWanted` |
+| Đổi LLM | Cài `IMiloLlm` mới và thêm vào `MiloLlm.Create`; dịch vụ tương thích OpenAI chỉ cần đổi `Provider/BaseUrl/Model` trong `.env`. Engine chỉ biết `LineWanted/ChatWanted/MoodWanted/MeetingWanted` |
+| Thêm món đồ | `Wardrobe.Items` (ô, điều kiện mở) → SVG trong `MiloSkin` → test trong `WardrobeTests` |
+| Thêm clip hài | `Clip` (cuối enum) → `MiloRig` + `MiloLayer.BuildMemeFx` → dịp trong `MiloEngine.Meme` |
 | Thêm tư thế/clip | SVG vào `Assets/Milo`, keyframes trong `ClipAnimation`, chuyển động bộ phận trong `MiloRig` |
 
 ---
@@ -962,7 +1001,7 @@ Phần WPF và gọi API thật được kiểm bằng tay theo README mục "H�
 
 | Thuật ngữ | Nghĩa |
 | --- | --- |
-| **Case** | Một loại lời nhắc/episode (16 loại, `CaseId`) |
+| **Case** | Một loại lời nhắc/episode (22 loại, `CaseId`) |
 | **Episode** | Một lần Milo xuất hiện: Vào → Ở lại → Ra |
 | **Clip** | Một đoạn hoạt ảnh (leo lên, vẫy, thở, chạy ra xe…) |
 | **Cổng im lặng** | Điều kiện khiến Milo không được nói (họp, toàn màn hình, tập trung, DND, khoá máy, nghỉ làm) |
@@ -975,5 +1014,5 @@ Phần WPF và gọi API thật được kiểm bằng tay theo README mục "H�
 | **Office Vibe** | 3 chỉ số 0–5: Tập trung, Năng lượng, Căng thẳng |
 | **Chùm nho** | Biểu đồ 7 ngày trong dashboard, mỗi quả là điểm 1 ngày |
 | **Snapshot** | Ảnh chụp dữ liệu lịch/email/task mà engine đọc |
-| **Lớp 2** | Phần dùng LLM (Claude): câu thoại, chat, mood, cuộc họp |
+| **Lớp 2** | Phần dùng AI (Claude hoặc tương thích OpenAI): câu thoại, chat, trò chuyện, mood, cuộc họp |
 | **Hạ cấp** | Thiếu quyền/dữ liệu thì tắt đúng tính năng đó, phần còn lại chạy tiếp |

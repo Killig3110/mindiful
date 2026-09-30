@@ -649,7 +649,7 @@ public static class Present
     public static readonly IReadOnlyDictionary<string, string> PenaltyLabels = new Dictionary<string, string>
     {
         ["meet"] = "Họp", ["chain"] = "Chuỗi họp", ["streak"] = "Làm liền", ["ot"] = "Quá giờ", ["rest"] = "Thiếu nghỉ",
-        ["frag"] = "Phân mảnh", ["work"] = "Workload", ["stuck"] = "Task kẹt", ["email"] = "Email chờ", ["stress"] = "Giả lập", ["llm"] = "Claude",
+        ["frag"] = "Phân mảnh", ["work"] = "Workload", ["stuck"] = "Task kẹt", ["email"] = "Email chờ", ["stress"] = "Giả lập", ["llm"] = "AI",
         ["self"] = "Bạn tự thấy", ["week"] = "Tuần > 48h",
     };
 }

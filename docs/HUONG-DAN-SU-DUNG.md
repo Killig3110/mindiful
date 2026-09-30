@@ -63,6 +63,8 @@ Nhấp đúp biểu tượng cũng mở bảng điều khiển.
 | Kéo chóp đuôi sang góc khác rồi thả | Milo chuyển sang góc đó (trên trái, trên phải, dưới trái, dưới phải) |
 | Bấm Milo, bấm ×, hoặc nhấn Esc | Đóng dashboard |
 | Bấm **Trò chuyện** trên dashboard, bấm Milo lúc Milo đang đứng ở góc, hoặc menu khay → *Trò chuyện với Milo* | Mở **khung trò chuyện** (mục 3.4) |
+| Chuột phải Milo hoặc chóp đuôi | Menu nhanh: *Thay đồ cho Milo* · *Trò chuyện với Milo* · *Mở dashboard* · *Tính cách Milo* |
+| Bấm Milo 5 lần liền | "Ơ kìa!" rồi giả vờ ngất (trừ tính cách Dễ thương) |
 
 Màu và dáng Milo đổi theo **điểm mood** của ngày: mọng (≥ 80) thì tươi tắn; mệt dần (40–59) thì nhạt màu, dáng uể oải; kiệt sức (< 40) thì có chữ "z" bay.
 
@@ -76,6 +78,7 @@ Màu và dáng Milo đổi theo **điểm mood** của ngày: mọng (≥ 80) th
 | **Táo** | Sprint: càng gần xong táo càng bị cắn nhiều | Điểm sprint, số task đang làm / kẹt |
 
 Trên thanh tiêu đề nhỏ:
+- **Tủ đồ**: mở tủ đồ ngay trên đầu Milo (mục 3.5). **Trò chuyện**: mở khung chat (mục 3.4).
 - **Tuần này →**: nho thành **chùm 7 quả**, mỗi quả là 1 ngày (quả viền cam là hôm nay). Cam có 5 múi = 5 ngày làm việc.
 - **Chi tiết**: mở **bảng nhỏ** ngay trên đầu Milo, cỡ 1 thẻ.
   - Trang *Hôm nay*: dòng thời gian giờ làm (họp, tập trung, nghỉ, vạch cam là bây giờ), Office Vibe, 3 cuộc họp sắp tới.
@@ -198,7 +201,7 @@ Cửa sổ riêng, tông kem như thẻ của Milo. **Đóng cửa sổ này th�
 | **Kịch bản trình diễn** | 28 bước đi qua đủ 22 tình huống + dashboard chi tiết, Milo ngủ khi tập trung, trình chiếu, mood realtime, 9 động tác hài, tủ đồ. Mỗi bước ghi *người xem thấy gì* và *bạn nói gì*. Bấm từng bước hoặc bật *Tự chạy qua các bước*. Kịch bản lời nói: [KICH-BAN-DEMO.md](KICH-BAN-DEMO.md) |
 | **Bắt đầu** | Thẻ **Mood realtime**: kéo mức căng thẳng, bấm nghỉ / xong task, gọi Milo đứng ở góc để thấy dáng và màu đổi ngay. Phát / tạm dừng ngày mẫu, *Làm lại từ 08:50*, tốc độ *Chậm 60× · Vừa 120× · Nhanh 300×*. Công tắc **Người dùng mẫu tự bấm nút**: bật thì kịch bản tự trả lời, tắt thì bạn tự bấm trên thẻ. Số liệu hôm nay và mẹo tương tác |
 | **Ngày mẫu** | 17 mốc của ngày Thứ Năm 24/9. Bấm 1 mốc để tua tới ngay trước lúc đó. Mốc đang diễn ra tô cam |
-| **Thử tình huống** | *Cho Milo làm ngay*: 19 thẻ tình huống chia 4 nhóm, bấm là Milo làm luôn. *Giả vờ bạn đang…*: công tắc gõ phím, rời máy, khoá máy, toàn màn hình, Không làm phiền, trình chiếu, ngày căng thẳng; và nút 1 lần (rời cuộc họp, nhảy việc, xong 1 task, mở dashboard) |
+| **Thử tình huống** | *Cho Milo làm ngay*: 22 thẻ tình huống chia 4 nhóm (Chào hỏi, Giúp việc, Chăm sóc, Mới thêm), bấm là Milo làm luôn. *Có mới* bấm lần lượt ra email → lời mời họp → task mới. *Giả vờ bạn đang…*: công tắc gõ phím, rời máy, khoá máy, toàn màn hình, Không làm phiền, trình chiếu, ngày căng thẳng; và nút 1 lần (rời cuộc họp, nhảy việc, xong 1 task, mở dashboard) |
 | **Milo của bạn** | Tủ đồ phối theo ô (bấm món để Milo mặc ngay), tính cách Milo + 9 nút xem thử động tác hài, chọn góc màn hình |
 | **Mood Engine** | Công tắc chấm mood *Luật* / *Luật + AI* / *AI chấm hẳn* và đánh giá cuộc họp *Luật* / *AI*. **3 bộ kiểm chứng**: luật hợp lý, AI hợp lý và ổn định, so sánh luật với AI. *Lưu báo cáo* ra Desktop |
 | **Bộ não Milo** | Nâng cao: trạng thái, điều gì đang khiến Milo im lặng, lời nhắc đang chờ, điểm mood được tính thế nào, nhật ký từng quyết định |
@@ -209,8 +212,8 @@ Lúc Milo ẩn, đồng hồ kịch bản tua nhanh. Lúc Milo xuất hiện, th
 
 | Trang | Để làm gì |
 | --- | --- |
-| **Tổng quan** | 3 thẻ kết nối: *Microsoft 365*, *Azure Boards*, *Claude*. **Chấm xanh** là ổn, **vàng** là cần làm thêm 1 bước, **đỏ** là lỗi (dòng chữ cạnh chấm ghi lý do bằng tiếng Việt). Phần *Milo đang thấy*: số cuộc họp, email chờ, task, sprint, điểm mood, cuộc họp kế tiếp, giờ làm hôm nay |
-| **Kết nối** | *Đăng nhập / Đăng xuất Microsoft*, *Làm mới dữ liệu*. Ô dán **PAT** Azure DevOps (*Lưu PAT / Xoá PAT*). Ô dán **API key Claude** (*Lưu key*). Tất cả lưu mã hoá trên máy |
+| **Tổng quan** | Sandbox: thẻ **Chế độ Sandbox** (chế độ test / như Production, công tắc *Hiện Milo khi chia sẻ màn hình*). 3 thẻ kết nối: *Microsoft 365*, *Azure Boards*, *AI*. **Chấm xanh** là ổn, **vàng** là cần làm thêm 1 bước, **đỏ** là lỗi (dòng chữ cạnh chấm ghi lý do bằng tiếng Việt). Phần *Milo đang thấy*: số cuộc họp, email chờ, task, sprint, điểm mood, cuộc họp kế tiếp, giờ làm hôm nay |
+| **Kết nối** | *Đăng nhập / Đăng xuất Microsoft*, *Làm mới dữ liệu*. Ô dán **PAT** Azure DevOps (*Lưu PAT / Xoá PAT*). Ô dán **API key AI** (*Lưu key*; hoặc đặt trong `.env`). Tất cả lưu mã hoá trên máy |
 | **Thử tình huống** (chỉ Sandbox ở chế độ test) | *Chuẩn bị*: Reset ngày (chào sáng lại), đặt giờ về (*Giờ về = bây giờ + 2 phút*), *Tạo dữ liệu mẫu* trong tenant. *Cho Milo làm ngay* và *Giả vờ bạn đang…* như Demo |
 | **Mood Engine** | Như Demo: công tắc luật ↔ AI và 3 bộ kiểm chứng |
 | **Kiểm chứng điểm** | 5 câu WHO-5 mỗi tuần, bảng so sánh điểm Milo với WHO-5, hệ số tương quan *r*, nút *Xuất CSV ẩn danh* (mục 5.5) |
@@ -223,25 +226,27 @@ Production mặc định không tự mở bảng điều khiển (Milo chỉ ở
 
 - **Chế độ test (như Demo)**
   - Có trang *Thử tình huống* để ép Milo làm bất kỳ tình huống nào, trên tài khoản và dữ liệu thật.
-  - Ngưỡng rút ngắn (ngồi liền 20 phút đã nhắc, 3 phút giữa 2 lời nhắc, nhắc uống nước mỗi 5 phút).
+  - Ngưỡng rút ngắn (ngồi liền 20 phút đã nhắc, 3 phút giữa 2 lời nhắc, nhắc nghỉ ngắn mỗi 5 phút).
   - Bảng điều khiển tự mở khi chạy app.
   - Nhãn thanh bên: *SANDBOX · CHẾ ĐỘ TEST*.
 - **Chạy như Production**
   - Ẩn trang *Thử tình huống*, bỏ mọi tín hiệu giả lập.
-- **Hiện Milo khi chia sẻ màn hình** (công tắc cùng thẻ, hoặc menu khay; chỉ có ở Sandbox):
-  - Tắt (mặc định): như Production. Milo không lọt vào màn hình chia sẻ, và trốn hẳn khi Teams báo đang trình chiếu.
-  - Bật: người xem Teams thấy Milo, trình chiếu cũng không làm Milo trốn. Dùng khi demo Milo qua Teams.
-  - Đổi có hiệu lực ngay, không cần mở lại app. Lựa chọn được nhớ cho lần sau.
   - Về ngưỡng chuẩn: ngồi liền 2 tiếng mới nhắc, 15 phút giữa 2 lời nhắc.
   - Bảng điều khiển không tự mở.
   - Milo cư xử y như bản Production, dùng để xem trước bản thật.
   - Nhãn thanh bên: *SANDBOX · NHƯ PRODUCTION*.
+- Ở cả 2 chế độ, Sandbox đọc dữ liệu nhanh hơn Production (email ~20 giây, lịch và task ~30 giây) để demo thẻ *Có mới*.
 
-Đổi lúc nào cũng được, không cần mở lại app. Lần sau mở app sẽ nhớ chế độ đã chọn.
+Đổi chế độ lúc nào cũng được, không cần mở lại app. Lần sau mở app sẽ nhớ chế độ đã chọn.
+
+**Hiện Milo khi chia sẻ màn hình** (công tắc cùng thẻ, hoặc menu khay; chỉ có ở Sandbox):
+- Tắt (mặc định): như Production. Milo không lọt vào màn hình chia sẻ, và trốn hẳn khi Teams báo đang trình chiếu.
+- Bật: người xem Teams thấy Milo, trình chiếu cũng không làm Milo trốn. Dùng khi demo Milo qua Teams.
+- Đổi có hiệu lực ngay, không cần mở lại app. Lựa chọn được nhớ cho lần sau.
 
 ## 5. Milo làm được gì: từng tính năng
 
-Cột "Thử ở đâu": trang **Thử tình huống** của bảng điều khiển (Demo và Sandbox) có thẻ cùng tên.
+Mỗi tính năng dưới đây đều có thẻ cùng tên ở trang **Thử tình huống** của bảng điều khiển (Demo, và Sandbox ở chế độ test) để xem ngay.
 
 ### 5.1 Chào hỏi
 
@@ -294,7 +299,7 @@ Vòng thở: vòng tròn phồng 4 giây (hít vào), giữ 4 giây, xẹp 4 gi�
 | **Có mới** | Có email mới gửi thẳng cho bạn, lời mời họp mới, task mới được giao | Ló lên với thẻ nhỏ: ai gửi, tiêu đề. Nhiều thứ tới liền nhau gộp 1 thẻ. Đang họp / tập trung thì chờ ở chấm chờ. Production đọc email 5 phút/lần, Sandbox khoảng 20 giây | *Mở email* / *Xem cuộc họp* / *Mở task* · *Đã xem* (20 giây không bấm thì thu lại) |
 | **Tủ đồ · phối đồ** | Mở khoá bằng thói quen tốt và theo mùa (mục 3.5) | 14 món chia 5 ô, phối nhiều món cùng lúc; sáng hôm sau Milo khoe món mới | Chuột phải Milo → *Thay đồ*, hoặc *Tủ đồ* trên dashboard, menu khay, chat "đổi đồ" |
 
-Muốn tắt tính năng nào (vd. thấy nhắc uống nước phiền): xem README mục **Tham chiếu biến `.env`**, nhóm `Wellbeing`.
+Muốn tắt tính năng nào (vd. thấy nhắc nghỉ ngắn phiền): xem README mục **Tham chiếu biến `.env`**, nhóm `Wellbeing`.
 
 ### 5.5 Điểm mood
 
@@ -302,7 +307,7 @@ Mỗi ngày bắt đầu từ 92 điểm:
 - **Bị trừ khi:** họp quá nhiều, họp liền, ngồi liền, quá giờ, nghỉ ít, nhảy việc, nhiều task dở, task kẹt, email chờ, hoặc bạn tự nói "Mệt" (−6).
 - **Được cộng khi:** nghỉ cùng Milo, xong task, xong khối tập trung, bạn nói "Vui" (+3).
 
-Có Claude và bật chế độ Hybrid thì Claude được chỉnh thêm tối đa ±10 điểm. Trang **Bộ não Milo** ghi rõ từng khoản; rê chuột lên từng khoản để xem nghiên cứu làm căn cứ.
+Có AI và bật chế độ *Luật + AI* (trang Mood Engine) thì AI được chỉnh thêm tối đa ±10 điểm. Trang **Bộ não Milo** ghi rõ từng khoản; rê chuột lên từng khoản để xem nghiên cứu làm căn cứ.
 
 **Điểm lấy từ đâu:**
 - Công thức theo mô hình Job Demands–Resources.
@@ -357,7 +362,7 @@ Present: dùng trang **Kịch bản trình diễn** và làm theo [KICH-BAN-DEMO
 1. Chọn **Production**, đăng nhập bằng tài khoản Bosch. Tick *Nhớ lựa chọn*.
 2. Không cần làm gì thêm: Milo tự chào sáng, nhắc họp, im lặng khi bạn họp hoặc trình chiếu, rủ nghỉ khi cần, nhắc về.
 3. Nếu thẻ ghi "Nhắc tôi lúc đó" thay cho "Giữ chỗ trong lịch": tenant chưa cấp quyền ghi lịch. Milo vẫn nhắc đúng giờ nhưng không ghi vào Outlook. Đây là đúng thiết kế.
-4. Muốn Milo nói tự nhiên hơn: dán API key Claude ở trang **Kết nối** (không bắt buộc).
+4. Muốn Milo nói tự nhiên hơn: cấu hình AI (API key ở trang **Kết nối** hoặc trong `.env`; không bắt buộc). Với dữ liệu Bosch thật chỉ dùng dịch vụ AI đã được duyệt.
 5. Muốn Milo tự chạy mỗi lần mở máy: menu khay → tick **Khởi động cùng Windows**, hoặc bảng điều khiển → **Milo của bạn** → công tắc *Khởi động cùng Windows*.
    - Tắt mặc định. Bỏ tick là Milo thôi tự chạy.
    - Milo mở thẳng đúng môi trường đã bật, không hiện màn hình chọn.
@@ -387,9 +392,9 @@ Không thấy cả chóp đuôi:
 - Milo **chỉ lưu số liệu** trên máy bạn (điểm, số phút, số lần). Không lưu tiêu đề hay nội dung email, cuộc họp, task.
 - Dữ liệu **tự xoá theo tuần**. Máy chỉ giữ tuần này và tuần trước để vẽ chùm nho và so sánh.
 - Muốn xoá ngay: *Milo của bạn* → **Xoá toàn bộ dữ liệu thống kê ngay**.
-- Claude (nếu bật) chỉ nhận tên tình huống và con số, vd. "3 cuộc họp liền, 2h40". Không bao giờ nhận tiêu đề hay nội dung.
+- AI (nếu bật) chỉ nhận tên tình huống, con số và nhãn, vd. "3 cuộc họp liền, 2h40", "loại cuộc họp: Ra quyết định". Không bao giờ nhận tiêu đề, agenda hay nội dung. Tiêu đề và agenda cuộc họp chỉ được đọc ngay trên máy để đoán loại.
 - Milo **không đọc phím bạn gõ**, chỉ biết lúc nào có thao tác.
-- Ở Sandbox/Production, người xem màn hình chia sẻ **không thấy Milo**.
+- Ở Sandbox/Production, người xem màn hình chia sẻ **không thấy Milo** (Sandbox có công tắc để hiện khi demo).
 - PAT, API key, đăng nhập được mã hoá theo tài khoản Windows của bạn.
 
 ## 9. Hỏi nhanh

@@ -69,7 +69,9 @@ Làm theo [KICH-BAN-SANDBOX.md](KICH-BAN-SANDBOX.md) mục 3 (thao tác chi ti�
 
 ---
 
-## 1. Chuẩn bị (trước giờ present 15 phút)
+## 1. Chuẩn bị Demo (trước giờ present 15 phút)
+
+Bản đầy đủ cho cả Demo lẫn Sandbox: mục 0.1–0.2. Riêng phần Demo:
 
 | Việc | Cách làm |
 | --- | --- |
@@ -103,7 +105,7 @@ Mỗi bước, trang hiện sẵn: **Người xem thấy gì** và **Bạn nói 
 | # | Bước | Người xem thấy | Bạn nói |
 | --- | --- | --- | --- |
 | 1 | Chào buổi sáng | Hai bàn chân bám mép → Milo leo lên → "Hello!" → bản tin: 4 cuộc họp, 7 email, 6 task, giờ về hôm nay | "Mở máy lần đầu trong ngày, Milo tóm tắt ngày hôm nay. Giờ về tính theo giờ linh hoạt của Bosch: vào 9h thì về 18h." |
-| 2 | Sắp họp | Milo chỉ tay, thẻ Teams "còn 5 phút · Sprint Planning" → Mở slide → Tham gia | "5 phút trước họp Teams, Milo nhắc và mở sẵn slide vì bạn là người trình bày." |
+| 2 | Sắp họp | Milo chỉ tay, thẻ Teams "còn 5 phút · Sprint Planning" + gợi ý "cần chốt quyết định: ghi sẵn 1–2 ý chính" → Mở slide → Tham gia | "5 phút trước họp Teams, Milo nhắc và mở sẵn slide vì bạn dẫn cuộc họp. Milo đoán đây là cuộc ra quyết định từ tiêu đề, ngay trên máy." |
 | 3 | Đang họp: Milo im lặng | Milo ẩn hẳn, cả chóp đuôi. Góc màn hình có chấm "2 lời nhắc đang chờ" | "Đang họp thì Milo im lặng tuyệt đối, lời nhắc dồn lại chờ họp xong. Bấm chấm này thì xem ngay được." |
 | 4 | Task kẹt → khoá giờ tập trung | Hết họp Milo nhảy vòng cung ra, thẻ Task kẹt #4821 → Khoá 90 phút | "Task dở 4 ngày. Milo chặn 90 phút trong lịch và bật Không làm phiền trên Teams." |
 | 5 | Hết giờ tập trung · Nghỉ quá ít | Bóng thoại "90 phút sâu xong rồi!" → thẻ Nghỉ quá ít → Để sau | "Xong khối tập trung Milo khen, rồi nhắc cả sáng mới nghỉ 7 phút. Bấm Để sau thì Milo hỏi lại sau." |
@@ -137,6 +139,7 @@ Milo làm từng tình huống ngay, không chờ tới giờ.
 Ở các bước này có thể bỏ tự chạy và **tự bấm** 1–2 thẻ để người xem thấy thẻ phản hồi thế nào:
 - *Để sau* 2 lần thì mất nút Để sau.
 - Gõ chat "mệt quá" thì Milo rủ thở.
+- Bước 21 app tự gõ sẵn 1 câu. Có thể gõ thêm 1 câu tự do (vd. "cuối tuần nên làm gì cho đỡ stress?") để người xem thấy AI trả lời tự nhiên. Gõ "viết code giúp mình" thì Milo từ chối nhẹ nhàng vì Milo chỉ là bạn đồng hành sức khoẻ.
 
 ### Phần C · Điểm nhấn (bước 25–28, khoảng 4 phút)
 
@@ -156,9 +159,7 @@ Milo làm từng tình huống ngay, không chờ tới giờ.
 Trang **Mood Engine**:
 1. Chọn **Luật + AI**. Dải trên cùng hiện điểm luật, phần AI chỉnh thêm và câu nhận xét của AI.
 2. Bấm **1 · Chứng minh luật hợp lý**: 14/14 kiểm tra đạt ngay.
-3. Nếu có AI (Ollama chạy sẵn trên máy là chắc chắn nhất): bấm **2 + 3**. Kết quả: AI có ổn định không, có xếp đúng ngày nặng/nhẹ không, lệch luật bao nhiêu điểm.
-
-Bước 21 app tự gõ sẵn 1 câu. Có thể gõ thêm 1 câu tự do (vd. "cuối tuần nên làm gì cho đỡ stress?") để người xem thấy AI trả lời tự nhiên. Gõ "viết code giúp mình" thì Milo từ chối nhẹ nhàng vì Milo chỉ là bạn đồng hành sức khoẻ.
+3. Nếu có AI (Groq · Qwen trong `.env`, hoặc Ollama trên máy): bấm **2 + 3** (khoảng 30 request, 1–3 phút). Kết quả: AI có ổn định không, có xếp đúng ngày nặng/nhẹ không, lệch luật bao nhiêu điểm. Lần chạy thật với Qwen: bộ 2 đạt 11/11, bộ 3 tương quan r = 0,95 (CO-SO-KHOA-HOC.md mục 7).
 
 Nói: *"Luật được chứng minh bằng test. AI được kiểm trước khi bật: hỏi lại nhiều lần vẫn ra gần như nhau, và phải đồng ý với nghiên cứu về ngày nào nặng hơn."*
 
@@ -211,8 +212,8 @@ Chữ nhỏ ở góc mỗi quả là nguồn dữ liệu: T = Teams, O = Outlook
 | AI chấm có ổn định không? | Trang *Mood Engine* → bộ 2: hỏi AI mỗi ngày mẫu 3 lần, lệch ≤ 10 điểm mới đạt; bộ 3 so với luật (lệch trung bình, tương quan) |
 | Điểm mood lấy từ đâu, sao tin được? | Mô hình Job Demands–Resources (Bakker et al., 2023): áp lực trừ điểm, hồi phục cộng điểm. Mỗi khoản dựa trên nghiên cứu từ 2021 tới nay (họp trực tuyến gây mệt, nghỉ ngắn giảm mệt, đa nhiệm gây stress, > 48 giờ/tuần có rủi ro). Bộ test chứng minh với 20.000 bộ số liệu ngẫu nhiên rằng công thức luôn đúng chiều các nghiên cứu. Con số tuyệt đối được hiệu chỉnh bằng khảo sát WHO-5 của WHO khi chạy thử với nhóm thật. Chi tiết: [CO-SO-KHOA-HOC.md](CO-SO-KHOA-HOC.md) |
 | Có làm phiền không? | Tối đa 1 lời nhắc chủ động mỗi 15 phút, 3 lần/giờ, 10 lần/ngày. Im lặng khi họp, trình chiếu, toàn màn hình, tập trung. Bạn hay bấm "Không cần" case nào thì Milo tự thưa case đó (cá nhân hoá 7 ngày) |
-| Dữ liệu đi đâu? | Chỉ lưu số liệu trên máy (SQLite), tự xoá theo tuần. Không có server riêng. AI (Claude) chỉ nhận con số, không nhận tiêu đề hay nội dung |
-| Không có AI thì sao? | Chạy đủ bằng luật và câu mẫu. Có API key thì Claude viết lời tự nhiên hơn và chấm mood tinh hơn (±10 điểm) |
+| Dữ liệu đi đâu? | Chỉ lưu số liệu trên máy (SQLite), tự xoá theo tuần. Không có server riêng. AI chỉ nhận con số và nhãn, không nhận tiêu đề hay nội dung |
+| Không có AI thì sao? | Chạy đủ bằng luật và câu mẫu, chat trả lời theo từ khoá. Có AI (Groq, Ollama, Claude…) thì lời tự nhiên hơn, trò chuyện được, và chấm mood tinh hơn (±10 điểm) |
 | Có chạy thật với Teams không? | Có, xem [KICH-BAN-SANDBOX.md](KICH-BAN-SANDBOX.md): đổi dữ liệu trên Teams/Outlook/Azure Boards thật là Milo phản ứng |
 | Milo đọc phím tôi gõ à? | Không. Chỉ biết lúc nào có thao tác (để không nói khi bạn đang gõ) và app nào đang mở phía trước (để biết nhảy việc) |
 | Milo có tự đặt lịch, đổi trạng thái Teams không? | Không. Mọi hành động (giữ chỗ trong lịch, khoá tập trung + Không làm phiền, mở Teams / Outlook / Azure Boards) chỉ chạy sau khi bạn bấm. Chỉ 2 việc tự động, đều nằm trong việc bạn đã đồng ý: tới giờ tập trung đã giữ thì bật Không làm phiền, hết giờ thì trả Teams về như cũ |

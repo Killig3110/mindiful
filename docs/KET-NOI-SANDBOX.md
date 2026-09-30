@@ -24,7 +24,7 @@ Ba môi trường của app:
 | Môi trường | Dữ liệu | Đăng nhập | Ngưỡng hành vi |
 |---|---|---|---|
 | `Scenario` (Test kịch bản) | Ngày mẫu giả lập, tua giờ được | Không cần | Chuẩn |
-| `Sandbox` (tài liệu này) | Thật, tenant Mindiful | MSAL + PAT | **Rút gọn** để test nhanh |
+| `Sandbox` (tài liệu này) | Thật, tenant Mindiful | MSAL + PAT | Chế độ test: **rút gọn** để test nhanh · Như Production: chuẩn. Đọc dữ liệu nhanh (email 20", lịch/Boards 30") ở cả 2 chế độ |
 | `Prod` | Thật, tenant Bosch | MSAL + PAT | Chuẩn |
 
 ---
@@ -174,7 +174,7 @@ Trong Visual Studio: Project → Properties → Debug → *Command line argument
 
 **Chu kỳ đọc:** `Polling` là chu kỳ chuẩn (Production). Sandbox đè bằng `mailPollSeconds` / `calendarPollSeconds` / `boardsPollSeconds` ở **cả 2 chế độ** (test và như Production), vì đây là hạ tầng chứ không phải ngưỡng hành vi: nhờ vậy gửi 1 email thật là khoảng 20 giây sau Milo báo thẻ *Có mới*. App hỏi provider mỗi 10 giây, provider tự quyết nguồn nào tới hạn đọc lại.
 
-`BehaviorOverrides` chỉ có ở Sandbox. Nó rút ngắn các ngưỡng phải chờ lâu (task Active 3 ngày, email chờ 1 ngày, làm liền 2 giờ, ngân sách 15 phút, nhắc uống nước 50 phút, khoảng trống giữ giờ tập trung 60 phút) để test trong một buổi. Prod không có khối này, nên dùng đúng ngưỡng trong tài liệu (mục 4, 8, 11).
+`BehaviorOverrides` chỉ có ở Sandbox. Nó rút ngắn các ngưỡng phải chờ lâu (task Active 3 ngày, email chờ 1 ngày, làm liền 2 giờ, ngân sách 15 phút, nhắc nghỉ ngắn 50 phút, khoảng trống giữ giờ tập trung 60 phút) để test trong một buổi. Prod không có khối này, nên dùng đúng ngưỡng trong tài liệu (mục 4, 8, 11).
 
 Ngưỡng rút gọn chỉ áp dụng khi Sandbox ở **chế độ test** (`"TestMode": true`, mặc định). Bảng điều khiển → *Tổng quan* → *Chế độ Sandbox* (hoặc menu khay → *Chế độ test*) chuyển sang **Chạy như Production**: về ngưỡng chuẩn, ẩn trang *Thử tình huống*, bỏ tín hiệu giả lập. Việc chuyển chế độ không cần mở lại app và được nhớ cho lần sau.
 
@@ -350,7 +350,7 @@ Chuyển mỗi sự kiện sang `CalendarEvent` như sau:
 - **File đính kèm** (nút *Mở slide*): khi `hasAttachments = true`, gọi `GET me/events/{id}/attachments?$select=name,contentType` và lấy file đầu tiên.
 - Ngày mai, lấy **sự kiện đầu tiên** để viết dòng "Mai 9:00 có Daily" trong thẻ Tan tầm (mục 6.2).
 
-Polling mỗi **2 phút**, và gọi thêm ngay khi máy mở khoá hoặc resume.
+Polling mỗi **2 phút** (Sandbox **30 giây**), và gọi thêm ngay khi máy mở khoá hoặc resume. App lấy thêm `bodyPreview` (agenda) chỉ để đoán loại cuộc họp ngay trên máy (`MeetingIntents`), không lưu và không gửi đi. Sự kiện mới (người khác mời) → thẻ *Có mới*.
 
 **Tạo khối lịch (Giữ chỗ nghỉ / Khoá tập trung / Khoá trưa):**
 
@@ -392,7 +392,7 @@ Một email được tính là **đang chờ bạn** khi thoả cả 4 điều k
 3. Trong Sent Items không có thư nào cùng `conversationId` gửi **sau** `receivedDateTime`.
 4. Số ngày làm việc (bỏ T7, CN) từ `receivedDateTime` tới nay ≥ `emailMinBusinessDaysWaiting` (Sandbox = 0, Prod = 1).
 
-Nút *Mở Outlook* mở `webLink` của email đầu tiên. Polling mỗi **5 phút**.
+Nút *Mở Outlook* mở `webLink` của email đầu tiên. Polling mỗi **5 phút** (Sandbox **20 giây**). Cùng lần đọc này, email gửi thẳng cho thulu@ trong 24 giờ qua được đưa vào `RecentMail` → email mới thì thẻ *Có mới*.
 
 **Riêng tư:** tiêu đề và nội dung email chỉ dùng trên máy để lọc và hiển thị. Chúng **không bao giờ** được gửi cho LLM (xem tài liệu, mục 14).
 
@@ -525,7 +525,7 @@ Chạy app với `--env Sandbox`, đăng nhập thulu@, dán PAT (bảng điều
 | 13 | Đăng xuất Teams, chờ 10 phút | Log ghi "đang dùng lịch để đoán cuộc họp"; cổng họp vẫn đúng giờ theo lịch | 5.2 |
 | 14 | Xoá PAT (bảng điều khiển → *Kết nối* → *Xoá PAT*) | Các tính năng Boards tắt, không popup lỗi; dashboard có dòng "Chưa kết nối Azure Boards" | 14 |
 
-**Tính năng mở rộng** (bật bằng mục `Wellbeing`; ở chế độ test Sandbox tự rút ngắn: nhắc uống nước mỗi 5 phút, giữ giờ tập trung từ 30 phút trống):
+**Tính năng mở rộng** (bật bằng mục `Wellbeing`; ở chế độ test Sandbox tự rút ngắn: nhắc nghỉ ngắn mỗi 5 phút, giữ giờ tập trung từ 30 phút trống):
 
 | # | Làm gì | Milo phải… |
 |---|---|---|
@@ -578,7 +578,9 @@ Chỉ đổi **cấu hình**, code giữ nguyên:
 | TenantId | `<Mindiful>` | `0ae51e19-07c8-4e0e-bb9d-648ee58410f4` |
 | ClientId | `<Minditful Milo (Sandbox)>` | `55b3153f-ddfd-4120-9408-2f9e874fe660` |
 | Scopes | 6 quyền | Bắt đầu với `User.Read`, `Presence.Read`, `Calendars.Read`. Các quyền còn lại thêm khi IT duyệt |
-| Tính năng thiếu quyền | — | App tự hạ cấp: Giữ chỗ → "Nhắc tôi lúc đó"; Email chờ tắt; khoá tập trung chỉ nhắc, không bật DND |
+| Tính năng thiếu quyền | — | App tự hạ cấp: Giữ chỗ → "Nhắc tôi lúc đó"; Email chờ và *Có mới* cho email tắt; khoá tập trung chỉ nhắc, không bật DND |
+| Chu kỳ đọc | Nhanh: email 20", lịch/Boards 30" | Chuẩn: email 5', lịch 2', Boards 3' |
+| Hiện Milo khi chia sẻ màn hình | Có công tắc (mặc định tắt) | **Không có**, luôn ẩn |
 | Azure DevOps | `mindiful-sandbox / Milo-Sandbox` | Org/project Bosch; PAT chỉ cần **Work Items: Read** + **Project and Team: Read** |
 | `BehaviorOverrides` | Có (ngưỡng rút gọn, chỉ ở chế độ test) | **Không có**, dùng ngưỡng chuẩn |
 | Chế độ test (trang *Thử tình huống*) | Có, bật/tắt được | **Không có** |

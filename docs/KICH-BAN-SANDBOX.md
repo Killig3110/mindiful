@@ -28,7 +28,7 @@ Không muốn chờ: bảng điều khiển → *Tổng quan* → **Làm mới n
 
 Kịch bản dưới đây chỉ dùng những phản ứng **không phụ thuộc ngưỡng**.
 
-**Present qua Teams (chia sẻ màn hình cho ban giám khảo):** mặc định Milo bị ẩn khỏi màn hình chia sẻ và trốn khi trình chiếu, nên người xem sẽ không thấy gì. Trước khi chia sẻ, bật **Hiện Milo khi chia sẻ màn hình**: bảng điều khiển → *Tổng quan* → thẻ *Chế độ Sandbox*, hoặc menu khay. Tới bước 4 của phần B (chứng minh Milo ẩn khỏi màn hình chia sẻ) thì tắt công tắc này đi.
+**Present qua Teams (chia sẻ màn hình cho ban giám khảo):** mặc định Milo bị ẩn khỏi màn hình chia sẻ và trốn khi trình chiếu, nên người xem sẽ không thấy gì. Trước khi chia sẻ, bật **Hiện Milo khi chia sẻ màn hình**: bảng điều khiển → *Tổng quan* → thẻ *Chế độ Sandbox*, hoặc menu khay. Tới bước 7 của phần B (chứng minh Milo ẩn khỏi màn hình chia sẻ) thì tắt công tắc này đi.
 
 ## 2. Chuẩn bị
 
@@ -62,7 +62,7 @@ Kịch bản dưới đây chỉ dùng những phản ứng **không phụ thu�
 
 | # | Bạn làm | Người xem thấy | Bạn nói |
 | --- | --- | --- | --- |
-| 1 | Mở bảng điều khiển → **Tổng quan** | 3 thẻ kết nối: Microsoft 365 và Azure Boards chấm xanh, Claude tuỳ chọn. Phần *Milo đang thấy*: số cuộc họp hôm nay, email chờ, task đang làm, sprint, điểm mood, giờ làm hôm nay | "Đây là tenant thật, không phải dữ liệu mẫu. Milo đọc thẳng từ Microsoft Graph và Azure DevOps, không có server trung gian." |
+| 1 | Mở bảng điều khiển → **Tổng quan** | Thẻ *Chế độ Sandbox*, 3 thẻ kết nối: Microsoft 365 và Azure Boards chấm xanh, AI (Groq · Qwen) tuỳ chọn. Phần *Milo đang thấy*: số cuộc họp hôm nay, email chờ, task đang làm, sprint, điểm mood, giờ làm hôm nay | "Đây là tenant thật, không phải dữ liệu mẫu. Milo đọc thẳng từ Microsoft Graph và Azure DevOps, không có server trung gian." |
 | 2 | Bấm chóp đuôi Milo ở góc màn hình | Dashboard 4 quả với số thật: cam = số cuộc họp hôm nay, táo = sprint thật | "Cùng dashboard như Demo, giờ là số liệu thật của tài khoản này." |
 
 ### Phần B · Đổi dữ liệu thật, Milo phản ứng (6 phút)
